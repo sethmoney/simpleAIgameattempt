@@ -3,8 +3,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game with Corrected Mechanics</title>
+    <meta viewport="width=device-width, initial-scale=1.0">
+    <title>Game with Visuals Corrected</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser.min.js"></script>
 </head>
 <body>
@@ -29,11 +29,14 @@
             super('GameScene');
         }
 
+        preload() {
+            this.load.image('redCircle', 'path/to/redCircleImage.png'); // Placeholder path for red circle image
+            this.load.image('blueCircle', 'path/to/blueCircleImage.png'); // Placeholder path for blue circle image
+        }
+
         create() {
             this.player = this.physics.add.sprite(this.cameras.main.centerX, this.cameras.main.centerY, null).setInteractive();
             this.player.setSize(40, 40);
-            this.graphics = this.add.graphics({ fillStyle: { color: 0x00ff00 } });
-            this.graphics.fillRectShape(this.player.getBounds());
             this.cursors = this.input.keyboard.createCursorKeys();
             this.score = 0;
             this.lives = 3;
@@ -41,13 +44,12 @@
             this.livesText = this.add.text(10, 30, 'Lives: 3', { fontSize: '16px', fill: '#fff' });
 
             // Red Circles
-            this.redCircles = this.physics.add.group({ defaultKey: 'redCircle', createCallback: (obj) => obj.setCircle(20).setInteractive() });
+            this.redCircles = this.physics.add.group();
             for (let i = 0; i < 10; i++) this.spawnRedCircle();
-            this.physics.add.overlap(this.player, this.redCircles, this.hitRedCircle, null, this);
 
             // Blue Circle
-            this.blueCircle = this.physics.add.group({ defaultKey: 'blueCircle', createCallback: (obj) => obj.setCircle(20).setInteractive() });
             this.spawnBlueCircle();
+            this.physics.add.overlap(this.player, this.redCircles, this.hitRedCircle, null, this);
             this.physics.add.overlap(this.player, this.blueCircle, this.hitBlueCircle, null, this);
         }
 
@@ -60,14 +62,18 @@
         }
 
         spawnRedCircle() {
-            let x = Phaser.Math.Between(0, 800), y = Phaser.Math.Between(0, 600);
-            this.redCircles.create(x, y, 'redCircle');
+            let x = Phaser.Math.Between(0, this.sys.game.config.width),
+                y = Phaser.Math.Between(0, this.sys.game.config.height);
+            let circle = this.redCircles.create(x, y, 'redCircle');
+            circle.setCircle(20);
         }
 
         spawnBlueCircle() {
-            this.blueCircle.clear(true, true);
-            let x = Phaser.Math.Between(0, 800), y = Phaser.Math.Between(0, 600);
-            this.blueCircle.create(x, y, 'blueCircle');
+            if (this.blueCircle) this.blueCircle.destroy(); // Ensure only one blue circle exists at a time
+            let x = Phaser.Math.Between(0, this.sys.game.config.width),
+                y = Phaser.Math.Between(0, this.sys.game.config.height);
+            this.blueCircle = this.physics.add.sprite(x, y, 'blueCircle');
+            this.blueCircle.setCircle(20);
         }
 
         hitRedCircle(player, circle) {
