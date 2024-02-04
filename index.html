@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,6 +44,11 @@
             this.redCircles = this.physics.add.group({ defaultKey: 'redCircle', createCallback: (obj) => obj.setCircle(20).setInteractive() });
             for (let i = 0; i < 10; i++) this.spawnRedCircle();
             this.physics.add.overlap(this.player, this.redCircles, this.hitRedCircle, null, this);
+
+            // Blue Circle
+            this.blueCircle = this.physics.add.group({ defaultKey: 'blueCircle', createCallback: (obj) => obj.setCircle(20).setInteractive() });
+            this.spawnBlueCircle();
+            this.physics.add.overlap(this.player, this.blueCircle, this.hitBlueCircle, null, this);
         }
 
         update() {
@@ -58,11 +64,23 @@
             this.redCircles.create(x, y, 'redCircle');
         }
 
+        spawnBlueCircle() {
+            this.blueCircle.clear(true, true);
+            let x = Phaser.Math.Between(0, 800), y = Phaser.Math.Between(0, 600);
+            this.blueCircle.create(x, y, 'blueCircle');
+        }
+
         hitRedCircle(player, circle) {
             circle.destroy();
             this.lives--;
             this.livesText.setText('Lives: ' + this.lives);
             if (this.lives <= 0) this.gameOver();
+        }
+
+        hitBlueCircle(player, circle) {
+            this.score++;
+            this.scoreText.setText('Score: ' + this.score);
+            this.spawnBlueCircle();
         }
 
         gameOver() {
