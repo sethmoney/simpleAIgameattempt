@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Draggable Phaser Game</title>
+    <title>Enhanced Phaser Game</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser.min.js"></script>
     <style>
         body, html {
@@ -46,19 +46,27 @@
             }
 
             create() {
+                // Player setup
                 this.player = this.physics.add.sprite(this.cameras.main.centerX, this.cameras.main.centerY, null)
-                    .setInteractive() // Make the sprite interactive
-                    .on('pointerdown', () => this.input.setDragState(this.player, 1)); // Enable dragging
+                    .setInteractive()
+                    .on('pointerdown', () => this.input.setDragState(this.player, 1));
 
+                // Visual feedback for player
                 this.add.graphics({ fillStyle: { color: 0x00ff00 } }).fillRect(this.player.x - 20, this.player.y - 20, 40, 40);
                 this.player.setSize(40, 40);
 
+                // Control setup
                 this.cursors = this.input.keyboard.createCursorKeys();
+
+                // Game state
                 this.score = 0;
                 this.lives = 3;
+
+                // UI elements
                 this.scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '16px', fill: '#fff' });
                 this.livesText = this.add.text(10, 30, 'Lives: 3', { fontSize: '16px', fill: '#fff' });
 
+                // Enemy and collectible setup
                 this.redCircles = this.physics.add.group({
                     collideWorldBounds: true,
                     bounceX: 1,
@@ -72,12 +80,13 @@
                 this.blueCircle = this.physics.add.group({ max: 1 });
                 this.spawnBlueCircle();
 
+                // Collision detection
                 this.physics.add.overlap(this.player, this.redCircles, this.hitRedCircle, null, this);
                 this.physics.add.overlap(this.player, this.blueCircle, this.hitBlueCircle, null, this);
 
                 // Timer setup
                 this.initialTime = 10;
-                this.timeText = this.add.text(700, 10, 'Time: 10', { fontSize: '16px', fill: '#fff' });
+                this.timeText = this.add.text(700, 10, 'Time: ' + this.initialTime, { fontSize: '16px', fill: '#fff' });
                 this.timerEvent = this.time.addEvent({
                     delay: 1000,
                     callback: this.updateTimer,
@@ -85,19 +94,19 @@
                     loop: true
                 });
 
-                // Enable dragging
+                // Dragging setup
                 this.input.dragDistanceThreshold = 16;
 
-                this.input.on('dragstart', function (pointer, gameObject) {
+                this.input.on('dragstart', (pointer, gameObject) => {
                     gameObject.setTint(0xff0000);
                 });
 
-                this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
+                this.input.on('drag', (pointer, gameObject, dragX, dragY) => {
                     gameObject.x = dragX;
                     gameObject.y = dragY;
                 });
 
-                this.input.on('dragend', function (pointer, gameObject) {
+                this.input.on('dragend', (pointer, gameObject) => {
                     gameObject.clearTint();
                 });
             }
@@ -107,13 +116,12 @@
                 this.timeText.setText('Time: ' + this.initialTime);
                 if (this.initialTime <= 0) {
                     this.timerEvent.remove();
-                    if (this.score < 3) {
-                        this.gameOver('Game Over. Tap to Restart');
-                    }
+                    this.gameOver('Time\'s Up. Tap to Restart');
                 }
             }
 
             update() {
+                // Basic movement
                 if (this.cursors.left.isDown) this.player.x -= 4;
                 if (this.cursors.right.isDown) this.player.x += 4;
                 if (this.cursors.up.isDown) this.player.y -= 4;
@@ -121,23 +129,29 @@
             }
 
             spawnRedCircle() {
-                let x = Phaser.Math.Between(20, window.innerWidth - 20), y = Phaser.Math.Between(20, window.innerHeight - 20);
+                // Spawn red circles at random positions
+                let x = Phaser.Math.Between(20, window.innerWidth - 20);
+                let y = Phaser.Math.Between(20, window.innerHeight - 20);
                 let redCircle = this.redCircles.create(x, y, null);
                 this.add.circle(x, y, 20, 0xff0000);
 
+                // Random velocity
                 const velocityX = Phaser.Math.Between(-50, 50);
                 const velocityY = Phaser.Math.Between(-50, 50);
                 redCircle.setVelocity(velocityX, velocityY);
             }
 
             spawnBlueCircle() {
+                // Spawn a blue circle at a random position
                 this.blueCircle.clear(true, true);
-                let x = Phaser.Math.Between(20, window.innerWidth - 20), y = Phaser.Math.Between(20, window.innerHeight - 20);
+                let x = Phaser.Math.Between(20, window.innerWidth - 20);
+                let y = Phaser.Math.Between(20, window.innerHeight - 20);
                 let blueCircle = this.blueCircle.create(x, y, null);
                 this.add.circle(x, y, 20, 0x0000ff);
             }
 
             hitRedCircle(player, redCircle) {
+                // Handle collision with red circles
                 redCircle.destroy();
                 this.lives--;
                 this.livesText.setText('Lives: ' + this.lives);
@@ -145,18 +159,20 @@
                     this.timerEvent.remove();
                     this.gameOver('Game Over. Tap to Restart');
                 } else {
-                    this.spawnRedCircle();
+                    this.spawnRedCircle(); // Spawn another for continuous gameplay
                 }
             }
 
             hitBlueCircle(player, blueCircle) {
+                // Handle collection of blue circles
                 blueCircle.destroy();
                 this.score++;
                 this.scoreText.setText('Score: ' + this.score);
-                this.spawnBlueCircle();
+                this.spawnBlueCircle(); // Spawn another for continuous gameplay
             }
 
             gameOver(message) {
+                // Game over logic
                 this.physics.pause();
                 this.player.setTint(0xff0000);
                 this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, message, { fontSize: '32px', fill: '#fff' })
@@ -168,30 +184,32 @@
             }
         }
 
-        const config = {
-            type: Phaser.AUTO,
-            width: window.innerWidth,
-            height: window.innerHeight,
-            parent: 'gameContainer',
-            physics: {
-                default: 'arcade',
-                arcade: {
-                    gravity: { y: 0 },
-                    debug: false
-                }
-            },
-            scene: [BootScene, GameScene]
-        };
-
-        window.onload = () => {
-            gameInstance = new Phaser.Game(config);
-        };
-
-        window.onresize = () => {
-            if (gameInstance) {
-                gameInstance.scale.resize(window.innerWidth, window.innerHeight);
-            }
-        };
+                const config = {
+                    type: Phaser.AUTO, // Automatically determine the renderer (WebGL or Canvas)
+                    width: window.innerWidth, // Game width matches the width of the window
+                    height: window.innerHeight, // Game height matches the height of the window
+                    parent: 'gameContainer', // ID of the DOM element to add the game to
+                    physics: {
+                        default: 'arcade', // Use the Arcade Physics system
+                        arcade: {
+                            gravity: { y: 0 }, // No gravity in the game
+                            debug: false // Set to true to see physics debug drawings
+                        }
+                    },
+                    scene: [BootScene, GameScene] // Array of scenes in the game
+                };
+        
+                window.onload = () => {
+                    gameInstance = new Phaser.Game(config); // Create the game instance on window load
+                };
+        
+                window.onresize = () => {
+                    if (gameInstance) {
+                        gameInstance.scale.resize(window.innerWidth, window.innerHeight); // Resize game when the window is resized
+                    }
+                };
     </script>
 </body>
 </html>
+
+            
