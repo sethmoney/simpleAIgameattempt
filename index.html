@@ -3,11 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Phaser Game</title>
+    <title>Enhanced Phaser Game</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent scrollbars from appearing */
+        }
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
 </head>
 <body>
+    <div id="gameContainer"></div>
     <script>
+        let gameInstance = null;
+
         class BootScene extends Phaser.Scene {
             constructor() {
                 super({ key: 'BootScene' });
@@ -87,10 +104,17 @@
                     this.timerEvent.remove();
                     this.gameOver('Congrats! You beat the level. Tap for next lvl');
                 }
+
+                if (this.score % 5 === 0 && this.score > 0) { // Increase difficulty every 5 points
+                    this.redCircles.children.iterate((child) => {
+                        child.setVelocityX(child.body.velocity.x * 1.1);
+                        child.setVelocityY(child.body.velocity.y * 1.1);
+                    });
+                }
             }
 
             spawnRedCircle() {
-                let x = Phaser.Math.Between(20, 780), y = Phaser.Math.Between(20, 580);
+                let x = Phaser.Math.Between(20, window.innerWidth - 20), y = Phaser.Math.Between(20, window.innerHeight - 20);
                 let redCircle = this.redCircles.create(x, y, null);
                 this.add.circle(x, y, 20, 0xff0000);
 
@@ -101,7 +125,7 @@
 
             spawnBlueCircle() {
                 this.blueCircle.clear(true, true);
-                let x = Phaser.Math.Between(20, 780), y = Phaser.Math.Between(20, 580);
+                let x = Phaser.Math.Between(20, window.innerWidth - 20), y = Phaser.Math.Between(20, window.innerHeight - 20);
                 let blueCircle = this.blueCircle.create(x, y, null);
                 this.add.circle(x, y, 20, 0x0000ff);
             }
@@ -139,9 +163,9 @@
 
         const config = {
             type: Phaser.AUTO,
-            width: 800,
-            height: 600,
-            parent: 'phaser-example',
+            width: window.innerWidth,
+            height: window.innerHeight,
+            parent: 'gameContainer',
             physics: {
                 default: 'arcade',
                 arcade: {
@@ -152,7 +176,15 @@
             scene: [BootScene, GameScene]
         };
 
-        new Phaser.Game(config);
+        window.onload = () => {
+            gameInstance = new Phaser.Game(config);
+        };
+
+        window.onresize = () => {
+            if (gameInstance) {
+                gameInstance.scale.resize(window.innerWidth, window.innerHeight);
+            }
+        };
     </script>
 </body>
 </html>
