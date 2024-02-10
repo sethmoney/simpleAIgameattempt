@@ -136,8 +136,10 @@
                 // Spawn red circles at random positions
                 let x = Phaser.Math.Between(20, window.innerWidth - 20);
                 let y = Phaser.Math.Between(20, window.innerHeight - 20);
-                let redCircle = this.redCircles.create(x, y, null);
-                this.add.circle(x, y, 20, 0xff0000);
+                let redCircle = this.redCircles.create(x, y, 'circle');
+                redCircle.setDisplaySize(40, 40); // Assuming you want a diameter of 40 for the red circles
+                redCircle.setFillStyle(0xff0000, 1);
+
 
                 // Random velocity
                 const baseSpeed = 50; // Base speed for red circles
@@ -145,7 +147,6 @@
                 const velocityX = Phaser.Math.Between(-baseSpeed, baseSpeed) * speedMultiplier;
                 const velocityY = Phaser.Math.Between(-baseSpeed, baseSpeed) * speedMultiplier;
                 redCircle.setVelocity(velocityX, velocityY);
-
             }
 
             spawnBlueCircle() {
@@ -153,8 +154,9 @@
                 this.blueCircle.clear(true, true);
                 let x = Phaser.Math.Between(20, window.innerWidth - 20);
                 let y = Phaser.Math.Between(20, window.innerHeight - 20);
-                let blueCircle = this.blueCircle.create(x, y, null);
-                this.add.circle(x, y, 20, 0x0000ff);
+                let blueCircle = this.blueCircle.create(x, y, 'circle');
+                blueCircle.setDisplaySize(40, 40); // Assuming you want a diameter of 40 for the blue circles
+                blueCircle.setFillStyle(0x0000ff, 1);
             }
 
             hitRedCircle(player, redCircle) {
