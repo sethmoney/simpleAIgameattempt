@@ -10,9 +10,9 @@
     <script>
         class BootScene extends Phaser.Scene {
             constructor() {
-                super('BootScene');
+                super({ key: 'BootScene' });
             }
-        
+
             create() {
                 this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, 'Tap to Start', { fontSize: '32px', fill: '#fff' })
                     .setOrigin(0.5)
@@ -22,45 +22,42 @@
                     });
             }
         }
-        
+
         class GameScene extends Phaser.Scene {
             constructor() {
-                super('GameScene');
+                super({ key: 'GameScene' });
             }
-        
+
             create() {
-                // Player as a green rectangle, physics-enabled
                 this.player = this.physics.add.sprite(this.cameras.main.centerX, this.cameras.main.centerY, null).setInteractive();
                 this.playerGraphics = this.add.graphics({ fillStyle: { color: 0x00ff00 } });
                 this.playerGraphics.fillRect(-20, -20, 40, 40);
                 this.player.setSize(40, 40);
-                this.player.displayOriginX = 0;
-                this.player.displayOriginY = 0;
-                this.player.add(this.playerGraphics);
-        
+                this.physics.add.existing(this.player);
+                
                 this.cursors = this.input.keyboard.createCursorKeys();
                 this.score = 0;
                 this.lives = 3;
                 this.scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '16px', fill: '#fff' });
                 this.livesText = this.add.text(10, 30, 'Lives: 3', { fontSize: '16px', fill: '#fff' });
-        
+
                 this.redCircles = this.physics.add.group();
                 for (let i = 0; i < 10; i++) this.spawnRedCircle();
-        
+
                 this.blueCircle = this.physics.add.group({ max: 1 });
                 this.spawnBlueCircle();
-        
+
                 this.physics.add.overlap(this.player, this.redCircles, this.hitRedCircle, null, this);
                 this.physics.add.overlap(this.player, this.blueCircle, this.hitBlueCircle, null, this);
             }
-        
+
             update() {
                 if (this.cursors.left.isDown) this.player.x -= 4;
                 if (this.cursors.right.isDown) this.player.x += 4;
                 if (this.cursors.up.isDown) this.player.y -= 4;
                 if (this.cursors.down.isDown) this.player.y += 4;
             }
-        
+
             spawnRedCircle() {
                 let x = Phaser.Math.Between(0, 800), y = Phaser.Math.Between(0, 600);
                 let redCircle = this.redCircles.create(x, y, null).setVisible(false);
@@ -68,7 +65,7 @@
                 graphics.fillCircle(x, y, 20);
                 redCircle.setCircle(20);
             }
-        
+
             spawnBlueCircle() {
                 this.blueCircle.clear(true, true);
                 let x = Phaser.Math.Between(0, 800), y = Phaser.Math.Between(0, 600);
@@ -77,7 +74,7 @@
                 graphics.fillCircle(x, y, 20);
                 blueCircle.setCircle(20);
             }
-        
+
             hitRedCircle(player, redCircle) {
                 redCircle.destroy();
                 this.lives--;
@@ -85,14 +82,14 @@
                 if (this.lives <= 0) this.gameOver();
                 else this.spawnRedCircle(); // Keep the game challenging
             }
-        
+
             hitBlueCircle(player, blueCircle) {
                 blueCircle.destroy();
                 this.score++;
                 this.scoreText.setText('Score: ' + this.score);
                 this.spawnBlueCircle(); // Respawn the blue circle elsewhere
             }
-        
+
             gameOver() {
                 this.physics.pause();
                 this.player.setTint(0xff0000);
@@ -104,7 +101,7 @@
                     });
             }
         }
-        
+
         const config = {
             type: Phaser.AUTO,
             width: 800,
@@ -119,9 +116,8 @@
             },
             scene: [BootScene, GameScene]
         };
-        
-        new Phaser.Game(config);
 
+        new Phaser.Game(config);
     </script>
 </body>
 </html>
