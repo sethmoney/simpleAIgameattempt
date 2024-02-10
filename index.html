@@ -54,6 +54,27 @@
 
                 this.physics.add.overlap(this.player, this.redCircles, this.hitRedCircle, null, this);
                 this.physics.add.overlap(this.player, this.blueCircle, this.hitBlueCircle, null, this);
+
+                // Timer setup
+                this.initialTime = 10;
+                this.timeText = this.add.text(700, 10, 'Time: 10', { fontSize: '16px', fill: '#fff' });
+                this.timerEvent = this.time.addEvent({
+                    delay: 1000,
+                    callback: this.updateTimer,
+                    callbackScope: this,
+                    loop: true
+                });
+            }
+
+            updateTimer() {
+                this.initialTime -= 1;
+                this.timeText.setText('Time: ' + this.initialTime);
+                if (this.initialTime <= 0) {
+                    this.timerEvent.remove();
+                    if (this.score < 3) {
+                        this.gameOver('Game Over. Tap to Restart');
+                    }
+                }
             }
 
             update() {
@@ -61,6 +82,11 @@
                 if (this.cursors.right.isDown) this.player.x += 4;
                 if (this.cursors.up.isDown) this.player.y -= 4;
                 if (this.cursors.down.isDown) this.player.y += 4;
+
+                if (this.score >= 3) {
+                    this.timerEvent.remove();
+                    this.gameOver('Congrats! You beat the level. Tap for next lvl');
+                }
             }
 
             spawnRedCircle() {
@@ -85,7 +111,8 @@
                 this.lives--;
                 this.livesText.setText('Lives: ' + this.lives);
                 if (this.lives <= 0) {
-                    this.gameOver();
+                    this.timerEvent.remove(); // Stop the timer if the game is over due to lives running out
+                    this.gameOver('Game Over. Tap to Restart');
                 } else {
                     this.spawnRedCircle();
                 }
@@ -98,10 +125,10 @@
                 this.spawnBlueCircle();
             }
 
-            gameOver() {
+            gameOver(message) {
                 this.physics.pause();
                 this.player.setTint(0xff0000);
-                this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, 'Game Over. Tap to Restart', { fontSize: '32px', fill: '#fff' })
+                this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, message, { fontSize: '32px', fill: '#fff' })
                     .setOrigin(0.5)
                     .setInteractive()
                     .on('pointerdown', () => {
