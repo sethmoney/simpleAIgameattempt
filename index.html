@@ -28,6 +28,7 @@
         class BootScene extends Phaser.Scene {
             constructor() {
                 super({ key: 'BootScene' });
+                this.level = 1;
             }
 
             create() {
@@ -136,9 +137,12 @@
                 this.add.circle(x, y, 20, 0xff0000);
 
                 // Random velocity
-                const velocityX = Phaser.Math.Between(-50, 50);
-                const velocityY = Phaser.Math.Between(-50, 50);
+                const baseSpeed = 50; // Base speed for red circles
+                const speedMultiplier = 1 + (this.level - 1) * 0.2; // Increase speed by 20% per level
+                const velocityX = Phaser.Math.Between(-baseSpeed, baseSpeed) * speedMultiplier;
+                const velocityY = Phaser.Math.Between(-baseSpeed, baseSpeed) * speedMultiplier;
                 redCircle.setVelocity(velocityX, velocityY);
+
             }
 
             spawnBlueCircle() {
@@ -164,12 +168,21 @@
             }
 
             hitBlueCircle(player, blueCircle) {
-                // Handle collection of blue circles
                 blueCircle.destroy();
                 this.score++;
                 this.scoreText.setText('Score: ' + this.score);
-                this.spawnBlueCircle(); // Spawn another for continuous gameplay
+            
+                if (this.score % 3 === 0) { // Every 3 blue circles collected
+                    this.level++;
+                    alert("Congrats! You made it to the next level!"); // Show level progression message
+                    this.redCircles.getChildren().forEach((circle) => {
+                        circle.setVelocity(circle.body.velocity.x * 1.2, circle.body.velocity.y * 1.2); // Increase speed by 20%
+                    });
+                }
+            
+                this.spawnBlueCircle();
             }
+
 
             gameOver(message) {
                 // Game over logic
