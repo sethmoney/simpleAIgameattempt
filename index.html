@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game with Corrected Mechanics</title>
+    <title>Dynamic Phaser Game</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser.min.js"></script>
 </head>
 <body>
@@ -41,7 +41,12 @@
                 this.scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '16px', fill: '#fff' });
                 this.livesText = this.add.text(10, 30, 'Lives: 3', { fontSize: '16px', fill: '#fff' });
 
-                this.redCircles = this.physics.add.group();
+                this.redCircles = this.physics.add.group({
+                    // Enable physics properties for roaming circles
+                    collideWorldBounds: true,
+                    bounceX: 1,
+                    bounceY: 1
+                });
                 for (let i = 0; i < 10; i++) this.spawnRedCircle();
 
                 this.blueCircle = this.physics.add.group({ max: 1 });
@@ -59,19 +64,22 @@
             }
 
             spawnRedCircle() {
-                let x = Phaser.Math.Between(0, 800), y = Phaser.Math.Between(0, 600);
+                let x = Phaser.Math.Between(20, 780), y = Phaser.Math.Between(20, 580);
                 let redCircle = this.redCircles.create(x, y, null).setVisible(false);
-                let graphics = this.add.graphics({ fillStyle: { color: 0xff0000 } });
-                graphics.fillCircle(x, y, 20);
+                let graphics = this.add.graphics({ fillStyle: { color: 0xff0000 } }).fillCircle(x, y, 20);
                 redCircle.setCircle(20);
+
+                // Assign a random velocity
+                const velocityX = Phaser.Math.Between(-50, 50);
+                const velocityY = Phaser.Math.Between(-50, 50);
+                redCircle.setVelocity(velocityX, velocityY);
             }
 
             spawnBlueCircle() {
                 this.blueCircle.clear(true, true);
-                let x = Phaser.Math.Between(0, 800), y = Phaser.Math.Between(0, 600);
+                let x = Phaser.Math.Between(20, 780), y = Phaser.Math.Between(20, 580);
                 let blueCircle = this.blueCircle.create(x, y, null).setVisible(false);
-                let graphics = this.add.graphics({ fillStyle: { color: 0x0000ff } });
-                graphics.fillCircle(x, y, 20);
+                let graphics = this.add.graphics({ fillStyle: { color: 0x0000ff } }).fillCircle(x, y, 20);
                 blueCircle.setCircle(20);
             }
 
@@ -80,14 +88,14 @@
                 this.lives--;
                 this.livesText.setText('Lives: ' + this.lives);
                 if (this.lives <= 0) this.gameOver();
-                else this.spawnRedCircle(); // Keep the game challenging
+                else this.spawnRedCircle();
             }
 
             hitBlueCircle(player, blueCircle) {
                 blueCircle.destroy();
                 this.score++;
                 this.scoreText.setText('Score: ' + this.score);
-                this.spawnBlueCircle(); // Respawn the blue circle elsewhere
+                this.spawnBlueCircle();
             }
 
             gameOver() {
