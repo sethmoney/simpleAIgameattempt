@@ -1,0 +1,85 @@
+let playerPosition = { x: 50, y: 50 };
+let itemPosition = { x: 100, y: 100 }; // Initial position of the item
+let inventory = []; // Player's inventory
+
+document.addEventListener('keydown', function(event) {
+    switch (event.key) {
+        case 'ArrowUp':
+        case 'ArrowDown':
+        case 'ArrowLeft':
+        case 'ArrowRight':
+            movePlayer(event.key.replace('Arrow', '').toLowerCase());
+            checkItemCollection();
+            break;
+        case ' ': // Spacebar
+            consumeItem();
+            break;
+    }
+});
+
+function movePlayer(direction) {
+    const moveStep = 10;
+    switch (direction) {
+        case 'up':
+            playerPosition.y -= moveStep;
+            break;
+        case 'down':
+            playerPosition.y += moveStep;
+            break;
+        case 'left':
+            playerPosition.x -= moveStep;
+            break;
+        case 'right':
+            playerPosition.x += moveStep;
+            break;
+    }
+    updatePlayerPosition();
+}
+
+function updatePlayerPosition() {
+    const playerElement = document.getElementById('player');
+    playerElement.style.top = playerPosition.y + 'px';
+    playerElement.style.left = playerPosition.x + 'px';
+}
+
+function addItemToGameView() {
+    const gameView = document.getElementById('game-view');
+    const itemElement = document.createElement('div');
+    itemElement.id = 'item';
+    itemElement.className = 'item';
+    itemElement.style.top = itemPosition.y + 'px';
+    itemElement.style.left = itemPosition.x + 'px';
+    gameView.appendChild(itemElement);
+}
+
+function checkItemCollection() {
+    if (Math.abs(playerPosition.x - itemPosition.x) < 50 && Math.abs(playerPosition.y - itemPosition.y) < 50) {
+        collectItem();
+    }
+}
+
+function collectItem() {
+    const itemElement = document.getElementById('item');
+    if (itemElement) {
+        itemElement.remove(); // Remove the item from the game view
+        inventory.push('Collected Item');
+        updateInventoryDisplay();
+    }
+}
+
+function updateInventoryDisplay() {
+    const inventoryElement = document.getElementById('player-inventory');
+    inventoryElement.textContent = inventory.join(', ');
+}
+
+function consumeItem() {
+    if (inventory.length > 0) {
+        alert("Consuming " + inventory.shift()); // Example action, replace with actual effect
+        updateInventoryDisplay();
+    }
+}
+
+window.onload = () => {
+    updatePlayerPosition();
+    addItemToGameView();
+}
