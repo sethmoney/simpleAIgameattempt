@@ -29,28 +29,27 @@
             }
         
             create() {
-                // Player as a green rectangle
+                // Player as a green rectangle, physics-enabled
                 this.player = this.physics.add.sprite(this.cameras.main.centerX, this.cameras.main.centerY, null).setInteractive();
                 this.playerGraphics = this.add.graphics({ fillStyle: { color: 0x00ff00 } });
-                this.playerGraphics.fillRect(this.cameras.main.centerX - 20, this.cameras.main.centerY - 20, 40, 40);
+                this.playerGraphics.fillRect(-20, -20, 40, 40);
                 this.player.setSize(40, 40);
-                this.physics.add.existing(this.player);
-                
+                this.player.displayOriginX = 0;
+                this.player.displayOriginY = 0;
+                this.player.add(this.playerGraphics);
+        
                 this.cursors = this.input.keyboard.createCursorKeys();
                 this.score = 0;
                 this.lives = 3;
                 this.scoreText = this.add.text(10, 10, 'Score: 0', { fontSize: '16px', fill: '#fff' });
                 this.livesText = this.add.text(10, 30, 'Lives: 3', { fontSize: '16px', fill: '#fff' });
         
-                // Red Circles as graphics with physics
                 this.redCircles = this.physics.add.group();
                 for (let i = 0; i < 10; i++) this.spawnRedCircle();
         
-                // Blue Circle as graphics with physics
-                this.blueCircle = this.physics.add.group();
+                this.blueCircle = this.physics.add.group({ max: 1 });
                 this.spawnBlueCircle();
         
-                // Collision and overlap checks
                 this.physics.add.overlap(this.player, this.redCircles, this.hitRedCircle, null, this);
                 this.physics.add.overlap(this.player, this.blueCircle, this.hitBlueCircle, null, this);
             }
@@ -64,37 +63,34 @@
         
             spawnRedCircle() {
                 let x = Phaser.Math.Between(0, 800), y = Phaser.Math.Between(0, 600);
-                let circle = this.redCircles.create(x, y, null).setOrigin(0.5);
-                circle.setSize(40, 40);
-                circle.isCircle = true;
-                circle.radius = 20;
-                this.add.graphics({ fillStyle: { color: 0xff0000 } }).fillCircle(x, y, 20);
+                let redCircle = this.redCircles.create(x, y, null).setVisible(false);
+                let graphics = this.add.graphics({ fillStyle: { color: 0xff0000 } });
+                graphics.fillCircle(x, y, 20);
+                redCircle.setCircle(20);
             }
         
             spawnBlueCircle() {
                 this.blueCircle.clear(true, true);
                 let x = Phaser.Math.Between(0, 800), y = Phaser.Math.Between(0, 600);
-                let circle = this.blueCircle.create(x, y, null).setOrigin(0.5);
-                circle.setSize(40, 40);
-                circle.isCircle = true;
-                circle.radius = 20;
-                this.add.graphics({ fillStyle: { color: 0x0000ff } }).fillCircle(x, y, 20);
+                let blueCircle = this.blueCircle.create(x, y, null).setVisible(false);
+                let graphics = this.add.graphics({ fillStyle: { color: 0x0000ff } });
+                graphics.fillCircle(x, y, 20);
+                blueCircle.setCircle(20);
             }
         
-            hitRedCircle(player, circle) {
-                circle.destroy();
+            hitRedCircle(player, redCircle) {
+                redCircle.destroy();
                 this.lives--;
                 this.livesText.setText('Lives: ' + this.lives);
                 if (this.lives <= 0) this.gameOver();
-                // Respawn red circle to keep the challenge
-                this.spawnRedCircle();
+                else this.spawnRedCircle(); // Keep the game challenging
             }
         
-            hitBlueCircle(player, circle) {
+            hitBlueCircle(player, blueCircle) {
+                blueCircle.destroy();
                 this.score++;
                 this.scoreText.setText('Score: ' + this.score);
-                circle.destroy(); // Destroy the blue circle graphics
-                this.spawnBlueCircle(); // Respawn the blue circle
+                this.spawnBlueCircle(); // Respawn the blue circle elsewhere
             }
         
             gameOver() {
