@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Phaser Game</title>
+    <title>Draggable Phaser Game</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser.min.js"></script>
     <style>
         body, html {
@@ -46,10 +46,13 @@
             }
 
             create() {
-                this.player = this.physics.add.sprite(this.cameras.main.centerX, this.cameras.main.centerY, null).setInteractive();
+                this.player = this.physics.add.sprite(this.cameras.main.centerX, this.cameras.main.centerY, null)
+                    .setInteractive() // Make the sprite interactive
+                    .on('pointerdown', () => this.input.setDragState(this.player, 1)); // Enable dragging
+
                 this.add.graphics({ fillStyle: { color: 0x00ff00 } }).fillRect(this.player.x - 20, this.player.y - 20, 40, 40);
                 this.player.setSize(40, 40);
-                
+
                 this.cursors = this.input.keyboard.createCursorKeys();
                 this.score = 0;
                 this.lives = 3;
@@ -81,6 +84,22 @@
                     callbackScope: this,
                     loop: true
                 });
+
+                // Enable dragging
+                this.input.dragDistanceThreshold = 16;
+
+                this.input.on('dragstart', function (pointer, gameObject) {
+                    gameObject.setTint(0xff0000);
+                });
+
+                this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
+                    gameObject.x = dragX;
+                    gameObject.y = dragY;
+                });
+
+                this.input.on('dragend', function (pointer, gameObject) {
+                    gameObject.clearTint();
+                });
             }
 
             updateTimer() {
@@ -99,18 +118,6 @@
                 if (this.cursors.right.isDown) this.player.x += 4;
                 if (this.cursors.up.isDown) this.player.y -= 4;
                 if (this.cursors.down.isDown) this.player.y += 4;
-
-                if (this.score >= 3) {
-                    this.timerEvent.remove();
-                    this.gameOver('Congrats! You beat the level. Tap for next lvl');
-                }
-
-                if (this.score % 5 === 0 && this.score > 0) { // Increase difficulty every 5 points
-                    this.redCircles.children.iterate((child) => {
-                        child.setVelocityX(child.body.velocity.x * 1.1);
-                        child.setVelocityY(child.body.velocity.y * 1.1);
-                    });
-                }
             }
 
             spawnRedCircle() {
@@ -135,7 +142,7 @@
                 this.lives--;
                 this.livesText.setText('Lives: ' + this.lives);
                 if (this.lives <= 0) {
-                    this.timerEvent.remove(); // Stop the timer if the game is over due to lives running out
+                    this.timerEvent.remove();
                     this.gameOver('Game Over. Tap to Restart');
                 } else {
                     this.spawnRedCircle();
