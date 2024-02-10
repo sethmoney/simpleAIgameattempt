@@ -58,9 +58,9 @@
 
                 // Control setup
                 this.cursors = this.input.keyboard.createCursorKeys();
-                this.boosts = 3; // available boosts
-                this.boostText = this.add.text(10, 50, 'Boosts: 3', { fontSize: '16px', fill: '#fff' }); // UI for boosts
-                this.spacebar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE); // Setup spacebar input
+                //this.boosts = 3; // available boosts
+                //this.boostText = this.add.text(10, 50, 'Boosts: 3', { fontSize: '16px', fill: '#fff' }); // UI for boosts
+                //this.spacebar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE); // Setup spacebar input
 
                 // Game state
                 this.score = 0;
@@ -125,17 +125,10 @@
             }
 
             update() {
-                let speed = 4; // Base speed
-                if (Phaser.Input.Keyboard.JustDown(this.spacebar) && this.boosts > 0) {
-                    speed *= 2; // Double the speed for the boost
-                    this.boosts--; // Decrement available boosts
-                    this.boostText.setText('Boosts: ' + this.boosts); // Update UI
-                }
-                
-                if (this.cursors.left.isDown) this.player.x -= speed;
-                if (this.cursors.right.isDown) this.player.x += speed;
-                if (this.cursors.up.isDown) this.player.y -= speed;
-                if (this.cursors.down.isDown) this.player.y += speed;
+                if (this.cursors.left.isDown) this.player.x -= 4;
+                if (this.cursors.right.isDown) this.player.x += 4;
+                if (this.cursors.up.isDown) this.player.y -= 4;
+                if (this.cursors.down.isDown) this.player.y += 4;
             }
 
 
