@@ -1,0 +1,75 @@
+float x, y; // Position of the circle
+float xspeed, yspeed; // Speed of the circle
+float diameter = 50; // Diameter of the circle
+float cursorBubbleDiameter = 100; // Diameter of the cursor's bubble
+int score = 0; // Initialize score
+float lineHeight = 10; // Height of the black line
+boolean gameIsOver = false; // Game over flag
+
+void setup() {
+  size(400, 400);
+  restartGame();
+  textSize(32);
+}
+
+void restartGame() {
+  x = width / 2;
+  y = height / 2;
+  xspeed = random(-2, 2);
+  yspeed = random(-2, 2);
+  score = 0;
+  gameIsOver = false;
+  loop();
+}
+
+void draw() {
+  background(255);
+  
+  if (gameIsOver) {
+    fill(0);
+    text("Game Over! Score: " + score, 50, height / 2 - 20);
+    text("Click to restart", 50, height / 2 + 20);
+    return;
+  }
+
+  // Draw the cursor's bubble
+  stroke(0);
+  noFill();
+  drawDottedCircle(mouseX, mouseY, cursorBubbleDiameter / 2);
+  noStroke();
+
+  // Circle logic here...
+
+  // Display the score
+  fill(0);
+  text("Score: " + score, 10, 30);
+}
+
+void drawDottedCircle(float centerX, float centerY, float radius) {
+  float angleStep = 5;
+  for (float angle = 0; angle < 360; angle += angleStep) {
+    float dotX = centerX + cos(radians(angle)) * radius;
+    float dotY = centerY + sin(radians(angle)) * radius;
+    point(dotX, dotY);
+  }
+}
+
+// Restart the game on mouse press after game over
+void mousePressed() {
+  if (gameIsOver) {
+    restartGame();
+  }
+}
+
+// Include logic for bouncing, game over condition, and score increment
+void checkContact() {
+  float distance = dist(x, y, mouseX, mouseY);
+  if (distance < cursorBubbleDiameter / 2 + diameter / 2 && !gameIsOver) {
+    score++; // Increment score when the circle contacts the cursor's bubble
+    float angle = atan2(y - mouseY, x - mouseX);
+    xspeed += cos(angle) * 0.5; // Increase speed slightly for added challenge
+    yspeed += sin(angle) * 0.5;
+  }
+}
+
+// Call checkContact() within draw()
