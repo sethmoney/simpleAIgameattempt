@@ -2,18 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dynamic Power-Up Collection Game</title>
+    <title>Dynamic Power-Up Collection Game with Power-Up Mechanics</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>body { margin: 0; padding: 0; overflow: hidden; }</style>
 </head>
 <body>
     <script>
         let playerPosition;
-        let playerSize = 20;
+        let playerSize = 20; // Default player size
         let powerUps = [];
         let powerUpSize = 15;
         let inventory = {};
         let showInventory = false;
+        let isBluePowerUpActive = false;
+        let bluePowerUpDuration = 300; // Duration of the blue power-up effect
+        let bluePowerUpTimer = 0;
 
         function setup() {
             createCanvas(800, 600);
@@ -24,6 +27,16 @@
         function draw() {
             background(0);
             handlePlayerInput();
+            if (isBluePowerUpActive) {
+                playerSize = 30; // Increased size during blue power-up
+                bluePowerUpTimer--;
+                if (bluePowerUpTimer <= 0) {
+                    isBluePowerUpActive = false;
+                    playerSize = 20; // Reset to original size
+                }
+            } else {
+                playerSize = 20; // Ensure it's the default size if not powered up
+            }
             drawPlayer();
             drawPowerUps();
             if (showInventory) {
@@ -35,8 +48,8 @@
         function keyPressed() {
             if (key === 'i' || key === 'I') {
                 showInventory = !showInventory;
-            } else {
-                usePowerUp(key);
+            } else if (key === '1') {
+                usePowerUp('blue');
             }
         }
 
@@ -80,12 +93,11 @@
             });
         }
 
-        function usePowerUp(key) {
-            const colorMap = { '1': 'blue', '2': 'red', '3': 'yellow' };
-            const color = colorMap[key];
-            if (color && inventory[color] && inventory[color] > 0) {
+        function usePowerUp(color) {
+            if (color === 'blue' && inventory[color] && inventory[color] > 0) {
+                isBluePowerUpActive = true;
+                bluePowerUpTimer = bluePowerUpDuration;
                 inventory[color]--;
-                console.log(`Used one ${color} power-up. Remaining: ${inventory[color]}`);
             }
         }
 
