@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dynamic Power-Up Collection Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>body { margin: 0; padding: 0; overflow: hidden; }</style>
+</head>
+<body>
+    <script>
+        let playerPosition;
+        let playerSize = 20;
+        let powerUps = [];
+        let powerUpSize = 15;
+        let inventory = {};
+        let showInventory = false;
+
+        function setup() {
+            createCanvas(800, 600);
+            playerPosition = createVector(width / 2, height / 2);
+            addPowerUps(5); // Initial set of power-ups
+        }
+
+        function draw() {
+            background(0);
+            handlePlayerInput();
+            drawPlayer();
+            drawPowerUps();
+            if (showInventory) {
+                drawInventory();
+            }
+            maybeAddPowerUp(); // Add more power-ups over time
+        }
+
+        function keyPressed() {
+            if (key === 'i' || key === 'I') {
+                showInventory = !showInventory;
+            } else {
+                usePowerUp(key);
+            }
+        }
+
+        function handlePlayerInput() {
+            if (keyIsDown(87)) { playerPosition.y -= 5; } // W
+            if (keyIsDown(83)) { playerPosition.y += 5; } // S
+            if (keyIsDown(65)) { playerPosition.x -= 5; } // A
+            if (keyIsDown(68)) { playerPosition.x += 5; } // D
+        }
+
+        function drawPlayer() {
+            fill(255);
+            ellipse(playerPosition.x, playerPosition.y, playerSize, playerSize);
+        }
+
+        function drawPowerUps() {
+            powerUps.forEach((powerUp, index) => {
+                if (!powerUp.collected) {
+                    fill(powerUp.color);
+                    ellipse(powerUp.position.x, powerUp.position.y, powerUpSize, powerUpSize);
+                    if (dist(playerPosition.x, playerPosition.y, powerUp.position.x, powerUp.position.y) < playerSize / 2 + powerUpSize / 2) {
+                        powerUp.collected = true;
+                        inventory[powerUp.color] = (inventory[powerUp.color] || 0) + 1;
+                    }
+                }
+            });
+        }
+
+        function drawInventory() {
+            let inventoryX = playerPosition.x + 40; // Offset from player
+            let inventoryY = playerPosition.y - 50; // Adjusted for visibility
+            fill(255, 255, 255, 150); // Semi-transparent white for background
+            let inventoryWidth = 120;
+            let inventoryHeight = 20 + Object.keys(inventory).length * 20;
+            rect(inventoryX, inventoryY, inventoryWidth, inventoryHeight); // Dynamic height based on inventory size
+            fill(0); // Text color
+            textSize(12); // Adjust text size as needed
+            let textOffsetY = 15;
+            Object.entries(inventory).forEach(([color, count], index) => {
+                text(`${color.toUpperCase()}: ${count}`, inventoryX + 10, inventoryY + textOffsetY + index * 20);
+            });
+        }
+
+        function usePowerUp(key) {
+            const colorMap = { '1': 'blue', '2': 'red', '3': 'yellow' };
+            const color = colorMap[key];
+            if (color && inventory[color] && inventory[color] > 0) {
+                inventory[color]--;
+                console.log(`Used one ${color} power-up. Remaining: ${inventory[color]}`);
+            }
+        }
+
+        function addPowerUps(count) {
+            const colors = ['blue', 'red', 'yellow', 'green', 'purple'];
+            for (let i = 0; i < count; i++) {
+                powerUps.push({
+                    position: createVector(random(width), random(height)),
+                    color: random(colors),
+                    collected: false
+                });
+            }
+        }
+
+        function maybeAddPowerUp() {
+            if (frameCount % 60 === 0) {
+                addPowerUps(1);
+            }
+        }
+    </script>
+</body>
+</html>
