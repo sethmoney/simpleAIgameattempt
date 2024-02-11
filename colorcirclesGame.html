@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dynamic Power-Up Collection Game with Power-Up Mechanics</title>
+    <title>Dynamic Power-Up Collection Game with Enhanced Mechanics</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>body { margin: 0; padding: 0; overflow: hidden; }</style>
 </head>
@@ -15,7 +15,7 @@
         let inventory = {};
         let showInventory = false;
         let isBluePowerUpActive = false;
-        let bluePowerUpDuration = 300; // Duration of the blue power-up effect
+        let bluePowerUpDuration = 300; // Adjusted duration for using multiple blue power-ups
         let bluePowerUpTimer = 0;
 
         function setup() {
@@ -28,14 +28,12 @@
             background(0);
             handlePlayerInput();
             if (isBluePowerUpActive) {
-                playerSize = 30; // Increased size during blue power-up
+                // Player size increase logic remains inside blue power-up effect
                 bluePowerUpTimer--;
                 if (bluePowerUpTimer <= 0) {
                     isBluePowerUpActive = false;
-                    playerSize = 20; // Reset to original size
+                    playerSize = 20; // Reset to original size after effect wears off
                 }
-            } else {
-                playerSize = 20; // Ensure it's the default size if not powered up
             }
             drawPlayer();
             drawPowerUps();
@@ -95,9 +93,10 @@
 
         function usePowerUp(color) {
             if (color === 'blue' && inventory[color] && inventory[color] > 0) {
+                playerSize += inventory[color] * 5; // Increase size based on blue power-ups collected
+                bluePowerUpTimer = bluePowerUpDuration + (inventory[color] * 10); // Optional: Increase duration based on power-ups used
+                inventory[color] = 0; // Use up all blue power-ups
                 isBluePowerUpActive = true;
-                bluePowerUpTimer = bluePowerUpDuration;
-                inventory[color]--;
             }
         }
 
