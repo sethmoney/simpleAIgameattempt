@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,18 +19,20 @@
         let bluePowerUpDuration = 300; // Adjusted duration for using multiple blue power-ups
         let bluePowerUpTimer = 0;
         let score = 0;
+        let timer; // Timer for countdown
+        let timerDuration = 600; // 10 seconds * 60 fps
 
         function setup() {
             createCanvas(800, 600);
             playerPosition = createVector(width / 2, height / 2);
             addPowerUps(5); // Initial set of power-ups
+            timer = timerDuration; // Initialize the timer
         }
 
         function draw() {
             background(0);
             handlePlayerInput();
             if (isBluePowerUpActive) {
-                // Player size increase logic remains inside blue power-up effect
                 bluePowerUpTimer--;
                 if (bluePowerUpTimer <= 0) {
                     isBluePowerUpActive = false;
@@ -38,6 +41,7 @@
             }
             drawPlayer();
             drawPowerUps();
+            updateAndDisplayTimer(); // Update and display the timer
             if (showInventory) {
                 drawInventory();
             }
@@ -85,6 +89,9 @@
                     if (dist(playerPosition.x, playerPosition.y, powerUp.position.x, powerUp.position.y) < playerSize / 2 + powerUpSize / 2) {
                         powerUp.collected = true;
                         inventory[powerUp.color] = (inventory[powerUp.color] || 0) + 1;
+                        if (powerUp.color === 'purple') {
+                            timer += 180; // Add 3 seconds to the timer
+                        }
                         if (powerUp.color === 'yellow') {
                             score++; // Increase score for yellow circles
                         }
@@ -140,6 +147,18 @@
                 addPowerUps(1);
             }
         }
+
+        function updateAndDisplayTimer() {
+            if (timer > 0) {
+                timer--;
+                let seconds = timer / 60;
+                fill(255);
+                textSize(32);
+                textAlign(CENTER, BOTTOM);
+                text(`Time: ${seconds.toFixed(1)}`, width / 2, height - 10);
+            }
+        }
     </script>
 </body>
 </html>
+```
