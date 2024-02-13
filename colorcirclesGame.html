@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,6 +20,7 @@
         let score = 0;
         let timer; // Timer for countdown
         let timerDuration = 600; // 10 seconds * 60 fps
+        const attackRange = 50; // Range at which AI enemies will "attack" the player
 
         function setup() {
             createCanvas(800, 600);
@@ -81,23 +81,38 @@
             ellipse(playerPosition.x, playerPosition.y, playerSize, playerSize);
         }
 
-        function drawPowerUps() {
+        function updateAndDrawPowerUps() {
             powerUps.forEach((powerUp, index) => {
                 if (!powerUp.collected) {
                     fill(powerUp.color);
                     ellipse(powerUp.position.x, powerUp.position.y, powerUpSize, powerUpSize);
+                    if (powerUp.color === 'red') {
+                        moveAI(powerUp); // Move AI enemies towards the player
+                    }
                     if (dist(playerPosition.x, playerPosition.y, powerUp.position.x, powerUp.position.y) < playerSize / 2 + powerUpSize / 2) {
+                        if (powerUp.color === 'purple') {
+                            timer += 180;
+                        } else if (powerUp.color === 'yellow') {
+                            score++;
+                        } else if (powerUp.color === 'red') {
+                            console.log('AI is attacking the player!'); // Simulate attack
+                        }
                         powerUp.collected = true;
                         inventory[powerUp.color] = (inventory[powerUp.color] || 0) + 1;
-                        if (powerUp.color === 'purple') {
-                            timer += 180; // Add 3 seconds to the timer
-                        }
-                        if (powerUp.color === 'yellow') {
-                            score++; // Increase score for yellow circles
-                        }
                     }
                 }
             });
+        }
+
+        function moveAI(aiPowerUp) {
+            const direction = p5.Vector.sub(playerPosition, aiPowerUp.position);
+            direction.normalize();
+            direction.mult(2); // Move speed of AI
+            aiPowerUp.position.add(direction);
+            if (aiPowerUp.position.dist(playerPosition) < attackRange) {
+                console.log('AI within attack range!'); // Engage player
+                aiPowerUp.collected = true; // Remove AI for simplicity
+            }
         }
 
         function drawScoreboard() {
@@ -161,4 +176,3 @@
     </script>
 </body>
 </html>
-```
