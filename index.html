@@ -18,9 +18,19 @@
             justify-content: center;
             align-items: center;
         }
+        #colorCirclesButton {
+            position: absolute;
+            top: 10px; /* Adjust as needed */
+            left: 10px; /* Adjust as needed */
+            z-index: 10; /* Ensure the button is above the game canvas */
+        }
     </style>
 </head>
 <body>
+    <!-- Button to link to colorcirclesGame.html -->
+    <button id="colorCirclesButton" onclick="window.location.href='"https://sethmoney.github.io/simpleAIgameattempt/colorcirclesGame.html">
+        Go to Color Circles Game
+    </button>
     <div id="gameContainer"></div>
     <script>
         let gameInstance = null;
