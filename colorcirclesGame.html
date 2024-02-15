@@ -20,6 +20,11 @@
         let score = 0;
         let timer; // Timer for countdown
         let timerDuration = 600; // 10 seconds * 60 fps
+        let isGreenPowerUpActive = false;
+        let greenPowerUpDuration = 100; // Duration in frames
+        let greenPowerUpTimer = 0;
+        let velocityBoost = 2; // The amount by which the velocity is multiplied
+
 
         function setup() {
             createCanvas(800, 600);
@@ -36,6 +41,14 @@
                 if (bluePowerUpTimer <= 0) {
                     isBluePowerUpActive = false;
                     playerSize = 20; // Reset to original size after effect wears off
+                }
+            }
+            // Check for Green Power-Up Active State and its Duration
+            if (isGreenPowerUpActive) {
+                greenPowerUpTimer--;
+                if (greenPowerUpTimer <= 0) {
+                    isGreenPowerUpActive = false;
+                    // No need to reset speed here since it's calculated dynamically in handlePlayerInput
                 }
             }
             drawPlayer();
@@ -57,6 +70,11 @@
         }
 
         function handlePlayerInput() {
+            let speed = 5;
+            // Increase speed if green power-up is active
+            if (isGreenPowerUpActive) {
+                speed *= velocityBoost;
+            }
             if (keyIsDown(87)) { 
                 playerPosition.y -= 5;
                 if (playerPosition.y < 0) playerPosition.y = height; // Wrap from top to bottom
@@ -87,6 +105,11 @@
                     ellipse(powerUp.position.x, powerUp.position.y, powerUpSize, powerUpSize);
                     if (dist(playerPosition.x, playerPosition.y, powerUp.position.x, powerUp.position.y) < playerSize / 2 + powerUpSize / 2) {
                         powerUp.collected = true;
+                         // Check for green power-up and activate velocity boost
+                        if (powerUp.color === 'green') {
+                            isGreenPowerUpActive = true;
+                            greenPowerUpTimer = greenPowerUpDuration;
+                        }
                         inventory[powerUp.color] = (inventory[powerUp.color] || 0) + 1;
                         if (powerUp.color === 'purple') {
                             timer += 180; // Add 3 seconds to the timer
