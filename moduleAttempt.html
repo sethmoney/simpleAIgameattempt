@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dynamic Power-Up Collection Game with Enhanced Mechanics</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>body { margin: 0; padding: 0; overflow: hidden; }</style>
+</head>
+<body>
+    <script>
+        // Global variables and functions
+        let playerPosition;
+        let playerSize = 20; // Default player size
+        let powerUps = [];
+        let powerUpSize = 15;
+        let inventory = {};
+        let showInventory = false;
+        let isBluePowerUpActive = false;
+        let bluePowerUpDuration = 300; // Duration for using multiple blue power-ups
+        let bluePowerUpTimer = 0;
+        let score = 0;
+        let timer; // Timer for countdown
+        let timerDuration = 600; // 10 seconds * 60 fps
+    </script>
+    <script src="gameSetup.js"></script>
+    <script src="player.js"></script>
+    <script src="powerUps.js"></script>
+    <script src="ui.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
