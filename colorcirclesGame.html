@@ -80,17 +80,21 @@
             if (isGreenPowerUpActive) {
                 speed *= velocityBoost;
             }
-            if (keyIsDown(87)) { // W
-                playerPosition.y -= speed; // Use 'speed' instead of a fixed value
+            // Move Up - W or Arrow Up
+            if (keyIsDown(87) || keyIsDown(UP_ARROW)) {
+                playerPosition.y -= speed;
             }
-            if (keyIsDown(83)) { // S
-                playerPosition.y += speed; // Use 'speed' instead of a fixed value
+            // Move Down - S or Arrow Down
+            if (keyIsDown(83) || keyIsDown(DOWN_ARROW)) {
+                playerPosition.y += speed;
             }
-            if (keyIsDown(65)) { // A
-                playerPosition.x -= speed; // Use 'speed' instead of a fixed value
+            // Move Left - A or Arrow Left
+            if (keyIsDown(65) || keyIsDown(LEFT_ARROW)) {
+                playerPosition.x -= speed;
             }
-            if (keyIsDown(68)) { // D
-                playerPosition.x += speed; // Use 'speed' instead of a fixed value
+            // Move Right - D or Arrow Right
+            if (keyIsDown(68) || keyIsDown(RIGHT_ARROW)) {
+                playerPosition.x += speed;
             }
             // Wrap around screen edges
             if (playerPosition.y < 0) playerPosition.y = height;
@@ -98,6 +102,7 @@
             if (playerPosition.x < 0) playerPosition.x = width;
             if (playerPosition.x > width) playerPosition.x = 0;
         }
+
 
         function drawPlayer() {
             fill(255);
