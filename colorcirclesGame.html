@@ -33,8 +33,8 @@
             playerPosition = createVector(width / 2, height / 2);
             addPowerUps(5); // Initial set of power-ups
             timer = timerDuration; // Initialize the timer
-            // Create and append the inventory div below the canvas
-            inventoryDiv = createDiv('').style('width', '800px').style('text-align', 'left').style('margin', '10px auto').style('color', '#000');
+            // No need for createDiv here. Directly manipulate the existing div.
+            //inventoryDiv = createDiv('').style('width', '800px').style('text-align', 'left').style('margin', '10px auto').style('color', '#000');
         }
 
         function draw() {
@@ -150,10 +150,13 @@
         }
         
         function drawInventory() {
-            // Ensure all power-up types are listed in the inventory, even if not collected yet
-            const powerUpTypes = ['blue', 'red', 'yellow', 'green', 'purple'];
-            let inventoryText = powerUpTypes.map(type => `${type.toUpperCase()}: ${inventory[type] || 0}`).join(' | ');
-            inventoryDiv.html(inventoryText); // Update the inventory div's content
+            // Assuming inventory is an object with keys as color names and values as counts
+            const inventoryDisplay = document.getElementById('inventoryDisplay');
+            let inventoryText = 'Inventory: ';
+            for (const [color, count] of Object.entries(inventory)) {
+                inventoryText += `${color.toUpperCase()}: ${count} | `;
+            }
+            inventoryDisplay.innerHTML = inventoryText.slice(0, -2); // Remove the last "|"
         }
 
         function usePowerUp(color) {
@@ -193,5 +196,7 @@
             }
         }
     </script>
+    <div id="inventoryDisplay" style="text-align: center; margin-top: 20px;"></div>
+
 </body>
 </html>
