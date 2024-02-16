@@ -38,15 +38,11 @@
             handlePlayerInput();
             if (isBluePowerUpActive) {
                 bluePowerUpTimer--;
-                if (isBluePowerUpActive) {
-                    bluePowerUpTimer--;
-                    if (bluePowerUpTimer <= 0) {
-                        isBluePowerUpActive = false;
-                        playerSize = 20; // Reset player size to normal
-                        inventory['blue'] = 0; // Reset the blue power-up count
-                    }
+                if (bluePowerUpTimer <= 0) {
+                    isBluePowerUpActive = false;
+                    playerSize = 20; // Reset player size to normal
+                    inventory['blue'] = 0; // Reset the blue power-up count
                 }
-
             }
             // Check for Green Power-Up Active State and its Duration
             if (isGreenPowerUpActive && greenPowerUpTimer > 0) {
