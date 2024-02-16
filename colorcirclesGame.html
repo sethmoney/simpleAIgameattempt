@@ -44,11 +44,10 @@
                 }
             }
             // Check for Green Power-Up Active State and its Duration
-            if (isGreenPowerUpActive) {
+            if (isGreenPowerUpActive && greenPowerUpTimer > 0) {
                 greenPowerUpTimer--;
                 if (greenPowerUpTimer <= 0) {
-                    isGreenPowerUpActive = false;
-                    // No need to reset speed here since it's calculated dynamically in handlePlayerInput
+                    isGreenPowerUpActive = false; // Effectively stops the velocity boost
                 }
             }
             drawPlayer();
