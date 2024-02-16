@@ -110,30 +110,36 @@
                     ellipse(powerUp.position.x, powerUp.position.y, powerUpSize, powerUpSize);
                     if (dist(playerPosition.x, playerPosition.y, powerUp.position.x, powerUp.position.y) < playerSize / 2 + powerUpSize / 2) {
                         powerUp.collected = true;
+                        // Existing inventory update for all power-ups
+                        inventory[powerUp.color] = (inventory[powerUp.color] || 0) + 1;
+                        
+                        // Specific logic for blue power-ups
                         if (powerUp.color === 'blue') {
-                            if (inventory['blue'] < 15) {
-                                inventory['blue'] = (inventory['blue'] || 0) + 1;
-                                bluePowerUpTimer = bluePowerUpDuration; // Refresh or extend the timer
+                            if ((inventory['blue'] || 0) < 15) {
                                 playerSize += 5; // Temporarily increase size
+                                if (playerSize > 20 + 15 * 5) {
+                                    playerSize = 20 + 15 * 5; // Ensure player size does not exceed maximum growth
+                                }
+                                bluePowerUpTimer = bluePowerUpDuration; // Refresh or extend the timer
+                                isBluePowerUpActive = true;
                             }
-                        } else {
-                             // Check for green power-up and activate velocity boost
-                            if (powerUp.color === 'green') {
-                                isGreenPowerUpActive = true;
-                                greenPowerUpTimer = greenPowerUpDuration;
-                            }
-                            inventory[powerUp.color] = (inventory[powerUp.color] || 0) + 1;
-                            if (powerUp.color === 'purple') {
-                                timer += 180; // Add 3 seconds to the timer
-                            }
-                            if (powerUp.color === 'yellow') {
-                                score++; // Increase score for yellow circles
-                            }
+                        } else if (powerUp.color === 'green') {
+                            // Logic for green power-ups (velocity boost)
+                            isGreenPowerUpActive = true;
+                            greenPowerUpTimer = greenPowerUpDuration;
+                        }
+                        // Handle other power-up effects here...
+                        if (powerUp.color === 'purple') {
+                            timer += 180; // Add time
+                        }
+                        if (powerUp.color === 'yellow') {
+                            score++; // Increase score
                         }
                     }
                 }
             });
         }
+
 
         function drawScoreboard() {
             fill(255);
