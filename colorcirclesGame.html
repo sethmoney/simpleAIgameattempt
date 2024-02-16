@@ -147,24 +147,23 @@
         
         function drawInventory() {
             let inventoryX = 20; // Set starting X position of inventory display
-            let inventoryY = height + 10; // Set starting Y position just below the canvas
+            let inventoryY = height + 20; // Set starting Y position just below the canvas
             fill(255, 255, 255, 150); // Semi-transparent white for background
             let inventoryWidth = width - 40; // Make the inventory the width of the canvas minus some padding
-            let inventoryHeight = 60; // Set a fixed height for the inventory display
+            let inventoryHeight = 40; // Set a fixed height for the inventory display
             rect(inventoryX, inventoryY, inventoryWidth, inventoryHeight); // Draw the inventory background
             fill(0); // Text color for inventory items
             textSize(16); // Text size for inventory items
-            let textOffsetY = 25; // Start drawing text slightly down from the top of the inventory background
-            textAlign(LEFT, TOP); // Align text to the left and top for inventory items
+            textAlign(LEFT, CENTER); // Align text to the left and center vertically for inventory items
         
-            // Calculate spacing for inventory items based on the number of items
-            let spacing = inventoryWidth / Object.keys(inventory).length;
-            Object.entries(inventory).forEach(([color, count], index) => {
-                let itemX = inventoryX + index * spacing; // Position each item based on its index
-                text(`${color.toUpperCase()}: ${count}`, itemX, inventoryY + textOffsetY);
+            // Ensure all power-up types are listed in the inventory, even if not collected yet
+            const powerUpTypes = ['blue', 'red', 'yellow', 'green', 'purple'];
+            let spacing = inventoryWidth / powerUpTypes.length; // Divide the space equally for each power-up type
+            powerUpTypes.forEach((type, index) => {
+                let itemX = inventoryX + index * spacing; // Calculate X position for each power-up type
+                text(`${type.toUpperCase()}: ${inventory[type] || 0}`, itemX, inventoryY + inventoryHeight / 2);
             });
         }
-
 
         function usePowerUp(color) {
             if (color === 'blue' && inventory[color] && inventory[color] > 0) {
