@@ -57,6 +57,7 @@
         function draw() {
             background(0);
             handlePlayerInput();
+            updatePowerUps()
             if (isBluePowerUpActive) {
                 bluePowerUpTimer--;
                 if (bluePowerUpTimer <= 0) {
@@ -83,6 +84,23 @@
             drawInventory(); // Always draw the inventory below the game area
         }
 
+        function updatePowerUps() {
+            powerUps.forEach(powerUp => {
+                if (!powerUp.collected && powerUp.color === 'red') {
+                    // Calculate direction towards the player
+                    let direction = createVector(playerPosition.x - powerUp.position.x, playerPosition.y - powerUp.position.y);
+                    direction.normalize(); // Normalize the direction vector
+        
+                    // Define the speed of the red circle's movement towards the player
+                    let speed = 1; // Adjust speed as needed
+                    direction.mult(speed);
+        
+                    // Update the power-up's position
+                    powerUp.position.add(direction);
+                }
+            });
+        }
+        
         function keyPressed() {
             //if (key === 'i' || key === 'I') {
                 //showInventory = !showInventory;
