@@ -60,10 +60,25 @@
             updatePowerUps()
             if (isBluePowerUpActive) {
                 bluePowerUpTimer--;
+                // Calculate the line length based on the blue power-up timer
+                let lineLength = map(bluePowerUpTimer, 0, bluePowerUpDuration, 0, 100); // Adjust 100 to the desired maximum line length
+        
+                // Draw the white outline
+                stroke(255); // White color for the outline
+                strokeWeight(3); // Make the outline thicker than the blue line for visibility
+                line(playerPosition.x + 20, playerPosition.y, playerPosition.x + 20 + lineLength, playerPosition.y);
+        
+                // Draw the blue line on top of the white outline
+                stroke(0, 0, 255); // Blue color for the line
+                strokeWeight(1); // Reset stroke weight for the blue line
+                line(playerPosition.x + 20, playerPosition.y, playerPosition.x + 20 + lineLength, playerPosition.y);
+        
+                noStroke(); // Reset drawing state for subsequent drawings
+        
                 if (bluePowerUpTimer <= 0) {
                     isBluePowerUpActive = false;
                     playerSize = 20; // Reset player size to normal
-                    inventory['blue'] = 0; // Reset the blue power-up count
+                    inventory['blue'] = 0; // Optionally reset the blue power-up count
                 }
             }
             // Check for Green Power-Up Active State and its Duration
