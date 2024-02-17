@@ -94,7 +94,7 @@
         let inventoryDiv; // Declare a variable to hold the inventory div
         let maxHealth = 100;
         let currentHealth = maxHealth;
-        let redSpeedIncrement = 0.5; // Speed increase factor for red circles
+        let redSpeedIncrement = 8; // Speed increase factor for red circles
         let redMaxSpeed = 5; // Maximum speed for red circles
         let redSpeed = 1; // Initial speed of red circles
 
@@ -110,14 +110,14 @@
             addPowerUps(5); // Initial set of power-ups
             timer = timerDuration; // Initialize the timer
             // Initialize GUI for Red Circle Speed Adjustment
-            const redSpeedIncrementSlider = document.getElementById('redSpeedIncrementSlider');
-            const redSpeedIncrementValueDisplay = document.getElementById('redSpeedIncrementValue');
+            //const redSpeedIncrementSlider = document.getElementById('redSpeedIncrementSlider');
+            //const redSpeedIncrementValueDisplay = document.getElementById('redSpeedIncrementValue');
         
             // Display the current slider value and update the game variable
-            redSpeedIncrementSlider.oninput = function() {
-                redSpeedIncrementValueDisplay.innerHTML = this.value;
-                redSpeedIncrement = parseFloat(this.value);
-            };
+            //redSpeedIncrementSlider.oninput = function() {
+                //redSpeedIncrementValueDisplay.innerHTML = this.value;
+                //redSpeedIncrement = parseFloat(this.value);
+            //};
             noLoop(); // Stop the drawing loop until the game starts.
         }
 
