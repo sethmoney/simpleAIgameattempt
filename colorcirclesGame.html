@@ -46,7 +46,7 @@
 
 
         function setup() {
-            createCanvas(800, 600);
+            createCanvas(800, 640);
             playerPosition = createVector(width / 2, height / 2);
             addPowerUps(5); // Initial set of power-ups
             timer = timerDuration; // Initialize the timer
@@ -73,15 +73,20 @@
                     isGreenPowerUpActive = false; // Effectively stops the velocity boost
                 }
             }
+            // Draw the gameplay area boundary if needed
+            stroke(255); // White color for visibility
+            line(0, height - 40, width, height - 40); // Draw a line to separate the gameplay area and inventory
+            noStroke();// Reset stroke for other drawings
             drawPlayer();
             drawPowerUps();
             updateAndDisplayTimer(); // Update and display the timer
-            if (showInventory) {
-                drawInventory();
-            }
+            //if (showInventory) {
+                //drawInventory();
+            //}
             drawScoreboard(); // Call to draw the scoreboard
             maybeAddPowerUp(); // Add more power-ups over time
-            drawInventory(); // Always draw the inventory below the game area
+            //drawInventory(); // Always draw the inventory below the game area
+            displayInventory();
         }
 
         function updatePowerUps() {
@@ -99,6 +104,19 @@
                     powerUp.position.add(direction);
                 }
             });
+        }
+
+        function displayInventory() {
+            fill(255); // White color for text
+            textSize(16); // Adjust text size as needed
+            textAlign(LEFT, TOP); // Align text to the left top
+            let inventoryText = 'Inventory: ';
+            const startY = height - 35; // Start Y position for inventory text
+        
+            for (const [color, count] of Object.entries(inventory)) {
+                inventoryText += `${color.toUpperCase()}: ${count} | `;
+            }
+            text(inventoryText, 10, startY); // Display inventory text starting from the left margin
         }
         
         function keyPressed() {
@@ -236,7 +254,5 @@
             }
         }
     </script>
-    <div id="inventoryDisplay" style="text-align: center; margin-top: 20px;"></div>
-
 </body>
 </html>
