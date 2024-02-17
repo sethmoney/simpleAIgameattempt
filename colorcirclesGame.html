@@ -67,7 +67,6 @@
             Test Mode
         </label>
     </div>
-    <button id="restartGameLoopButton">Restart Game</button>
     <div id="modalInstructions">
         <p>Collect as many yellow circles as you can before time runs out.</p>
         <p>Collecting purple circles gives you more time.</p>
@@ -163,11 +162,6 @@
             // Hide game over modal and restart the game loop
             document.getElementById('gameOverModal').style.display = 'none';
             loop();
-            document.getElementById('restartGameLoopButton').addEventListener('click', function() {
-                if(document.getElementById('testModeCheckbox').checked) {
-                    restartGame(); // Call the restartGame function to reset and restart the game
-                }
-            });
         }
         
         function draw() {
