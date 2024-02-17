@@ -88,10 +88,6 @@
         let inventoryDiv; // Declare a variable to hold the inventory div
         let maxHealth = 100;
         let currentHealth = maxHealth;
-        let redCircleSpeedIncrement = 0.1; // Amount to increase speed by
-        let speedIncreaseInterval = 8; // Time in seconds after which to increase speed
-        let lastSpeedIncreaseTime = 0; // Keep track of the last time the speed was increased, initially 0
-
 
         function startGame() {
             document.getElementById('modalInstructions').style.display = 'none';
@@ -134,41 +130,39 @@
         function draw() {
             background(0);
             handlePlayerInput();
-            if ((millis() / 1000) - lastSpeedIncreaseTime >= speedIncreaseInterval) {
-                redCircleBaseSpeed += redCircleSpeedIncrement;
-                lastSpeedIncreaseTime = millis() / 1000; // Update the last speed increase time to the current time
-                console.log("Red circle speed increased to:", redCircleBaseSpeed);
-            }
             updatePowerUps()
-            powerUps.forEach(powerUp => {
-                if (!powerUp.collected && powerUp.color === 'red') {
-                    let direction = createVector(playerPosition.x - powerUp.position.x, playerPosition.y - powerUp.position.y);
-                    direction.normalize(); // Normalize the direction vector
-                    direction.mult(redCircleBaseSpeed); // Apply the current speed, which increases over time
-                    powerUp.position.add(direction);
-                }
-            });
-        
             if (isBluePowerUpActive) {
                 bluePowerUpTimer--;
-                let lineX = playerPosition.x + playerSize / 2 + 10;
-                let lineLength = map(bluePowerUpTimer, 0, bluePowerUpDuration, 0, 50);
-                stroke(255); strokeWeight(3);
+        
+                // Adjust the line's starting X position based on the player's current size
+                let lineX = playerPosition.x + playerSize / 2 + 10; // 10 pixels to the right of the player's boundary
+        
+                // Calculate the line length based on the blue power-up timer
+                let lineLength = map(bluePowerUpTimer, 0, bluePowerUpDuration, 0, 50); // Adjust the maximum line length as needed
+        
+                // Draw the white outline for the vertical line
+                stroke(255); // White color for the outline
+                strokeWeight(3); // Thickness of the outline
                 line(lineX, playerPosition.y - lineLength / 2, lineX, playerPosition.y + lineLength / 2);
-                stroke(0, 0, 255); strokeWeight(1);
+        
+                // Draw the blue line on top of the white outline
+                stroke(0, 0, 255); // Blue color for the line
+                strokeWeight(1); // Blue line thickness
                 line(lineX, playerPosition.y - lineLength / 2, lineX, playerPosition.y + lineLength / 2);
-                noStroke();
+        
+                noStroke(); // Reset drawing state for subsequent drawings
+        
                 if (bluePowerUpTimer <= 0) {
                     isBluePowerUpActive = false;
-                    playerSize = 20;
-                    inventory['blue'] = 0;
+                    playerSize = 20; // Reset player size to normal
+                    inventory['blue'] = 0; // Optionally reset the blue power-up count
                 }
             }
-        
+            // Check for Green Power-Up Active State and its Duration
             if (isGreenPowerUpActive && greenPowerUpTimer > 0) {
                 greenPowerUpTimer--;
                 if (greenPowerUpTimer <= 0) {
-                    isGreenPowerUpActive = false;
+                    isGreenPowerUpActive = false; // Effectively stops the velocity boost
                 }
             }
             // Draw the gameplay area boundary if needed
