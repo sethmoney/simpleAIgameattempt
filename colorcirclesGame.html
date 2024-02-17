@@ -42,7 +42,8 @@
         let greenPowerUpTimer = 0;
         let velocityBoost = 5; // The amount by which the velocity is multiplied
         let inventoryDiv; // Declare a variable to hold the inventory div
-
+        let maxHealth = 100;
+        let currentHealth = maxHealth;
 
 
         function setup() {
@@ -188,6 +189,15 @@
                     ellipse(powerUp.position.x, powerUp.position.y, powerUpSize, powerUpSize);
                     if (dist(playerPosition.x, playerPosition.y, powerUp.position.x, powerUp.position.y) < playerSize / 2 + powerUpSize / 2) {
                         powerUp.collected = true;
+                        // Update for red power-ups
+                        if (powerUp.color === 'red') {
+                            currentHealth -= 5; // Deduct 5 health points for each red circle hit
+                            if (currentHealth <= 0) {
+                                // Handle game over scenario
+                                currentHealth = 0;
+                                console.log("Game Over!"); // Placeholder action
+                            }
+                        }
                         // Existing inventory update for all power-ups
                         inventory[powerUp.color] = (inventory[powerUp.color] || 0) + 1;
                         
@@ -218,6 +228,24 @@
             });
         }
 
+        function drawHealthBar() {
+            // Health bar background
+            fill(50); // Dark grey background for contrast
+            rect(10, 10, 200, 20); // Adjust size and position as needed
+        
+            // Health bar foreground
+            let healthPercentage = currentHealth / maxHealth;
+            fill(255, 0, 0); // Red foreground for health
+            rect(10, 10, 200 * healthPercentage, 20); // Width based on current health
+        
+            // Optional: Health text
+            fill(255); // White text color
+            textSize(16);
+            text(`Health: ${currentHealth} / ${maxHealth}`, 220, 25); // Position next to the health bar
+        }
+        
+        // Call drawHealthBar() within the draw() function
+        drawHealthBar();
 
         function drawScoreboard() {
             fill(255);
