@@ -11,19 +11,36 @@
             overflow: hidden; 
             display: flex;
             justify-content: center;
-            flex-direction: column;
             align-items: center;
-            #inventoryDisplay {
-            width: 100%; /* Adjust if necessary */
-            margin-top: 20px;
-            text-align: center;
-            /* Additional styles for visibility */
-            color: #000; /* Text color */
-        }
-        }
+            }
+            #modalInstructions {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                color: #fff;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+                text-align: center;
+            }
+            #modalInstructions button {
+                padding: 10px 20px;
+                font-size: 16px;
+                cursor: pointer;
+                margin-top: 20px;
+            }
         </style>
 </head>
 <body>
+    <div id="modalInstructions">
+        <p>Collect as many yellow circles as you can.</p>
+        <p>Use arrow keys or WASD to move.</p>
+        <button onclick="startGame()">Start Game</button>
+    </div>
     <script>
         let playerPosition;
         let playerSize = 20; // Default player size
@@ -45,14 +62,17 @@
         let maxHealth = 100;
         let currentHealth = maxHealth;
 
+        function startGame() {
+            document.getElementById('modalInstructions').style.display = 'none';
+            loop(); // Restart the drawing loop if it was stopped.
+        }
 
         function setup() {
             createCanvas(800, 640);
             playerPosition = createVector(width / 2, height / 2);
             addPowerUps(5); // Initial set of power-ups
             timer = timerDuration; // Initialize the timer
-            // No need for createDiv here. Directly manipulate the existing div.
-            //inventoryDiv = createDiv('').style('width', '800px').style('text-align', 'left').style('margin', '10px auto').style('color', '#000');
+            noLoop(); // Stop the drawing loop until the game starts.
         }
 
         function draw() {
