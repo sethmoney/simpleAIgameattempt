@@ -41,6 +41,10 @@
         <p>Use arrow keys or WASD to move.</p>
         <button onclick="startGame()">Start Game</button>
     </div>
+    <div id="gameOverModal" style="display:none;">
+    <p>Game Over</p>
+    <button onclick="restartGame()">Restart Game</button>
+</div>
     <script>
         let playerPosition;
         let playerSize = 20; // Default player size
@@ -75,6 +79,31 @@
             noLoop(); // Stop the drawing loop until the game starts.
         }
 
+        function checkGameOver() {
+            if (currentHealth <= 0 || timer <= 0) {
+                showGameOverModal();
+                noLoop(); // Pause the game
+            }
+        }
+        
+        function showGameOverModal() {
+            document.getElementById('gameOverModal').style.display = 'flex';
+        }
+        
+        function restartGame() {
+            // Reset game state variables
+            currentHealth = maxHealth;
+            timer = timerDuration;
+            score = 0;
+            powerUps = []; // Clear existing power-ups
+            addPowerUps(5); // Add initial power-ups
+            playerPosition = createVector(width / 2, height / 2); // Reset player position
+            
+            // Hide game over modal and restart the game loop
+            document.getElementById('gameOverModal').style.display = 'none';
+            loop();
+        }
+        
         function draw() {
             background(0);
             handlePlayerInput();
@@ -128,7 +157,7 @@
             maybeAddPowerUp(); // Add more power-ups over time
             //drawInventory(); // Always draw the inventory below the game area
             displayInventory();
-            
+            checkGameOver();
         }
 
         function updatePowerUps() {
