@@ -61,7 +61,12 @@
         <input type="range" id="redSpeedIncrementSlider" min="1" max="10" value="5">
         <span id="redSpeedIncrementValue">5</span>
     </div> -->
-
+    <div id="testModeDiv" style="position: absolute; top: 10px; left: 10px; z-index: 1000;">
+        <label>
+            <input type="checkbox" id="testModeCheckbox" />
+            Test Mode
+        </label>
+    </div>
     <div id="modalInstructions">
         <p>Collect as many yellow circles as you can before time runs out.</p>
         <p>Collecting purple circles gives you more time.</p>
@@ -97,7 +102,7 @@
         let redSpeedIncrement = 8; // Speed increase factor for red circles
         let redMaxSpeed = 5; // Maximum speed for red circles
         let redSpeed = 1; // Initial speed of red circles
-
+        let testModeActive = false;
 
         function startGame() {
             document.getElementById('modalInstructions').style.display = 'none';
@@ -119,9 +124,22 @@
                 //redSpeedIncrement = parseFloat(this.value);
             //};
             noLoop(); // Stop the drawing loop until the game starts.
+            // Setup checkbox event listener
+            document.getElementById('testModeCheckbox').addEventListener('change', function() {
+                testModeActive = this.checked;
+                if (testModeActive) {
+                    console.log("Test Mode Activated");
+                } else {
+                    console.log("Test Mode Deactivated");
+                }
+            });
         }
 
         function checkGameOver() {
+            if (testModeActive) {
+                // If test mode is active, simply return without doing anything
+                return;
+            }
             if (currentHealth <= 0 || timer <= 0) {
                 showGameOverModal();
                 noLoop(); // Pause the game
