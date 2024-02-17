@@ -60,18 +60,22 @@
             updatePowerUps()
             if (isBluePowerUpActive) {
                 bluePowerUpTimer--;
-                // Calculate the line length based on the blue power-up timer
-                let lineLength = map(bluePowerUpTimer, 0, bluePowerUpDuration, 0, 50); // Adjust 100 to the desired maximum line length
         
-                // Draw the white outline
+                // Adjust the line's starting X position based on the player's current size
+                let lineX = playerPosition.x + playerSize / 2 + 10; // 10 pixels to the right of the player's boundary
+        
+                // Calculate the line length based on the blue power-up timer
+                let lineLength = map(bluePowerUpTimer, 0, bluePowerUpDuration, 0, 50); // Adjust the maximum line length as needed
+        
+                // Draw the white outline for the vertical line
                 stroke(255); // White color for the outline
-                strokeWeight(3); // Make the outline thicker than the blue line for visibility
-                line(playerPosition.x + 20, playerPosition.y - lineLength / 2, playerPosition.x + 20, playerPosition.y + lineLength / 2);
+                strokeWeight(3); // Thickness of the outline
+                line(lineX, playerPosition.y - lineLength / 2, lineX, playerPosition.y + lineLength / 2);
         
                 // Draw the blue line on top of the white outline
                 stroke(0, 0, 255); // Blue color for the line
-                strokeWeight(1); // Reset stroke weight for the blue line
-                line(playerPosition.x + 20, playerPosition.y - lineLength / 2, playerPosition.x + 20, playerPosition.y + lineLength / 2);
+                strokeWeight(1); // Blue line thickness
+                line(lineX, playerPosition.y - lineLength / 2, lineX, playerPosition.y + lineLength / 2);
         
                 noStroke(); // Reset drawing state for subsequent drawings
         
