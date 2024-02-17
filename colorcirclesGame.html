@@ -195,7 +195,7 @@
                     direction.normalize(); // Normalize the direction vector
         
                     // Increase red circle speed based on game progression, with a maximum limit
-                    let currentRedSpeed = min(redSpeed + (score / 1000) * redSpeedIncrement, redMaxSpeed);
+                    let currentRedSpeed = min(redSpeed + (score / 100) * redSpeedIncrement, redMaxSpeed);
                     direction.mult(currentRedSpeed);
         
                     // Update the power-up's position
