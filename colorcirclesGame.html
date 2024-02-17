@@ -56,6 +56,12 @@
         </style>
 </head>
 <body>
+    <div id="guiContainer" style="position: absolute; top: 0; right: 0; padding: 10px; z-index: 100;">
+        <label for="redSpeedIncrementSlider">Red Speed Increment:</label>
+        <input type="range" id="redSpeedIncrementSlider" min="1" max="10" value="5">
+        <span id="redSpeedIncrementValue">5</span>
+    </div>
+
     <div id="modalInstructions">
         <p>Collect as many yellow circles as you can before time runs out.</p>
         <p>Collecting purple circles gives you more time.</p>
@@ -103,6 +109,15 @@
             playerPosition = createVector(width / 2, height / 2);
             addPowerUps(5); // Initial set of power-ups
             timer = timerDuration; // Initialize the timer
+            // Initialize GUI for Red Circle Speed Adjustment
+            const redSpeedIncrementSlider = document.getElementById('redSpeedIncrementSlider');
+            const redSpeedIncrementValueDisplay = document.getElementById('redSpeedIncrementValue');
+        
+            // Display the current slider value and update the game variable
+            redSpeedIncrementSlider.oninput = function() {
+                redSpeedIncrementValueDisplay.innerHTML = this.value;
+                redSpeedIncrement = parseFloat(this.value);
+            };
             noLoop(); // Stop the drawing loop until the game starts.
         }
 
