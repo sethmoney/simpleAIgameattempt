@@ -296,12 +296,13 @@
             if (timer > 0) {
                 timer--;
                 let seconds = timer / 60;
-                fill(255);
-                textSize(32);
-                textAlign(CENTER, BOTTOM);
-                text(`Time: ${seconds.toFixed(1)}`, width / 2, height - 10);
+                fill(255); // White color for text
+                textSize(32); // Size of the text
+                textAlign(RIGHT, TOP); // Align text to the right and top
+                text(`Time: ${seconds.toFixed(1)}`, width - 10, 10); // Position the text at the top right corner
             }
         }
+
     </script>
 </body>
 </html>
