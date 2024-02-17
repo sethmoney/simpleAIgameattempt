@@ -66,12 +66,12 @@
                 // Draw the white outline
                 stroke(255); // White color for the outline
                 strokeWeight(3); // Make the outline thicker than the blue line for visibility
-                line(playerPosition.x + 20, playerPosition.y, playerPosition.x + 20 + lineLength, playerPosition.y);
+                line(playerPosition.x + 20, playerPosition.y - lineLength / 2, playerPosition.x + 20, playerPosition.y + lineLength / 2);
         
                 // Draw the blue line on top of the white outline
                 stroke(0, 0, 255); // Blue color for the line
                 strokeWeight(1); // Reset stroke weight for the blue line
-                line(playerPosition.x + 20, playerPosition.y, playerPosition.x + 20 + lineLength, playerPosition.y);
+                line(playerPosition.x + 20, playerPosition.y - lineLength / 2, playerPosition.x + 20, playerPosition.y + lineLength / 2);
         
                 noStroke(); // Reset drawing state for subsequent drawings
         
