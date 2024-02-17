@@ -103,6 +103,9 @@
         let redMaxSpeed = 5; // Maximum speed for red circles
         let redSpeed = 1; // Initial speed of red circles
         let testModeActive = false;
+        let isHit = false; // Tracks whether the player was hit by a red circle
+        let hitDuration = 15; // Duration of the hit effect in frames
+        let hitTimer = 0; // Timer for the hit effect duration
 
         function startGame() {
             document.getElementById('modalInstructions').style.display = 'none';
@@ -303,10 +306,24 @@
                         // Update for red power-ups
                         if (powerUp.color === 'red') {
                             currentHealth -= 5; // Deduct 5 health points for each red circle hit
+                            // Trigger hit effect
+                            isHit = true;
+                            hitTimer = hitDuration;
                             if (currentHealth <= 0) {
                                 // Handle game over scenario
                                 currentHealth = 0;
                                 console.log("Game Over!"); // Placeholder action
+                            }
+                        }
+                        // Apply hit effect
+                        if (isHit) {
+                            flashAndShakePlayer();
+                        }
+                        // Reset hit effect after the duration
+                        if (hitTimer > 0) {
+                            hitTimer--;
+                            if (hitTimer <= 0) {
+                                isHit = false;
                             }
                         }
                         // Existing inventory update for all power-ups
@@ -339,6 +356,23 @@
             });
         }
 
+        function flashAndShakePlayer() {
+            // Flashing effect
+            if (hitTimer % 2 === 0) { // Alternate color to create a flashing effect
+                fill(255, 0, 0); // Red color for hit flash
+            } else {
+                fill(255); // Original player color
+            }
+        
+            // Shaking effect
+            let shakeAmount = 2; // Maximum shake distance in pixels
+            let shakeX = random(-shakeAmount, shakeAmount);
+            let shakeY = random(-shakeAmount, shakeAmount);
+        
+            // Draw the player with shaking effect
+            square(playerPosition.x - playerSize / 2 + shakeX, playerPosition.y - playerSize / 2 + shakeY, playerSize);
+        }
+        
         function drawHealthBar() {
             // Health bar background
             fill(50); // Dark grey background for contrast
