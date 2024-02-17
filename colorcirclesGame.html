@@ -210,7 +210,6 @@
             line(0, height - 40, width, height - 40); // Draw a line to separate the gameplay area and inventory
             noStroke();// Reset stroke for other drawings
             drawPlayer();
-            flashAndShakePlayer();
             drawPowerUps();
             updateAndDisplayTimer(); // Update and display the timer
             //if (showInventory) {
@@ -293,7 +292,15 @@
 
 
         function drawPlayer() {
-            if (!isHit) { // Only draw the normal player if not hit
+            if (isHit && hitTimer > 0) {
+                // Shake effect logic here
+                flashAndShakePlayer(); // Now directly integrates shaking logic
+                hitTimer--;
+                if (hitTimer <= 0) {
+                    isHit = false; // Stop the shake effect
+                }
+            } else {
+                // Normal player drawing logic
                 fill(255);
                 square(playerPosition.x - playerSize / 2, playerPosition.y - playerSize / 2, playerSize);
             }
@@ -361,18 +368,14 @@
 
         function flashAndShakePlayer() {
             // Flashing effect
-            if (hitTimer % 2 === 0) { // Alternate color to create a flashing effect
-                fill(255, 0, 0); // Red color for hit flash
+            if (hitTimer % 2 === 0) {
+                fill(255, 0, 0); // Flash color
             } else {
-                fill(255); // Original player color
+                fill(255); // Original color
             }
-        
             // Shaking effect
-            let shakeAmount = 5; // Maximum shake distance in pixels
-            let shakeX = random(-shakeAmount, shakeAmount);
-            let shakeY = random(-shakeAmount, shakeAmount);
-        
-            // Draw the player with shaking effect
+            let shakeX = random(-5, 5);
+            let shakeY = random(-5, 5);
             square(playerPosition.x - playerSize / 2 + shakeX, playerPosition.y - playerSize / 2 + shakeY, playerSize);
         }
         
