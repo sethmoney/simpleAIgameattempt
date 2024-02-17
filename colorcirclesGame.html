@@ -293,8 +293,10 @@
 
 
         function drawPlayer() {
-            fill(255);
-            square(playerPosition.x - playerSize / 2, playerPosition.y - playerSize / 2, playerSize);
+            if (!isHit) { // Only draw the normal player if not hit
+                fill(255);
+                square(playerPosition.x - playerSize / 2, playerPosition.y - playerSize / 2, playerSize);
+            }
         }
 
         function drawPowerUps() {
