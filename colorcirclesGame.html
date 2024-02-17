@@ -88,6 +88,10 @@
         let inventoryDiv; // Declare a variable to hold the inventory div
         let maxHealth = 100;
         let currentHealth = maxHealth;
+        let redSpeedIncrement = 0.1; // Speed increase factor for red circles
+        let redMaxSpeed = 5; // Maximum speed for red circles
+        let redSpeed = 1; // Initial speed of red circles
+
 
         function startGame() {
             document.getElementById('modalInstructions').style.display = 'none';
@@ -190,9 +194,9 @@
                     let direction = createVector(playerPosition.x - powerUp.position.x, playerPosition.y - powerUp.position.y);
                     direction.normalize(); // Normalize the direction vector
         
-                    // Define the speed of the red circle's movement towards the player
-                    let speed = 1; // Adjust speed as needed
-                    direction.mult(speed);
+                    // Increase red circle speed based on game progression, with a maximum limit
+                    let currentRedSpeed = min(redSpeed + (score / 1000) * redSpeedIncrement, redMaxSpeed);
+                    direction.mult(currentRedSpeed);
         
                     // Update the power-up's position
                     powerUp.position.add(direction);
