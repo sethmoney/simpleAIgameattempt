@@ -123,7 +123,7 @@
 
         function drawPlayer() {
             fill(255);
-            ellipse(playerPosition.x, playerPosition.y, playerSize, playerSize);
+            square(playerPosition.x - playerSize / 2, playerPosition.y - playerSize / 2, playerSize);
         }
 
         function drawPowerUps() {
