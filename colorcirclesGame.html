@@ -233,9 +233,7 @@
                     inventory['blue'] = 0; // Optionally reset the blue power-up count
                 }
             }
-            if (isGreenPowerUpActive) {
-                updatePlayerPositionHistory(); // Update the history only when boosting
-            }
+            updatePlayerPositionHistory(); // Always update the history of player's position
             // Check for Green Power-Up Active State and its Duration
             if (isGreenPowerUpActive && greenPowerUpTimer > 0) {
                 greenPowerUpTimer--;
