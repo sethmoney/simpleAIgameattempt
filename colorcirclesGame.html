@@ -116,11 +116,6 @@
 
         function startGame() {
             document.getElementById('modalInstructions').style.display = 'none';
-            var bgMusic = document.getElementById('bgMusic');
-            if (bgMusic) {
-                bgMusic.play().catch(function(e) {
-                    console.log('Audio play failed:', e);
-                });
             loop(); // Restart the drawing loop if it was stopped.
         }
 
