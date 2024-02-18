@@ -67,8 +67,8 @@
             Test Mode
         </label>
         <div id="audioControls" style="position: absolute; top: 40px; left: 10px; z-index: 1000;">
-        <button id="unmuteButton">Unmute Audio</button>
-    </div>
+            <button id="unmuteButton">Unmute Audio</button>
+        </div>
     </div>
     <audio id="bgMusic" loop autoplay muted>
         <source src="Limit 70.mp3" type="audio/mp3">
@@ -507,17 +507,15 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('unmuteButton').addEventListener('click', function() {
-                const bgMusic = document.getElementById('bgMusic');
-                if (bgMusic.muted) {
-                    bgMusic.muted = false; // Unmute the audio
-                    this.textContent = 'Mute Audio'; // Change the button text to "Mute Audio"
-                } else {
-                    bgMusic.muted = true; // Mute the audio again if it's already playing
-                    this.textContent = 'Unmute Audio'; // Change back the button text to "Unmute Audio"
-                }
-            });
+        document.getElementById('unmuteButton').addEventListener('click', function() {
+            const bgMusic = document.getElementById('bgMusic');
+            if (bgMusic.muted) {
+                bgMusic.muted = false;
+                this.textContent = 'Mute Audio';
+            } else {
+                bgMusic.muted = true;
+                this.textContent = 'Unmute Audio';
+            }
         });
 
     </script>
