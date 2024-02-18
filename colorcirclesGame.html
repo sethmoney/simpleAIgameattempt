@@ -152,18 +152,19 @@
         }
         
         function showGameOverModal(currentScore) {
-          // Update high score if current score is higher
-          updateHighScore(currentScore);
+            console.log("Current Score:", currentScore); // This should log the score to the console
+            // Update high score if current score is higher
+            updateHighScore(currentScore);
           
-          // Get high score from Local Storage
-          let highScore = localStorage.getItem('highScore') || '0';
+            // Get high score from Local Storage
+            let highScore = localStorage.getItem('highScore') || '0';
           
-          // Update modal content with current and high scores
-          document.getElementById('currentScore').textContent = currentScore;
-          document.getElementById('highScoreDisplay').textContent = highScore;
+            // Update modal content with current and high scores
+            document.getElementById('currentScore').textContent = currentScore;
+            document.getElementById('highScoreDisplay').textContent = highScore;
           
-          // Show the game over modal
-          document.getElementById('gameOverModal').style.display = 'flex';
+            // Show the game over modal
+            document.getElementById('gameOverModal').style.display = 'flex';
         }
 
         
