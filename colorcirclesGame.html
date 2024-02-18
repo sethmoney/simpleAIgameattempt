@@ -67,7 +67,7 @@
             Test Mode
         </label>
     </div>
-    <audio id="bgMusic" loop autoplay>
+    <audio id="bgMusic" loop>
         <source src="Limit 70.mp3" type="audio/mp3">
         Your browser does not support the audio element.
     </audio>
@@ -116,6 +116,11 @@
 
         function startGame() {
             document.getElementById('modalInstructions').style.display = 'none';
+            var bgMusic = document.getElementById('bgMusic');
+            if (bgMusic) {
+                bgMusic.play().catch(function(e) {
+                    console.log('Audio play failed:', e);
+                });
             loop(); // Restart the drawing loop if it was stopped.
         }
 
