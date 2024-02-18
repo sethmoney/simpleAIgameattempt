@@ -194,7 +194,7 @@
             playerPositionHistory.unshift({x: playerPosition.x, y: playerPosition.y}); // Add current position at the start
         
             // Keep only the last 10 positions for the trail effect
-            if (playerPositionHistory.length > 5) {
+            if (playerPositionHistory.length > 2) {
                 playerPositionHistory.pop();
             }
         }
