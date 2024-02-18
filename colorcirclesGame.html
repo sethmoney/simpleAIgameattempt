@@ -83,6 +83,7 @@
 </div>
     <script>
         let playerPosition;
+        let playerPositionHistory = [];
         let playerSize = 20; // Default player size
         let powerUps = [];
         let powerUpSize = 15;
@@ -181,6 +182,15 @@
             document.getElementById('gameOverModal').style.display = 'none';
             loop();
         }
+
+        function updatePlayerPositionHistory() {
+            playerPositionHistory.unshift({x: playerPosition.x, y: playerPosition.y}); // Add current position at the start
+        
+            // Keep only the last 10 positions for the trail effect
+            if (playerPositionHistory.length > 10) {
+                playerPositionHistory.pop();
+            }
+        }
         
         function draw() {
             background(0);
@@ -212,6 +222,9 @@
                     playerSize = 20; // Reset player size to normal
                     inventory['blue'] = 0; // Optionally reset the blue power-up count
                 }
+            }
+            if (isGreenPowerUpActive) {
+                updatePlayerPositionHistory(); // Update the history only when boosting
             }
             // Check for Green Power-Up Active State and its Duration
             if (isGreenPowerUpActive && greenPowerUpTimer > 0) {
@@ -307,19 +320,32 @@
 
 
         function drawPlayer() {
+            // Draw the ghosting trail if the green power-up is active
+            // This should happen regardless of whether the player is hit
+            if (isGreenPowerUpActive) {
+                for (let i = 0; i < playerPositionHistory.length; i++) {
+                    let pos = playerPositionHistory[i];
+                    let alpha = map(i, 0, playerPositionHistory.length, 255, 0); // Fade effect
+                    fill(255, 255, 255, alpha); // Assuming the player is white, adjust as needed
+                    square(pos.x - playerSize / 2, pos.y - playerSize / 2, playerSize); // Draw ghost player
+                }
+            }
+        
+            // If the player is hit, show the hit effect (flashing and shaking)
+            // Otherwise, draw the player normally
             if (isHit && hitTimer > 0) {
-                // Shake effect logic here
-                flashAndShakePlayer(); // Now directly integrates shaking logic
+                flashAndShakePlayer(); // This function now needs to integrate the shake logic
                 hitTimer--;
                 if (hitTimer <= 0) {
-                    isHit = false; // Stop the shake effect
+                    isHit = false; // Reset the hit effect
                 }
             } else {
-                // Normal player drawing logic
-                fill(255);
+                // Draw the current player position last to ensure it's on top of the trail
+                fill(255); // Reset fill for the main player shape
                 square(playerPosition.x - playerSize / 2, playerPosition.y - playerSize / 2, playerSize);
             }
         }
+
 
         function drawPowerUps() {
             powerUps.forEach((powerUp, index) => {
