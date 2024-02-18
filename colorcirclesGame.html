@@ -154,21 +154,21 @@
                 return;
             }
             if (currentHealth <= 0 || timer <= 0) {
-                showGameOverModal();
+                showGameOverModal(score);
                 noLoop(); // Pause the game
             }
         }
         
         function showGameOverModal(currentScore) {
-            console.log("Current Score:", currentScore); // This should log the score to the console
+            console.log("Current Score:", score); // This should log the score to the console
             // Update high score if current score is higher
-            updateHighScore(currentScore);
+            updateHighScore(score);
           
             // Get high score from Local Storage
             let highScore = localStorage.getItem('highScore') || '0';
           
             // Update modal content with current and high scores
-            document.getElementById('currentScore').textContent = currentScore;
+            document.getElementById('currentScore').textContent = score;
             document.getElementById('highScoreDisplay').textContent = highScore;
           
             // Show the game over modal
