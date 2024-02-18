@@ -77,6 +77,8 @@
     </div>
     <div id="gameOverModal" style="display:none;">
     <p>Game Over</p>
+    <p>Score: <span id="currentScore">0</span></p>
+    <p>High Score: <span id="highScoreDisplay">0</span></p>
     <button onclick="restartGame()">Restart Game</button>
 </div>
     <script>
@@ -149,9 +151,21 @@
             }
         }
         
-        function showGameOverModal() {
-            document.getElementById('gameOverModal').style.display = 'flex';
+        function showGameOverModal(currentScore) {
+          // Update high score if current score is higher
+          updateHighScore(currentScore);
+          
+          // Get high score from Local Storage
+          let highScore = localStorage.getItem('highScore') || '0';
+          
+          // Update modal content with current and high scores
+          document.getElementById('currentScore').textContent = currentScore;
+          document.getElementById('highScoreDisplay').textContent = highScore;
+          
+          // Show the game over modal
+          document.getElementById('gameOverModal').style.display = 'flex';
         }
+
         
         function restartGame() {
             // Reset game state variables
@@ -441,6 +455,13 @@
             }
         }
 
+        function updateHighScore(currentScore) {
+          let highScore = parseInt(localStorage.getItem('highScore') || '0');
+          if (currentScore > highScore) {
+            localStorage.setItem('highScore', currentScore.toString());
+          }
+        }
+        
         function updateAndDisplayTimer() {
             if (timer > 0) {
                 timer--;
