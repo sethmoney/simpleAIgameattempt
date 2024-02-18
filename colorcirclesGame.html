@@ -116,6 +116,9 @@
         let isHit = false; // Tracks whether the player was hit by a red circle
         let hitDuration = 15; // Duration of the hit effect in frames
         let hitTimer = 0; // Timer for the hit effect duration
+        let isYellowEffectActive = false;
+        let yellowEffectDuration = 60; // Duration in frames (e.g., 60 frames = 1 second at 60fps)
+        let yellowEffectTimer = 0;
 
         function startGame() {
             document.getElementById('modalInstructions').style.display = 'none';
@@ -193,7 +196,7 @@
         function updatePlayerPositionHistory() {
             playerPositionHistory.unshift({x: playerPosition.x, y: playerPosition.y}); // Add current position at the start
         
-            // Keep only the last 10 positions for the trail effect
+            // Keep only the last 2 positions for the trail effect
             if (playerPositionHistory.length > 2) {
                 playerPositionHistory.pop();
             }
@@ -327,31 +330,41 @@
 
 
         function drawPlayer() {
+            // Determine player color based on yellow effect activation
+            let playerColor = isYellowEffectActive ? lerpColor(color(255, 255, 0), color(255), map(yellowEffectTimer, yellowEffectDuration, 0, 0, 1)) : color(255);
+        
             // Draw the ghosting trail if the green power-up is active
-            // This should happen regardless of whether the player is hit
             if (isGreenPowerUpActive) {
                 for (let i = 0; i < playerPositionHistory.length; i++) {
                     let pos = playerPositionHistory[i];
                     let alpha = map(i, 0, playerPositionHistory.length, 255, 0); // Fade effect
-                    fill(255, 255, 255, alpha); // Assuming the player is white, adjust as needed
+                    fill(255, 255, 255, alpha); // Use white color with alpha for ghosting trail
                     square(pos.x - playerSize / 2, pos.y - playerSize / 2, playerSize); // Draw ghost player
                 }
             }
-        
+            
             // If the player is hit, show the hit effect (flashing and shaking)
-            // Otherwise, draw the player normally
             if (isHit && hitTimer > 0) {
-                flashAndShakePlayer(); // This function now needs to integrate the shake logic
+                flashAndShakePlayer(); // This function integrates the shake logic
                 hitTimer--;
                 if (hitTimer <= 0) {
                     isHit = false; // Reset the hit effect
                 }
             } else {
-                // Draw the current player position last to ensure it's on top of the trail
-                fill(255); // Reset fill for the main player shape
+                // Use the calculated playerColor for the main player shape
+                fill(playerColor);
                 square(playerPosition.x - playerSize / 2, playerPosition.y - playerSize / 2, playerSize);
             }
+        
+            // Decrement yellow effect timer and deactivate if necessary
+            if (isYellowEffectActive) {
+                yellowEffectTimer--;
+                if (yellowEffectTimer <= 0) {
+                    isYellowEffectActive = false; // Deactivate the effect once the timer runs out
+                }
+            }
         }
+
 
 
         function drawPowerUps() {
@@ -408,6 +421,8 @@
                         }
                         if (powerUp.color === 'yellow') {
                             score++; // Increase score
+                            isYellowEffectActive = true; // Activate the yellow effect
+                            yellowEffectTimer = yellowEffectDuration; // Reset the effect timer
                         }
                     }
                 }
