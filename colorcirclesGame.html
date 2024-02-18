@@ -115,7 +115,7 @@
           //growSound = loadSound('path/to/growSound.wav');
           //collectPointSound = loadSound('path/to/collectPointSound.wav');
           //crashSound = loadSound('path/to/crashSound.wav');
-          bgMusic = loadSound('path/to/bgMusic.mp3');
+          bgMusic = loadSound('Limit 70.mp3');
         }
 
         function startGame() {
@@ -125,6 +125,7 @@
 
         function setup() {
             createCanvas(800, 640);
+            bgMusic.loop(); // This will play the music in a loop
             playerPosition = createVector(width / 2, height / 2);
             addPowerUps(5); // Initial set of power-ups
             timer = timerDuration; // Initialize the timer
