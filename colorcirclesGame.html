@@ -67,7 +67,7 @@
             Test Mode
         </label>
         <div id="audioControls" style="position: absolute; top: 40px; left: 10px; z-index: 1000;">
-            <button id="unmuteButton">Unmute Audio</button>
+            <button id="unmuteButton">Mute Audio</button>
         </div>
     </div>
     <audio id="bgMusic" loop autoplay>
@@ -507,15 +507,12 @@
             }
         }
 
-        document.getElementById('unmuteButton').addEventListener('click', function() {
-            const bgMusic = document.getElementById('bgMusic');
-            if (bgMusic.muted) {
-                bgMusic.muted = false;
-                this.textContent = 'Mute Audio';
-            } else {
-                bgMusic.muted = true;
-                this.textContent = 'Unmute Audio';
-            }
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('unmuteButton').addEventListener('click', function() {
+                const bgMusic = document.getElementById('bgMusic');
+                bgMusic.muted = !bgMusic.muted; // Toggle the muted state
+                this.textContent = bgMusic.muted ? 'Unmute Audio' : 'Mute Audio'; // Update button text based on the muted state
+            });
         });
 
     </script>
