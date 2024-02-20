@@ -119,6 +119,14 @@
         let isYellowEffectActive = false;
         let yellowEffectDuration = 60; // Duration in frames (e.g., 60 frames = 1 second at 60fps)
         let yellowEffectTimer = 0;
+        
+        // Define point values for each circle color
+        const pointValues = {
+          yellow: 3,
+          purple: 2,
+          green: 1,
+          blue: 1
+        };
 
         function startGame() {
             document.getElementById('modalInstructions').style.display = 'none';
@@ -372,6 +380,10 @@
                     ellipse(powerUp.position.x, powerUp.position.y, powerUpSize, powerUpSize);
                     if (dist(playerPosition.x, playerPosition.y, powerUp.position.x, powerUp.position.y) < playerSize / 2 + powerUpSize / 2) {
                         powerUp.collected = true;
+                        //update score based on color
+                        if (pointValues[powerUp.color]) {
+                            score += pointValues[powerUp.color];
+                        }
                         // Update for red power-ups
                         if (powerUp.color === 'red') {
                             currentHealth -= 5; // Deduct 5 health points for each red circle hit
@@ -418,7 +430,7 @@
                             timer += 180; // Add time
                         }
                         if (powerUp.color === 'yellow') {
-                            score++; // Increase score
+                            //score++; // Increase score commented out bc trying to give all colors a score
                             isYellowEffectActive = true; // Activate the yellow effect
                             yellowEffectTimer = yellowEffectDuration; // Reset the effect timer
                         }
