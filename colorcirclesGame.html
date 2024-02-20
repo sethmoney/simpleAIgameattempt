@@ -178,25 +178,23 @@
             // Calculate final score as score times seconds alive
             const finalScore = score * timeAlive;
         
-            console.log("Final Score:", finalScore); // Log final score to console or display in UI
+            console.log("Final Score:", finalScore.toFixed(2)); // Log final score to console
         
-            // Update modal content with final score
-            document.getElementById('finalScoreDisplay').textContent = finalScore.toFixed(2);
-            
-            console.log("Current Score:", score); // This should log the score to the console
-            // Update high score if current score is higher
-            updateHighScore(score);
-          
+            // Update high score if final score is higher
+            updateHighScore(finalScore);
+        
             // Get high score from Local Storage
             let highScore = localStorage.getItem('highScore') || '0';
-          
+        
             // Update modal content with current and high scores
-            document.getElementById('currentScore').textContent = score;
+            document.getElementById('currentScore').textContent = score; // Keep showing the current score
             document.getElementById('highScoreDisplay').textContent = highScore;
-          
+            document.getElementById('finalScoreDisplay').textContent = finalScore.toFixed(2); // Show the final score
+        
             // Show the game over modal
             document.getElementById('gameOverModal').style.display = 'flex';
         }
+
 
         
         function restartGame() {
@@ -526,11 +524,11 @@
             }
         }
 
-        function updateHighScore(currentScore) {
-          let highScore = parseInt(localStorage.getItem('highScore') || '0');
-          if (currentScore > highScore) {
-            localStorage.setItem('highScore', currentScore.toString());
-          }
+        function updateHighScore(finalScore) {
+            let highScore = parseFloat(localStorage.getItem('highScore') || '0');
+            if (finalScore > highScore) {
+                localStorage.setItem('highScore', finalScore.toString());
+            }
         }
         
         function updateAndDisplayTimer() {
