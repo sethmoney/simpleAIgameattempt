@@ -550,6 +550,30 @@
             });
         });
 
+        function submitScore(initials, score) {
+          fetch('https://script.google.com/macros/s/AKfycbwYJ5duzSekbLCApNO2OB57AYe7_Ay_z1CVsvLQrkY/exec', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ initials: initials, score: score })
+          })
+          .then(response => response.json())
+          .then(data => console.log(data))
+          .catch(error => console.error('Error:', error));
+        }
+
+
+        function fetchLeaderboard() {
+          fetch('https://script.google.com/macros/s/AKfycbwYJ5duzSekbLCApNO2OB57AYe7_Ay_z1CVsvLQrkY/exec')
+          .then(response => response.json())
+          .then(data => {
+            // Display the leaderboard data in your game
+            console.log(data);
+          });
+        }
+
+        
     </script>
 </body>
 </html>
