@@ -87,6 +87,8 @@
     <p>Score: <span id="currentScore">0</span></p>
         <p>Score X Time Alive = Final Score: <span id="finalScoreDisplay">0</span></p>
     <p>High Score: <span id="highScoreDisplay">0</span></p>
+    <input type="text" id="playerInitials" placeholder="Your Initials" maxlength="3" />
+    <button id="submitScoreBtn" onclick="submitScoreWrapper()">Submit Score</button>
     <button onclick="restartGame()">Restart Game</button>
 </div>
     <script>
@@ -120,6 +122,7 @@
         let isYellowEffectActive = false;
         let yellowEffectDuration = 60; // Duration in frames (e.g., 60 frames = 1 second at 60fps)
         let yellowEffectTimer = 0;
+        let globalFinalScore; // Declare this globally to hold the final score for submission
         
         // Define point values for each circle color
         const pointValues = {
@@ -193,9 +196,19 @@
         
             // Show the game over modal
             document.getElementById('gameOverModal').style.display = 'flex';
+
+            globalFinalScore = finalScore; // Store final score globally for submission
+
         }
 
-
+        function submitScoreWrapper() {
+            const initials = document.getElementById('playerInitials').value.trim(); // Trim whitespace from the initials
+            if(initials) { // Ensure initials were provided
+                submitScore(initials, globalFinalScore.toFixed(2)); // Convert globalFinalScore to a string with two decimal places
+            } else {
+                alert("Please enter your initials."); // Notify the user to enter initials
+            }
+        }
         
         function restartGame() {
             // Reset game state variables
@@ -548,19 +561,24 @@
                 bgMusic.muted = !bgMusic.muted; // Toggle the muted state
                 this.textContent = bgMusic.muted ? 'Unmute Audio' : 'Mute Audio'; // Update button text based on the muted state
             });
+            // Add event listener for the submit score button
+            // Ensure the ID 'submitScoreBtn' is assigned to your Submit Score button
+            document.getElementById('submitScoreBtn').addEventListener('click', submitScoreWrapper);
         });
 
-        function submitScore(initials, score) {
-          fetch('https://script.google.com/macros/s/AKfycbwYJ5duzSekbLCApNO2OB57AYe7_Ay_z1CVsvLQrkY/exec', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ initials: initials, score: score })
-          })
-          .then(response => response.json())
-          .then(data => console.log(data))
-          .catch(error => console.error('Error:', error));
+        
+
+        function submitScore(initials, finalScore) {
+            fetch('https://script.google.com/macros/s/AKfycbwYJ5duzSekbLCApNO2OB57AYe7_Ay_z1CVsvLQrkY/exec', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ initials: initials, score: finalScore }) // Use finalScore variable
+            })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
         }
 
 
