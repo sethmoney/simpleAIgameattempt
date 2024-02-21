@@ -569,7 +569,7 @@
         
 
         function submitScore(initials, finalScore) {
-            fetch('https://script.google.com/macros/s/AKfycbwYJ5duzSekbLCApNO2OB57AYe7_Ay_z1CVsvLQrkY/exec', {
+            fetch('https://script.google.com/macros/s/AKfycbxYKv5XDZUBdzXv2uZ67EpHqvQ-YKqNDOL_aW_9ZAHAAHt6XC0vWSpDjzNCVQdZPU0R/exec', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -583,7 +583,7 @@
 
 
         function fetchLeaderboard() {
-          fetch('https://script.google.com/macros/s/AKfycbwYJ5duzSekbLCApNO2OB57AYe7_Ay_z1CVsvLQrkY/exec')
+          fetch('https://script.google.com/macros/s/AKfycbxYKv5XDZUBdzXv2uZ67EpHqvQ-YKqNDOL_aW_9ZAHAAHt6XC0vWSpDjzNCVQdZPU0R/exec')
           .then(response => response.json())
           .then(data => {
             // Display the leaderboard data in your game
