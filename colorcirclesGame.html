@@ -87,8 +87,12 @@
     <p>Score: <span id="currentScore">0</span></p>
         <p>Score X Time Alive = Final Score: <span id="finalScoreDisplay">0</span></p>
     <p>High Score: <span id="highScoreDisplay">0</span></p>
-    <input type="text" id="playerInitials" placeholder="Your Initials" maxlength="3" />
-    <button id="submitScoreBtn" onclick="submitScoreWrapper()">Submit Score</button>
+    <form name="leaderboard" method="POST" data-netlify="true" id="leaderboardForm" hidden>
+      <input type="text" name="initials" id="playerInitials" placeholder="Your Initials" maxlength="3" required>
+      <input type="hidden" name="finalScore" id="finalScore">
+      <input type="hidden" name="form-name" value="leaderboard">
+    </form>
+    <button id="submitScoreBtn" onclick="per()">Submit Score</button>
     <button onclick="restartGame()">Restart Game</button>
 </div>
     <script>
@@ -201,14 +205,36 @@
 
         }
 
-        function submitScoreWrapper() {
-            const initials = document.getElementById('playerInitials').value.trim(); // Trim whitespace from the initials
-            if(initials) { // Ensure initials were provided
-                submitScore(initials, globalFinalScore.toFixed(2)); // Convert globalFinalScore to a string with two decimal places
-            } else {
-                alert("Please enter your initials."); // Notify the user to enter initials
+        function submitScoreWrapper(event) {
+            event.preventDefault();
+            
+            const initialsInput = document.querySelector("#playerInitials");
+            const finalScoreInput = document.createElement("input");
+            finalScoreInput.setAttribute("type", "hidden");
+            finalScoreInput.setAttribute("name", "finalScore");
+            finalScoreInput.value = globalFinalScore.toFixed(2);
+        
+            const form = document.createElement("form");
+            form.setAttribute("name", "leaderboard");
+            form.setAttribute("method", "POST");
+            form.setAttribute("data-netlify", "true");
+            
+            form.appendChild(initialsInput);
+            form.appendChild(finalScoreInput);
+            
+            document.body.appendChild(form);
+            
+              fetch("/", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams(new FormData(form)).toString(),
+              })
+                .then(() => console.log("Form successfully submitted"))
+                .catch((error) => alert(error));
+            
+              form.style.display = "none"; // Hide the form after appending it to the body
             }
-        }
+
         
         function restartGame() {
             // Reset game state variables
@@ -564,32 +590,33 @@
             // Add event listener for the submit score button
             // Ensure the ID 'submitScoreBtn' is assigned to your Submit Score button
             document.getElementById('submitScoreBtn').addEventListener('click', submitScoreWrapper);
+            const form = document.getElementById('leaderboardForm');
+              form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(form);
+                formData.set('finalScore', globalFinalScore.toFixed(2)); // Set the score just before submitting
+            
+                fetch('/', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                  body: new URLSearchParams(formData).toString(),
+                })
+                .then(() => console.log('Form successfully submitted'))
+                .catch((error) => alert(error));
+              });
+            
+              // You would trigger the form submission like this:
+              document.getElementById('submitScoreBtn').addEventListener('click', function() {
+                const initialsInput = document.getElementById('playerInitials');
+                if(initialsInput.value) {
+                  form.dispatchEvent(new Event('submit'));
+                } else {
+                  alert('Please enter your initials.');
+                }
+              });
         });
 
         
-
-        function submitScore(initials, finalScore) {
-            fetch('https://script.google.com/macros/s/AKfycbxYKv5XDZUBdzXv2uZ67EpHqvQ-YKqNDOL_aW_9ZAHAAHt6XC0vWSpDjzNCVQdZPU0R/exec', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ initials: initials, score: finalScore }) // Use finalScore variable
-            })
-            .then(response => response.json())
-            .then(data => console.log(data))
-            .catch(error => console.error('Error:', error));
-        }
-
-
-        function fetchLeaderboard() {
-          fetch('https://script.google.com/macros/s/AKfycbxYKv5XDZUBdzXv2uZ67EpHqvQ-YKqNDOL_aW_9ZAHAAHt6XC0vWSpDjzNCVQdZPU0R/exec')
-          .then(response => response.json())
-          .then(data => {
-            // Display the leaderboard data in your game
-            console.log(data);
-          });
-        }
 
         
     </script>
