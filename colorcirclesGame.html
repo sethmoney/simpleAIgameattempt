@@ -77,10 +77,17 @@
     <p>Score: <span id="currentScore">0</span></p>
         <p>Score X Time Alive = Final Score: <span id="finalScoreDisplay">0</span></p>
     <p>High Score: <span id="highScoreDisplay">0</span></p>
-    <form name="leaderboard" method="POST" data-netlify="true" id="leaderboardForm" hidden>
-      <input type="text" name="initials" id="playerInitials" placeholder="Your Initials" maxlength="3" required>
-      <input type="hidden" name="finalScore" id="finalScore">
-      <input type="hidden" name="form-name" value="leaderboard">
+    <form name="scoreSubmission" method="POST" data-netlify="true">
+      <input type="hidden" name="form-name" value="scoreSubmission" />
+      <p>
+        <label>Your Initials: <input type="text" name="initials" maxlength="3" required /></label>
+      </p>
+      <p>
+        <label>Your Score: <input type="number" name="score" required /></label>
+      </p>
+      <p>
+        <button type="submit">Submit Score</button>
+      </p>
     </form>
     <button id="submitScoreBtn">Submit Score</button>
     <button onclick="restartGame()">Restart Game</button>
