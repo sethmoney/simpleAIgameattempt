@@ -77,17 +77,12 @@
     <p>Score: <span id="currentScore">0</span></p>
         <p>Score X Time Alive = Final Score: <span id="finalScoreDisplay">0</span></p>
     <p>High Score: <span id="highScoreDisplay">0</span></p>
-    <form name="scoreSubmission" method="POST" data-netlify="true">
-      <input type="hidden" name="form-name" value="scoreSubmission" />
-      <p>
-        <label>Your Initials: <input type="text" name="initials" maxlength="3" required /></label>
-      </p>
-      <p>
-        <label>Your Score: <input type="number" name="score" required /></label>
-      </p>
-      <p>
+    <form id="leaderboardForm" name="leaderboardForm" method="POST" data-netlify="true">
+        <input type="hidden" name="form-name" value="leaderboardForm">
+        <label for="initials">Your Initials:</label>
+        <input type="text" name="initials" id="playerInitials" maxlength="3" required>
+        <input type="hidden" name="score" id="finalScore">
         <button type="submit">Submit Score</button>
-      </p>
     </form>
     <button id="submitScoreBtn">Submit Score</button>
     <button onclick="restartGame()">Restart Game</button>
@@ -579,41 +574,31 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Toggle background music mute state
-            document.getElementById('unmuteButton').addEventListener('click', function() {
-                const bgMusic = document.getElementById('bgMusic');
-                bgMusic.muted = !bgMusic.muted; // Toggle the muted state
-                this.textContent = bgMusic.muted ? 'Unmute Audio' : 'Mute Audio'; // Update button text
-            });
-        
-            // Event listener for submitting the score
             const form = document.getElementById('leaderboardForm');
+        
             form.addEventListener('submit', function(event) {
                 event.preventDefault();
+                const finalScore = globalFinalScore.toFixed(2); // Assume globalFinalScore is calculated elsewhere
         
-                // Prepare and submit the form data
+                // Populate the hidden score field before submission
+                document.getElementById('finalScore').value = finalScore;
+        
+                // Convert form data to URL-encoded string
                 const formData = new FormData(form);
-                formData.set('finalScore', globalFinalScore.toFixed(2)); // Update score
+                const encodedData = new URLSearchParams(formData).toString();
         
-                fetch('/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams(formData).toString(),
+                fetch("/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: encodedData,
                 })
                 .then(() => console.log('Form successfully submitted'))
-                .catch((error) => alert(error));
+                .catch((error) => console.error('Error:', error));
             });
         
-            // Validate input and trigger form submission
-            document.getElementById('submitScoreBtn').addEventListener('click', function() {
-                const initialsInput = document.getElementById('playerInitials');
-                if(initialsInput.value) {
-                    form.dispatchEvent(new Event('submit')); // Trigger form submission
-                } else {
-                    alert('Please enter your initials.');
-                }
-            });
+            // Remove the redundant listener on 'submitScoreBtn' if you're directly submitting the form.
         });
+
 
 
         
