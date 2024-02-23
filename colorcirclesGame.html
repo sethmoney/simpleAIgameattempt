@@ -170,7 +170,7 @@
             }
         }
         
-        function showGameOverModal() {
+       function showGameOverModal() {
             // Calculate time alive in seconds
             const timeAlive = (timerDuration - timer) / 60;
         
@@ -190,12 +190,15 @@
             document.getElementById('highScoreDisplay').textContent = highScore;
             document.getElementById('finalScoreDisplay').textContent = finalScore.toFixed(2); // Show the final score
         
+            // Here, set the value of the hidden finalScore input before showing the modal
+            document.getElementById('finalScore').value = finalScore.toFixed(2);
+        
             // Show the game over modal
             document.getElementById('gameOverModal').style.display = 'flex';
-
+        
             globalFinalScore = finalScore; // Store final score globally for submission
-
         }
+
 
         function submitScoreWrapper(event) {
             event.preventDefault();
