@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+/* const fetch = require('node-fetch');
 
 exports.handler = async (event, context) => {
   const url = `${process.env.URL}/.netlify/functions/scores.json`; // Adjust this URL as needed
@@ -22,3 +22,4 @@ exports.handler = async (event, context) => {
     };
   }
 };
+*/
