@@ -49,7 +49,7 @@
         <label for="redSpeedIncrementSlider">Red Speed Increment:</label>
         <input type="range" id="redSpeedIncrementSlider" min="1" max="10" value="5">
         <span id="redSpeedIncrementValue">5</span>
-    </div> -->
+    </div> 
     <div id="testModeDiv" style="position: absolute; top: 10px; left: 10px; z-index: 1000;">
         <label>
             <input type="checkbox" id="testModeCheckbox" />
@@ -57,8 +57,8 @@
         </label>
         <div id="audioControls" style="position: absolute; top: 40px; left: 10px; z-index: 1000;">
             <button id="unmuteButton">Mute Audio</button>
-        </div>
-    </div>
+        </div> 
+    </div> -->
     <audio id="bgMusic" loop autoplay>
         <source src="Limit 70.mp3" type="audio/mp3">
         Your browser does not support the audio element.
@@ -84,6 +84,10 @@
         <input type="hidden" name="score" id="finalScore">
         <button type="submit">Submit Score</button>
     </form>
+        <div id="nftOfferContainer" style="display:none;">
+        <p>Congratulations! You're eligible for an NFT reward.</p>
+        <a href="https://highlight.xyz/mint/65da3c6c14d1e1cf26028c87" target="_blank">Claim your NFT</a>
+    </div>
     <!-- <button id="submitScoreBtn">Submit Score</button> -->
     <button onclick="restartGame()">Restart Game</button>
 </div>
@@ -197,6 +201,13 @@
             document.getElementById('gameOverModal').style.display = 'flex';
         
             globalFinalScore = finalScore; // Store final score globally for submission
+           // New logic to offer NFT
+            const nftEligibleScore = 2000; // Example score threshold
+            if (finalScore > nftEligibleScore) {
+                document.getElementById('nftOfferContainer').style.display = 'block'; // Show NFT offer
+            } else {
+                document.getElementById('nftOfferContainer').style.display = 'none'; // Hide NFT offer
+            }
         }
 
 
