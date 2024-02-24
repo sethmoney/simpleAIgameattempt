@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full Window Dynamic Drawing</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        $(document).ready(function(){
+            var canvas = document.getElementById("canvas");
+            var context = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            var x1 = Math.random() * canvas.width;
+            var y1 = Math.random() * canvas.height;
+            var xdir = 0;
+            var ydir = 0;
+            context.strokeStyle = '#ff0000';
+
+            var updatePosition = function() {
+                var nextX = x1 + xdir;
+                var nextY = y1 + ydir;
+
+                if (nextX >= 0 && nextX <= canvas.width && nextY >= 0 && nextY <= canvas.height) {
+                    x1 = nextX;
+                    y1 = nextY;
+                } else {
+                    if (nextX < 0 || nextX > canvas.width) xdir = -xdir;
+                    if (nextY < 0 || nextY > canvas.height) ydir = -ydir;
+                }
+            };
+
+            var int = setInterval(function(){
+                for (var i = 0; i < 10; i++) {
+                    var randx = Math.random();
+                    var randy = Math.random();
+
+                    if (randx > 0.95) {
+                        xdir = (Math.random() * 3) - 1.5;
+                    }
+
+                    if (randy > 0.95) {
+                        ydir = (Math.random() * 3) - 1.5;
+                    }
+
+                    updatePosition();
+
+                    context.beginPath();
+                    context.moveTo(x1, y1);
+                    context.lineTo(x1 + xdir, y1 + ydir);
+                    context.stroke();
+                }
+            }, 30);
+
+            $("#stop").click(function(){
+                clearInterval(int);
+            });
+
+        });
+    </script>
+</body>
+</html>
