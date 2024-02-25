@@ -51,7 +51,7 @@
         <span id="redSpeedIncrementValue">5</span>
     </div> -->
     <div id="testModeDiv" style="position: absolute; top: 10px; left: 10px; z-index: 1000;">
-        <label>
+        <!--<label>
             <input type="checkbox" id="testModeCheckbox" />
             Test Mode
         </label>
@@ -115,7 +115,7 @@
         let redSpeedIncrement = 5; // Speed increase factor for red circles
         let redMaxSpeed = 5; // Maximum speed for red circles
         let redSpeed = 1; // Initial speed of red circles
-        let testModeActive = false;
+        //let testModeActive = false;
         let isHit = false; // Tracks whether the player was hit by a red circle
         let hitDuration = 15; // Duration of the hit effect in frames
         let hitTimer = 0; // Timer for the hit effect duration
@@ -153,21 +153,21 @@
             //};
             noLoop(); // Stop the drawing loop until the game starts.
             // Setup checkbox event listener
-            document.getElementById('testModeCheckbox').addEventListener('change', function() {
+            /*document.getElementById('testModeCheckbox').addEventListener('change', function() {
                 testModeActive = this.checked;
                 if (testModeActive) {
                     console.log("Test Mode Activated");
                 } else {
                     console.log("Test Mode Deactivated");
-                }
+                }*/
             });
         }
 
         function checkGameOver() {
-            if (testModeActive) {
+            /*if (testModeActive) {
                 // If test mode is active, simply return without doing anything
                 return;
-            }
+            }*/
             if (currentHealth <= 0 || timer <= 0) {
                 showGameOverModal(score);
                 noLoop(); // Pause the game
