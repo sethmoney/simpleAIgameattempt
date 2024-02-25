@@ -206,14 +206,14 @@
             }
         }
 
-        function submitScoreWrapper() {
+        /*function submitScoreWrapper() {
             const initials = document.getElementById('playerInitials').value.trim(); // Trim whitespace from the initials
             if(initials) { // Ensure initials were provided
                 submitScore(initials, globalFinalScore.toFixed(2)); // Convert globalFinalScore to a string with two decimal places
             } else {
                 alert("Please enter your initials."); // Notify the user to enter initials
             }
-        }
+        }*/
         
         function restartGame() {
             // Reset game state variables
@@ -312,7 +312,7 @@
             });
         }
 
-        function displayInventory() {
+        /*function displayInventory() {
             fill(255); // White color for text
             textSize(16); // Adjust text size as needed
             textAlign(LEFT, TOP); // Align text to the left top
@@ -323,7 +323,7 @@
                 inventoryText += `${color.toUpperCase()}: ${count} | `;
             }
             text(inventoryText, 10, startY); // Display inventory text starting from the left margin
-        }
+        }*/
         
         function keyPressed() {
             //if (key === 'i' || key === 'I') {
@@ -506,7 +506,7 @@
             text(`Score: ${score}`, width / 2, 10);
         }
         
-        function drawInventory() {
+        /*function drawInventory() {
             // Assuming inventory is an object with keys as color names and values as counts
             const inventoryDisplay = document.getElementById('inventoryDisplay');
             let inventoryText = 'Inventory: ';
@@ -514,7 +514,7 @@
                 inventoryText += `${color.toUpperCase()}: ${count} | `;
             }
             inventoryDisplay.innerHTML = inventoryText.slice(0, -2); // Remove the last "|"
-        }
+        }*/
 
         function usePowerUp(color) {
             if (color === 'blue' && inventory[color] && inventory[color] > 0) {
@@ -568,12 +568,12 @@
             });
             // Add event listener for the submit score button
             // Ensure the ID 'submitScoreBtn' is assigned to your Submit Score button
-            document.getElementById('submitScoreBtn').addEventListener('click', submitScoreWrapper);
+            //document.getElementById('submitScoreBtn').addEventListener('click', submitScoreWrapper);
         });
 
         
 
-        function submitScore(initials, finalScore) {
+        /*function submitScore(initials, finalScore) {
             fetch('https://script.google.com/macros/s/AKfycbwYJ5duzSekbLCApNO2OB57AYe7_Ay_z1CVsvLQrkY/exec', {
                 method: 'POST',
                 headers: {
@@ -584,17 +584,17 @@
             .then(response => response.json())
             .then(data => console.log(data))
             .catch(error => console.error('Error:', error));
-        }
+        }*/
 
 
-        function fetchLeaderboard() {
+        /*function fetchLeaderboard() {
           fetch('https://script.google.com/macros/s/AKfycbwYJ5duzSekbLCApNO2OB57AYe7_Ay_z1CVsvLQrkY/exec')
           .then(response => response.json())
           .then(data => {
             // Display the leaderboard data in your game
             console.log(data);
           });
-        }
+        }*/
 
         
     </script>
