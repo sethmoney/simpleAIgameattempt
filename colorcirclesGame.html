@@ -12,48 +12,37 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            }
-            #modalInstructions {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.8);
-                color: #fff;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                flex-direction: column;
-                text-align: center;
-            }
-            #modalInstructions button {
-                padding: 10px 20px;
-                font-size: 16px;
-                cursor: pointer;
-                margin-top: 20px;
-            }
-            #gameOverModal {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.8);
-                color: #fff;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                flex-direction: column;
-                text-align: center;
-            }
-            #gameOverModal button {
-                padding: 10px 20px;
-                font-size: 16px;
-                cursor: pointer;
-                margin-top: 20px;
-            }
-        </style>
+        }
+        #modalInstructions, #gameOverModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+        }
+        #modalInstructions button, #gameOverModal button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        #testModeDiv, #audioControls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+        }
+        #audioControls {
+            top: 40px;
+        }
+    </style>
 </head>
 <body>
     <!-- <div id="guiContainer" style="position: absolute; top: 0; right: 0; padding: 10px; z-index: 100;">
@@ -66,17 +55,18 @@
             <input type="checkbox" id="testModeCheckbox" />
             Test Mode
         </label>
-        <div id="audioControls" style="position: absolute; top: 40px; left: 10px; z-index: 1000;">
+       <!-- <div id="audioControls" style="position: absolute; top: 40px; left: 10px; z-index: 1000;">
             <button id="unmuteButton">Mute Audio</button>
-        </div>
-    </div>
+        </div> 
+    </div> -->
     <audio id="bgMusic" loop autoplay>
         <source src="Limit 70.mp3" type="audio/mp3">
         Your browser does not support the audio element.
     </audio>
     <div id="modalInstructions">
-        <p>Collect as many yellow circles as you can before time runs out.</p>
-        <p>Collecting purple circles gives you more time.</p>
+        <p>Collect as many circle before time runs out.</p>
+        <p>Yellow = 3, Purple = 2, Green & Blue = 1.</p>
+        <p>Purple will give you 3 extra seconds.</p>
         <p>Blue circles temporarily make you bigger. Green ones boost you.</p>
         <p>Avoid Red all together!</p>
         <p>Use arrow keys or WASD to move.</p>
@@ -87,8 +77,18 @@
     <p>Score: <span id="currentScore">0</span></p>
         <p>Score X Time Alive = Final Score: <span id="finalScoreDisplay">0</span></p>
     <p>High Score: <span id="highScoreDisplay">0</span></p>
-    <input type="text" id="playerInitials" placeholder="Your Initials" maxlength="3" />
-    <button id="submitScoreBtn" onclick="submitScoreWrapper()">Submit Score</button>
+    <!-- <form id="leaderboardForm" name="leaderboardForm" method="POST" data-netlify="true">
+        <input type="hidden" name="form-name" value="leaderboardForm">
+        <label for="initials">Your Initials:</label>
+        <input type="text" name="initials" id="playerInitials" maxlength="3" required>
+        <input type="hidden" name="score" id="finalScore">
+        <button type="submit">Submit Score</button>
+    </form> -->
+        <div id="nftOfferContainer" style="display:none;">
+        <p>Congratulations! You're eligible for an NFT reward.</p>
+        <a href="https://highlight.xyz/mint/65da3c6c14d1e1cf26028c87" target="_blank">Claim your NFT</a>
+    </div>
+    <!-- <button id="submitScoreBtn">Submit Score</button> -->
     <button onclick="restartGame()">Restart Game</button>
 </div>
     <script>
