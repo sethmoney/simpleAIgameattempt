@@ -190,7 +190,7 @@
             let highScore = localStorage.getItem('highScore') || '0';
         
             // Update modal content with current and high scores
-            document.getElementById('currentScore').textContent = score; // Keep showing the current score
+            //document.getElementById('currentScore').textContent = score; // Keep showing the current score
             document.getElementById('highScoreDisplay').textContent = highScore;
             document.getElementById('finalScoreDisplay').textContent = finalScore.toFixed(2); // Show the final score
         
@@ -198,7 +198,12 @@
             document.getElementById('gameOverModal').style.display = 'flex';
 
             globalFinalScore = finalScore; // Store final score globally for submission
-
+            const nftEligibleScore = 2000; // Example score threshold
+            if (finalScore > nftEligibleScore) {
+                document.getElementById('nftOfferContainer').style.display = 'block'; // Show NFT offer
+            } else {
+                document.getElementById('nftOfferContainer').style.display = 'none'; // Hide NFT offer
+            }
         }
 
         function submitScoreWrapper() {
