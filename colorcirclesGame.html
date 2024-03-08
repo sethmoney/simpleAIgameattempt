@@ -223,7 +223,7 @@
             powerUps = []; // Clear existing power-ups
             addPowerUps(5); // Add initial power-ups
             playerPosition = createVector(width / 2, height / 2); // Reset player position
-            
+            playerSize = 20; //reset player size
             // Hide game over modal and restart the game loop
             document.getElementById('gameOverModal').style.display = 'none';
             loop();
