@@ -542,7 +542,10 @@
         }
 
         function maybeAddPowerUp() {
-            if (frameCount % 60 === 0) {
+            // Remove collected red circles from powerUps array
+            powerUps = powerUps.filter(powerUp => !powerUp.collected || powerUp.color !== 'red');
+        
+            if (frameCount % 180 === 0) {
                 let colors = ['blue', 'yellow', 'green', 'purple', 'purple', 'purple'];
         
                 // Increase the probability of spawning red circles as the score increases
