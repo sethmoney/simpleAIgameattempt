@@ -90,7 +90,14 @@
         </div>
     <!-- <button id="submitScoreBtn">Submit Score</button> -->
     <button onclick="restartGame()">Restart Game</button>
-</div>
+    </div>
+    <div id="upgradeShopModal">
+        <h2>Upgrade Shop</h2>
+        <p>You have collected enough yellow power-ups to access the upgrade shop.</p>
+        <button onclick="purchaseUpgrade('healthBoost')">Health Boost (+25)</button>
+        <button onclick="purchaseUpgrade('speedBoost')">Speed Boost (+2)</button>
+        <button onclick="closeUpgradeShop()">Close</button>
+    </div>
     <script>
         let playerPosition;
         let playerPositionHistory = [];
@@ -123,7 +130,8 @@
         let yellowEffectDuration = 60; // Duration in frames (e.g., 60 frames = 1 second at 60fps)
         let yellowEffectTimer = 0;
         let globalFinalScore; // Declare this globally to hold the final score for submission
-        
+        let yellowPowerUpsCollected = 0;
+        const yellowPowerUpThreshold = 5; // Change this value to adjust the threshold
         // Define point values for each circle color
         const pointValues = {
           yellow: 3,
@@ -429,6 +437,13 @@
                                 console.log("Game Over!"); // Placeholder action
                             }
                         }
+                        // Handle yellow power-ups
+                        if (powerUp.color === 'yellow') {
+                            yellowPowerUpsCollected++;
+                            if (yellowPowerUpsCollected >= yellowPowerUpThreshold) {
+                                showUpgradeShopModal();
+                            }
+                        }
                         // Apply hit effect
                         if (isHit) {
                             flashAndShakePlayer();
@@ -470,6 +485,30 @@
                     }
                 }
             });
+        }
+        function showUpgradeShopModal() {
+            document.getElementById('upgradeShopModal').style.display = 'flex';
+            noLoop(); // Pause the game loop
+        }
+
+        function closeUpgradeShop() {
+            document.getElementById('upgradeShopModal').style.display = 'none';
+            loop(); // Resume the game loop
+        }
+
+        function purchaseUpgrade(upgrade) {
+            switch (upgrade) {
+                case 'healthBoost':
+                    maxHealth += 25;
+                    currentHealth += 25;
+                    break;
+                case 'speedBoost':
+                    velocityBoost += 2;
+                    break;
+                // Add more cases for additional upgrades
+            }
+            closeUpgradeShop();
+            yellowPowerUpsCollected = 0; // Reset the yellow power-up counter
         }
 
         function flashAndShakePlayer() {
