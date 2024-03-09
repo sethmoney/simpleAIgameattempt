@@ -324,10 +324,11 @@
                         // Increase red circle speed based on game progression, with a maximum limit
                         let currentRedSpeed = min(redSpeed + (score / 25) * redSpeedIncrement, redMaxSpeed);
                         direction.mult(currentRedSpeed);
-                    } else if (magnetActive && distance < magnetStrength * 50) { // Check if magnet is active and power-up is within pull radius
-                        direction.normalize(); // Normalize the direction vector
-                        let pullStrength = map(distance, 0, magnetStrength * 50, magnetStrength, 1); // Calculate pull strength based on distance
-                        direction.mult(pullStrength); // Apply the calculated pull strength
+                    } else {
+                        // Apply magnet effect to non-red power-ups
+                        if (magnetActive && distance < magnetRadius) { // Use magnetRadius for clarity
+                            direction.setMag(magnetStrength); // Set magnitude of the vector based on magnetStrength
+                        }
                     }
         
                     // Update the power-up's position
@@ -335,6 +336,7 @@
                 }
             });
         }
+
 
         function displayInventory() {
             fill(255); // White color for text
