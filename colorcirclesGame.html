@@ -134,6 +134,7 @@
         <button onclick="closeUpgradeShop()">Close</button>
     </div>
     <script>
+        let yellowPowerUpsCollectedThisRound = 0; //yellow collections in this round
         let magnetActive = false; // Whether the magnet upgrade is active
         let magnetRadius = 100; // Initial radius of the magnet effect
         let magnetStrength = 2; // Initial strength of the magnet effect
@@ -275,6 +276,7 @@
             magnetRadius = 100; // Initial radius of the magnet effect
             magnetStrength = 2;
             baseSpeed = 5;
+            yellowPowerUpsCollectedThisRound = 0;
             // Hide game over modal and restart the game loop
             document.getElementById('gameOverModal').style.display = 'none';
             loop();
@@ -327,6 +329,14 @@
                 if (greenPowerUpTimer <= 0) {
                     isGreenPowerUpActive = false; // Effectively stops the velocity boost
                 }
+            }
+            if (powerUp.color === 'yellow') {
+                yellowPowerUpsCollectedThisRound++;
+                if (yellowPowerUpsCollectedThisRound >= yellowPowerUpThreshold) {
+                    showUpgradeShopModal();
+                    yellowPowerUpsCollectedThisRound = 0; // Reset the count after showing the modal
+                }
+                // ... (other code for handling yellow power-ups)
             }
             // Draw the gameplay area boundary if needed
             stroke(255); // White color for visibility
