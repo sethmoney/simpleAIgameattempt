@@ -100,7 +100,7 @@
         let inventory = {};
         let showInventory = false;
         let isBluePowerUpActive = false;
-        let bluePowerUpDuration = 300; // Adjusted duration for using multiple blue power-ups
+        let bluePowerUpDuration = 100; // Adjusted duration for using multiple blue power-ups
         let bluePowerUpTimer = 0;
         let score = 0;
         let timer; // Timer for countdown
@@ -543,7 +543,19 @@
 
         function maybeAddPowerUp() {
             if (frameCount % 60 === 0) {
-                addPowerUps(1);
+                let colors = ['blue', 'yellow', 'green', 'purple', 'purple', 'purple'];
+        
+                // Increase the probability of spawning red circles as the score increases
+                const redChance = Math.floor(score / 100); // Adjust the factor as needed
+                for (let i = 0; i < redChance; i++) {
+                    colors.push('red');
+                }
+        
+                powerUps.push({
+                    position: createVector(random(width), random(height)),
+                    color: random(colors),
+                    collected: false
+                });
             }
         }
 
