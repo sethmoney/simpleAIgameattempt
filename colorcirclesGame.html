@@ -99,6 +99,7 @@
         <button onclick="closeUpgradeShop()">Close</button>
     </div>
     <script>
+        let baseSpeed = 5; // Base speed of the player
         let playerPosition;
         let playerPositionHistory = [];
         let playerSize = 20; // Default player size
@@ -347,7 +348,7 @@
         }
 
         function handlePlayerInput() {
-            let speed = 5; // Base speed
+            let speed = baseSpeed; // Base speed
             // Increase speed if green power-up is active
             if (isGreenPowerUpActive) {
                 speed *= velocityBoost;
@@ -503,7 +504,7 @@
                     currentHealth += 25;
                     break;
                 case 'speedBoost':
-                    velocityBoost += 2;
+                    baseSpeed += 2;
                     break;
                 // Add more cases for additional upgrades
             }
