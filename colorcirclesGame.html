@@ -42,6 +42,40 @@
         #audioControls {
             top: 40px;
         }
+        #upgradeShopModal {
+        display: none; /* Keep as is to initially hide the modal */
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: auto;
+        max-width: 80%; /* Adjust as necessary */
+        background-color: white; /* Or any color that fits your game's theme */
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Soft shadow for pop-up effect */
+        text-align: center; /* Ensure text is centered within the modal */
+        z-index: 1001; /* Ensure it sits above other content */
+        }
+        #upgradeShopModal h2, #upgradeShopModal p {
+            margin: 10px 0; /* Spacing between text elements */
+        }
+        #upgradeShopModal button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            margin-right: 10px; /* Space between buttons */
+            background-color: #007BFF; /* Example button color */
+            color: white; /* Text color for buttons */
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Button shadow for depth */
+            transition: all 0.2s ease; /* Smooth transition for button interaction */
+        }
+        #upgradeShopModal button:hover {
+            background-color: #0056b3; /* Darker shade on hover for interaction feedback */
+        }
     </style>
 </head>
 <body>
