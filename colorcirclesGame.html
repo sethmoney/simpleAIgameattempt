@@ -360,7 +360,7 @@
                         if (isBluePowerUpActive) {
                             direction.mult(-1); // Repel if blue power-up is active
                         }
-                        let currentRedSpeed = min(redSpeed + (score / 25) * redSpeedIncrement, redMaxSpeed);
+                        let currentRedSpeed = min(redSpeed + (score / 40) * redSpeedIncrement, redMaxSpeed);
                         direction.mult(currentRedSpeed);
                     } else {
                         // Magnet effect for non-red, but only if active
