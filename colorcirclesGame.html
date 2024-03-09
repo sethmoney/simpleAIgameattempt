@@ -301,11 +301,16 @@
                     // Calculate direction towards the player
                     let direction = createVector(playerPosition.x - powerUp.position.x, playerPosition.y - powerUp.position.y);
                     direction.normalize(); // Normalize the direction vector
-        
+
+                    // Repel red circles if blue power-up is active
+                    if (isBluePowerUpActive) {
+                        direction.mult(-1); // Reverse the direction vector
+                    }
+
                     // Increase red circle speed based on game progression, with a maximum limit
                     let currentRedSpeed = min(redSpeed + (score / 25) * redSpeedIncrement, redMaxSpeed);
                     direction.mult(currentRedSpeed);
-        
+
                     // Update the power-up's position
                     powerUp.position.add(direction);
                 }
