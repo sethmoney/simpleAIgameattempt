@@ -313,29 +313,33 @@
                     let direction = createVector(playerPosition.x - powerUp.position.x, playerPosition.y - powerUp.position.y);
                     let distance = direction.mag(); // Calculate the distance to the player
         
+                    // Normalize direction for all power-ups
+                    direction.normalize();
+        
                     if (powerUp.color === 'red') {
-                        direction.normalize(); // Normalize the direction vector
-        
-                        // Repel red circles if blue power-up is active
+                        // Specific logic for red circles
                         if (isBluePowerUpActive) {
-                            direction.mult(-1); // Reverse the direction vector
+                            direction.mult(-1); // Repel if blue power-up is active
                         }
-        
-                        // Increase red circle speed based on game progression, with a maximum limit
                         let currentRedSpeed = min(redSpeed + (score / 25) * redSpeedIncrement, redMaxSpeed);
                         direction.mult(currentRedSpeed);
                     } else {
-                        // Apply magnet effect to non-red power-ups
-                        if (magnetActive && distance < magnetRadius) { // Use magnetRadius for clarity
-                            direction.setMag(magnetStrength); // Set magnitude of the vector based on magnetStrength
+                        // Magnet effect for non-red, but only if active
+                        if (magnetActive && distance < magnetRadius) {
+                            direction.mult(magnetStrength); // Apply magnet strength
+                        } else {
+                            direction.mult(0); // No movement if magnet not active or out of range
                         }
                     }
         
-                    // Update the power-up's position
-                    powerUp.position.add(direction);
+                    // Update the power-up's position if magnet is active or if it's a red circle
+                    if (magnetActive || powerUp.color === 'red') {
+                        powerUp.position.add(direction);
+                    }
                 }
             });
         }
+
 
 
         function displayInventory() {
