@@ -99,6 +99,9 @@
         <button onclick="closeUpgradeShop()">Close</button>
     </div>
     <script>
+        let magnetActive = false; // Whether the magnet upgrade is active
+        let magnetRadius = 100; // Initial radius of the magnet effect
+        let magnetStrength = 2; // Initial strength of the magnet effect
         let baseSpeed = 5; // Base speed of the player
         let playerPosition;
         let playerPositionHistory = [];
@@ -306,20 +309,27 @@
 
         function updatePowerUps() {
             powerUps.forEach(powerUp => {
-                if (!powerUp.collected && powerUp.color === 'red') {
-                    // Calculate direction towards the player
+                if (!powerUp.collected) {
                     let direction = createVector(playerPosition.x - powerUp.position.x, playerPosition.y - powerUp.position.y);
-                    direction.normalize(); // Normalize the direction vector
-
-                    // Repel red circles if blue power-up is active
-                    if (isBluePowerUpActive) {
-                        direction.mult(-1); // Reverse the direction vector
+                    let distance = direction.mag(); // Calculate the distance to the player
+        
+                    if (powerUp.color === 'red') {
+                        direction.normalize(); // Normalize the direction vector
+        
+                        // Repel red circles if blue power-up is active
+                        if (isBluePowerUpActive) {
+                            direction.mult(-1); // Reverse the direction vector
+                        }
+        
+                        // Increase red circle speed based on game progression, with a maximum limit
+                        let currentRedSpeed = min(redSpeed + (score / 25) * redSpeedIncrement, redMaxSpeed);
+                        direction.mult(currentRedSpeed);
+                    } else if (magnetActive && distance < magnetStrength * 50) { // Check if magnet is active and power-up is within pull radius
+                        direction.normalize(); // Normalize the direction vector
+                        let pullStrength = map(distance, 0, magnetStrength * 50, magnetStrength, 1); // Calculate pull strength based on distance
+                        direction.mult(pullStrength); // Apply the calculated pull strength
                     }
-
-                    // Increase red circle speed based on game progression, with a maximum limit
-                    let currentRedSpeed = min(redSpeed + (score / 25) * redSpeedIncrement, redMaxSpeed);
-                    direction.mult(currentRedSpeed);
-
+        
                     // Update the power-up's position
                     powerUp.position.add(direction);
                 }
@@ -505,6 +515,11 @@
                     break;
                 case 'speedBoost':
                     baseSpeed += 2;
+                    break;
+                case 'magnet':
+                    magnetActive = true; // Activate the magnet
+                    magnetRadius += 50; // Increase the pull radius for each purchase
+                    magnetStrength += 1; // Increase the pull strength for each purchase
                     break;
                 // Add more cases for additional upgrades
             }
