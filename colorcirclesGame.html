@@ -91,7 +91,7 @@
     <!-- <button id="submitScoreBtn">Submit Score</button> -->
     <button onclick="restartGame()">Restart Game</button>
     </div>
-    <div id="upgradeShopModal">
+    <div id="upgradeShopModal" style="display:none;">
         <h2>Upgrade Shop</h2>
         <p>You have collected enough yellow power-ups to access the upgrade shop.</p>
         <button onclick="purchaseUpgrade('healthBoost')">Health Boost (+25)</button>
@@ -425,6 +425,13 @@
                         if (pointValues[powerUp.color]) {
                             score += pointValues[powerUp.color];
                         }
+                        if (powerUp.color === 'yellow') {
+                            yellowPowerUpsCollected++;
+                            if (yellowPowerUpsCollected >= yellowPowerUpThreshold) {
+                                showUpgradeShopModal();
+                                yellowPowerUpsCollected = 0; // Reset yellow circles count after showing the modal
+                            }
+                        }
                         // Update for red power-ups
                         if (powerUp.color === 'red') {
                             currentHealth -= 5; // Deduct 5 health points for each red circle hit
@@ -435,13 +442,6 @@
                                 // Handle game over scenario
                                 currentHealth = 0;
                                 console.log("Game Over!"); // Placeholder action
-                            }
-                        }
-                        // Handle yellow power-ups
-                        if (powerUp.color === 'yellow') {
-                            yellowPowerUpsCollected++;
-                            if (yellowPowerUpsCollected >= yellowPowerUpThreshold) {
-                                showUpgradeShopModal();
                             }
                         }
                         // Apply hit effect
