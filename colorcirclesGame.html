@@ -296,25 +296,25 @@
         }
 
         function updatePowerUps() {
-           powerUps.forEach(powerUp => {
-               if (!powerUp.collected && powerUp.color === 'red') {
-                   // Calculate direction towards the player
-                   let direction = createVector(playerPosition.x - powerUp.position.x, playerPosition.y - powerUp.position.y);
-                   direction.normalize(); // Normalize the direction vector
-        
-                   // Repel red circles if blue power-up is active
-                   if (isBluePowerUpActive) {
-                       direction.mult(-1); // Reverse the direction vector
-                   } else {
-                       // Increase the speed of red circles as the score increases
-                       let currentRedSpeed = min(redSpeed + (score / 25) * redSpeedIncrement, redMaxSpeed);
-                       direction.mult(currentRedSpeed);
-                   }
-        
-                   // Update the power-up's position
-                   powerUp.position.add(direction);
-               }
-           });
+            powerUps.forEach(powerUp => {
+                if (!powerUp.collected && powerUp.color === 'red') {
+                    // Calculate direction towards the player
+                    let direction = createVector(playerPosition.x - powerUp.position.x, playerPosition.y - powerUp.position.y);
+                    direction.normalize(); // Normalize the direction vector
+
+                    // Repel red circles if blue power-up is active
+                    if (isBluePowerUpActive) {
+                        direction.mult(-1); // Reverse the direction vector
+                    }
+
+                    // Increase red circle speed based on game progression, with a maximum limit
+                    let currentRedSpeed = min(redSpeed + (score / 25) * redSpeedIncrement, redMaxSpeed);
+                    direction.mult(currentRedSpeed);
+
+                    // Update the power-up's position
+                    powerUp.position.add(direction);
+                }
+            });
         }
 
         function displayInventory() {
@@ -542,23 +542,8 @@
         }
 
         function maybeAddPowerUp() {
-            // Remove collected red circles from powerUps array
-            powerUps = powerUps.filter(powerUp => !powerUp.collected || powerUp.color !== 'red');
-        
-            if (frameCount % 180 === 0) {
-                let colors = ['blue', 'yellow', 'green', 'purple', 'purple', 'purple'];
-        
-                // Increase the probability of spawning red circles as the score increases
-                const redChance = Math.floor(score / 100); // Adjust the factor as needed
-                for (let i = 0; i < redChance; i++) {
-                    colors.push('red');
-                }
-        
-                powerUps.push({
-                    position: createVector(random(width), random(height)),
-                    color: random(colors),
-                    collected: false
-                });
+            if (frameCount % 60 === 0) {
+                addPowerUps(1);
             }
         }
 
