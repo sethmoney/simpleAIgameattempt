@@ -222,29 +222,29 @@
         }
         
         function showGameOverModal() {
-            // Calculate time alive in seconds
-            const timeAlive = (timerDuration - timer) / 60;
-        
-            // Calculate final score as score times seconds alive
-            const finalScore = score * timeAlive;
-        
+            // Calculate time alive in seconds, ensuring it's non-negative
+            const timeAlive = Math.max(0, (timerDuration - timer) / 60);
+            
+            // Calculate final score as score times seconds alive, ensuring score is non-negative
+            const finalScore = Math.max(0, score) * timeAlive;
+            
             console.log("Final Score:", finalScore.toFixed(2)); // Log final score to console
-        
-            // Update high score if final score is higher
-            updateHighScore(finalScore);
-        
-            // Get high score from Local Storage
-            let highScore = localStorage.getItem('highScore') || '0';
-        
+            
+            // Update and retrieve high score from Local Storage
+            let highScore = parseFloat(localStorage.getItem('highScore') || '0');
+            if (finalScore > highScore) {
+                localStorage.setItem('highScore', finalScore.toString());
+                highScore = finalScore; // Update local highScore variable for immediate display
+            }
+            
             // Update modal content with current and high scores
-            //document.getElementById('currentScore').textContent = score; // Keep showing the current score
-            document.getElementById('highScoreDisplay').textContent = highScore;
-            document.getElementById('finalScoreDisplay').textContent = finalScore.toFixed(2); // Show the final score
-        
+            document.getElementById('highScoreDisplay').textContent = highScore.toFixed(2);
+            document.getElementById('finalScoreDisplay').textContent = finalScore.toFixed(2); // Show the final score formatted to 2 decimal places
+            
             // Show the game over modal
             document.getElementById('gameOverModal').style.display = 'flex';
-
-            globalFinalScore = finalScore; // Store final score globally for submission
+        
+            // Determine NFT eligibility and display offer if applicable
             const nftEligibleScore = 2000; // Example score threshold
             if (finalScore > nftEligibleScore) {
                 document.getElementById('nftOfferContainer').style.display = 'block'; // Show NFT offer
@@ -252,6 +252,7 @@
                 document.getElementById('nftOfferContainer').style.display = 'none'; // Hide NFT offer
             }
         }
+
 
         /*function submitScoreWrapper() {
             const initials = document.getElementById('playerInitials').value.trim(); // Trim whitespace from the initials
