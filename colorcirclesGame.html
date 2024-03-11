@@ -542,12 +542,18 @@
                                 isBluePowerUpActive = true;
                             }
                         } else if (powerUp.color === 'green') {
+                            const greenPowerUpSound = document.getElementById('greenPowerUpSound');
+                            greenPowerUpSound.currentTime = 0;
+                            greenPowerUpSound.play();
                             // Logic for green power-ups (velocity boost)
                             isGreenPowerUpActive = true;
                             greenPowerUpTimer = greenPowerUpDuration;
                         }
                         // Handle other power-up effects here...
                         if (powerUp.color === 'purple') {
+                            const purplePowerUpSound = document.getElementById('purplePowerUpSound');
+                            purplePowerUpSound.currentTime = 0;
+                            purplePowerUpSound.play();
                             timer += 180; // Add time
                         }
                         if (powerUp.color === 'yellow') {
