@@ -97,7 +97,7 @@
         <source src="Limit 70.mp3" type="audio/mp3">
         Your browser does not support the audio element.
     </audio>
-    <audio id="bluePowerUpSound" src="sound/blue_beep.mp3"></audio>
+    <!-- <audio id="bluePowerUpSound" src="sound/blue_beep.mp3"></audio>
     <audio id="yellowPowerUpSound" src="sound/yellow_beep.mp3"></audio>
     <audio id="greenPowerUpSound" src="sound/green_beep.mp3"></audio>
     <!-- Add more audio elements for other power-up colors -->
@@ -495,7 +495,7 @@
                             score += pointValues[powerUp.color];
                         }
                         if (powerUp.color === 'yellow') {
-                            const bluePowerUpSound = document.getElementById('yellowPowerUpSound');
+                            //const bluePowerUpSound = document.getElementById('yellowPowerUpSound');
                             yellowPowerUpSound.currentTime = 0; // Reset the audio playback position
                             yellowPowerUpSound.play();
                             yellowPowerUpsCollected++;
