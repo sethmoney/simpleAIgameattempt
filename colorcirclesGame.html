@@ -100,6 +100,8 @@
     <audio id="bluePowerUpSound" src="sound/blue_beep.mp3"></audio>
     <audio id="yellowPowerUpSound" src="sound/yellow_beep.mp3"></audio>
     <audio id="greenPowerUpSound" src="sound/green_beep.mp3"></audio>
+    <audio id="redPowerUpSound" src="sound/red_beep.mp3"></audio>
+    <audio id="purplePowerUpSound" src="sound/purple_beep.mp3"></audio>
     <!-- Add more audio elements for other power-up colors -->
     <div id="modalInstructions">
         <p>Collect as many circle before time runs out.</p>
@@ -499,6 +501,9 @@
                         }
                         // Update for red power-ups
                         if (powerUp.color === 'red') {
+                            const redPowerUpSound = document.getElementById('redPowerUpSound');
+                            redPowerUpSound.currentTime = 0;
+                            redPowerUpSound.play();
                             currentHealth -= 5; // Deduct 5 health points for each red circle hit
                             // Trigger hit effect
                             isHit = true;
