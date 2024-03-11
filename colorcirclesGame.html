@@ -176,8 +176,6 @@
         let yellowEffectTimer = 0;
         let globalFinalScore; // Declare this globally to hold the final score for submission
         let yellowPowerUpsCollected = 0;
-        let currentTouchX = null;
-        let currentTouchY = null;
         const yellowPowerUpThreshold = 5; // Change this value to adjust the threshold
         // Define point values for each circle color
         const pointValues = {
@@ -197,10 +195,6 @@
             playerPosition = createVector(width / 2, height / 2);
             addPowerUps(5); // Initial set of power-ups
             timer = timerDuration; // Initialize the timer
-            // Add touch event listeners
-            canvas.touchStarted(startTouch);
-            canvas.touchMoved(moveTouch);
-            canvas.touchEnded(endTouch);
             // Initialize GUI for Red Circle Speed Adjustment
             //const redSpeedIncrementSlider = document.getElementById('redSpeedIncrementSlider');
             //const redSpeedIncrementValueDisplay = document.getElementById('redSpeedIncrementValue');
@@ -220,27 +214,6 @@
                     console.log("Test Mode Deactivated");
                 }
             });
-        }
-
-        function startTouch() {
-            // Check for single touch only
-            if (touches.length === 1) {
-                currentTouchX = touches[0].x;
-                currentTouchY = touches[0].y;
-            }
-        }
-        
-        function moveTouch() {
-            // Check for single touch only
-            if (touches.length === 1) {
-                currentTouchX = touches[0].x;
-                currentTouchY = touches[0].y;
-            }
-        }
-        
-        function endTouch() {
-            currentTouchX = null;
-            currentTouchY = null;
         }
 
         function checkGameOver() {
@@ -458,18 +431,6 @@
             // Move Right - D or Arrow Right
             if (keyIsDown(68) || keyIsDown(RIGHT_ARROW)) {
                 playerPosition.x += speed;
-            }
-            // Move player based on touch positions
-            if (currentTouchX !== null && currentTouchY !== null) {
-                let dx = currentTouchX - playerPosition.x;
-                let dy = currentTouchY - playerPosition.y;
-                let distance = sqrt(dx * dx + dy * dy);
-                if (distance > 0) {
-                    let directionX = dx / distance;
-                    let directionY = dy / distance;
-                    playerPosition.x += directionX * speed;
-                    playerPosition.y += directionY * speed;
-                }
             }
             // Wrap around screen edges
             if (playerPosition.y < 0) playerPosition.y = height;
