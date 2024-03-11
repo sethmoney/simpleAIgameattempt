@@ -183,6 +183,13 @@
           blue: 1
         };
 
+        function preload() {
+            bluePowerUpSound = loadSound('sound/blue_beep.mp3');
+            yellowPowerUpSound = loadSound('sound/yellow_beep.mp3');
+            greenPowerUpSound = loadSound('sound/green_beep.mp3');
+            // Load other sound effects here
+        }
+
         function startGame() {
             document.getElementById('modalInstructions').style.display = 'none';
             loop(); // Restart the drawing loop if it was stopped.
