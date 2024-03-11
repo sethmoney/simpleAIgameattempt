@@ -530,6 +530,9 @@
                         
                         // Specific logic for blue power-ups
                         if (powerUp.color === 'blue') {
+                            const bluePowerUpSound = document.getElementById('bluePowerUpSound');
+                            bluePowerUpSound.currentTime = 0;
+                            bluePowerUpSound.play();
                             if ((inventory['blue'] || 0) < 15) {
                                 playerSize += 5; // Temporarily increase size
                                 if (playerSize > 20 + 15 * 5) {
