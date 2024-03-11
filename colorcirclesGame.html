@@ -485,81 +485,63 @@
                     ellipse(powerUp.position.x, powerUp.position.y, powerUpSize, powerUpSize);
                     if (dist(playerPosition.x, playerPosition.y, powerUp.position.x, powerUp.position.y) < playerSize / 2 + powerUpSize / 2) {
                         powerUp.collected = true;
-                        //update score based on color
-                        if (pointValues[powerUp.color]) {
-                            score += pointValues[powerUp.color];
+                        score += pointValues[powerUp.color] || 0; // Update score based on color, or add 0 if no value is defined
+        
+                        const powerUpSound = document.getElementById(`${powerUp.color}PowerUpSound`);
+                        if (powerUpSound) {
+                            powerUpSound.currentTime = 0;
+                            powerUpSound.play();
                         }
-                        if (powerUp.color === 'yellow') {
-                            const bluePowerUpSound = document.getElementById('yellowPowerUpSound');
-                            yellowPowerUpSound.currentTime = 0; // Reset the audio playback position
-                            yellowPowerUpSound.play();
-                            yellowPowerUpsCollected++;
-                            if (yellowPowerUpsCollected >= yellowPowerUpThreshold) {
-                                showUpgradeShopModal();
-                                yellowPowerUpsCollected = 0; // Reset yellow circles count after showing the modal
-                            }
+        
+                        switch (powerUp.color) {
+                            case 'yellow':
+                                yellowPowerUpsCollected++;
+                                if (yellowPowerUpsCollected >= yellowPowerUpThreshold) {
+                                    showUpgradeShopModal();
+                                    yellowPowerUpsCollected = 0;
+                                }
+                                isYellowEffectActive = true;
+                                yellowEffectTimer = yellowEffectDuration;
+                                break;
+                            case 'red':
+                                currentHealth -= 5;
+                                isHit = true;
+                                hitTimer = hitDuration;
+                                if (currentHealth <= 0) {
+                                    currentHealth = 0;
+                                    console.log("Game Over!");
+                                }
+                                break;
+                            case 'blue':
+                                if ((inventory['blue'] || 0) < 15) {
+                                    playerSize += 5;
+                                    if (playerSize > 20 + 15 * 5) {
+                                        playerSize = 20 + 15 * 5;
+                                    }
+                                    bluePowerUpTimer = bluePowerUpDuration;
+                                    isBluePowerUpActive = true;
+                                }
+                                break;
+                            case 'green':
+                                isGreenPowerUpActive = true;
+                                greenPowerUpTimer = greenPowerUpDuration;
+                                break;
+                            case 'purple':
+                                timer += 180;
+                                break;
                         }
-                        // Update for red power-ups
-                        if (powerUp.color === 'red') {
-                            const redPowerUpSound = document.getElementById('redPowerUpSound');
-                            redPowerUpSound.currentTime = 0;
-                            redPowerUpSound.play();
-                            currentHealth -= 5; // Deduct 5 health points for each red circle hit
-                            // Trigger hit effect
-                            isHit = true;
-                            hitTimer = hitDuration;
-                            if (currentHealth <= 0) {
-                                // Handle game over scenario
-                                currentHealth = 0;
-                                console.log("Game Over!"); // Placeholder action
-                            }
-                        }
-                        // Apply hit effect
+        
+                        inventory[powerUp.color] = (inventory[powerUp.color] || 0) + 1;
+        
                         if (isHit) {
                             flashAndShakePlayer();
                         }
-                        // Reset hit effect after the duration
+        
                         if (hitTimer > 0) {
                             hitTimer--;
                             if (hitTimer <= 0) {
                                 isHit = false;
                             }
-                        }
-                        // Existing inventory update for all power-ups
-                        inventory[powerUp.color] = (inventory[powerUp.color] || 0) + 1;
-                        
-                        // Specific logic for blue power-ups
-                        if (powerUp.color === 'blue') {
-                            const bluePowerUpSound = document.getElementById('bluePowerUpSound');
-                            bluePowerUpSound.currentTime = 0;
-                            bluePowerUpSound.play();
-                            if ((inventory['blue'] || 0) < 15) {
-                                playerSize += 5; // Temporarily increase size
-                                if (playerSize > 20 + 15 * 5) {
-                                    playerSize = 20 + 15 * 5; // Ensure player size does not exceed maximum growth
-                                }
-                                bluePowerUpTimer = bluePowerUpDuration; // Refresh or extend the timer
-                                isBluePowerUpActive = true;
-                            }
-                        } else if (powerUp.color === 'green') {
-                            const greenPowerUpSound = document.getElementById('greenPowerUpSound');
-                            greenPowerUpSound.currentTime = 0;
-                            greenPowerUpSound.play();
-                            // Logic for green power-ups (velocity boost)
-                            isGreenPowerUpActive = true;
-                            greenPowerUpTimer = greenPowerUpDuration;
-                        }
-                        // Handle other power-up effects here...
-                        if (powerUp.color === 'purple') {
-                            const purplePowerUpSound = document.getElementById('purplePowerUpSound');
-                            purplePowerUpSound.currentTime = 0;
-                            purplePowerUpSound.play();
-                            timer += 180; // Add time
-                        }
-                        if (powerUp.color === 'yellow') {
-                            //score++; // Increase score commented out bc trying to give all colors a score
-                            isYellowEffectActive = true; // Activate the yellow effect
-                            yellowEffectTimer = yellowEffectDuration; // Reset the effect timer
                         }
                     }
                 }
