@@ -138,9 +138,21 @@
     <script>
         let game; // Declare the game variable globally
 
+        function setup() {
+            createCanvas(800, 600); // Set canvas size
+            game = new Game(); // Initialize game instance
+            noLoop(); // Stop draw loop until game starts
+        }
+
+        function draw() {
+            background(200); // Clear canvas
+            game.update(); // Update game state
+            game.draw(); // Draw game elements
+        }
+
         class Player {
             constructor() {
-                this.position = createVector(400, 300); // Set initial position with fixed values for setup
+                this.position = createVector(width / 2, height / 2); // Set initial position at center
                 this.health = 100;
                 this.maxHealth = 100;
                 this.hasShield = false; // Add shield property for power-up
@@ -184,132 +196,4 @@
                 this.position = createVector(width, random(height));
             }
             update() {
-                if (this.type === 'seeker') {
-                    let direction = p5.Vector.sub(game.player.position, this.position);
-                    direction.setMag(this.speed * game.enemySpeedMultiplier);
-                    this.position.add(direction);
-                } else {
-                    this.position.x -= this.speed * game.enemySpeedMultiplier;
-                }
-            }
-            draw() {
-                fill(this.color);
-                rect(this.position.x, this.position.y, this.size, this.size);
-            }
-        }
-
-        class PowerUp {
-            constructor(type) {
-                this.type = type;
-                this.position = createVector(random(width), random(height));
-                this.size = 20;
-                this.color = type === 'shield' ? 'yellow' : 'purple';
-            }
-            draw() {
-                fill(this.color);
-                ellipse(this.position.x, this.position.y, this.size, this.size);
-            }
-        }
-
-        class Game {
-            constructor() {
-                this.player = new Player();
-                this.enemies = [];
-                this.powerUps = [];
-                this.resources = {
-                    gold: 0,
-                    wood: 0,
-                    food: 0,
-                };
-                this.enemySpawnInterval = 3000;
-                this.lastEnemySpawnTime = 0;
-                this.powerUpSpawnInterval = 8000;
-                this.lastPowerUpSpawnTime = 0;
-                this.totalEnemiesDefeated = 0;
-                this.victoryThreshold = 50;
-                this.testMode = false;
-                this.enemySpeedMultiplier = 1.0;
-                this.enemyDamageMultiplier = 1.0;
-                this.resourceMultiplier = 1.0;
-            }
-
-            startGame() {
-                document.getElementById('modalInstructions').style.display = 'none';
-                this.lastEnemySpawnTime = millis(); // Set initial spawn time to start counting from
-                this.lastPowerUpSpawnTime = millis();
-                loop();
-            }
-
-            update() {
-                this.player.update();
-                this.updateEnemies();
-                this.updatePowerUps();
-                this.checkCollisions();
-                this.checkVictoryCondition();
-            }
-
-            draw() {
-                background(200);
-                this.player.draw();
-                this.drawEnemies();
-                this.drawPowerUps();
-                this.updateHUD();
-            }
-
-            updateEnemies() {
-                let currentTime = millis();
-                if (currentTime - this.lastEnemySpawnTime > this.enemySpawnInterval) {
-                    const enemyType = random() < 0.2 ? 'seeker' : 'regular';
-                    this.enemies.push(new Enemy(enemyType));
-                    this.lastEnemySpawnTime = currentTime;
-                }
-                this.enemies.forEach(enemy => enemy.update());
-                this.enemies = this.enemies.filter(enemy => enemy.position.x + enemy.size > 0);
-            }
-
-            drawEnemies() {
-                this.enemies.forEach(enemy => enemy.draw());
-            }
-
-            updatePowerUps() {
-                let currentTime = millis();
-                if (currentTime - this.lastPowerUpSpawnTime > this.powerUpSpawnInterval) {
-                    const powerUpType = random() < 0.5 ? 'shield' : 'health';
-                    this.powerUps.push(new PowerUp(powerUpType));
-                    this.lastPowerUpSpawnTime = currentTime;
-                }
-            }
-
-            drawPowerUps() {
-                this.powerUps.forEach(powerUp => powerUp.draw());
-            }
-
-            checkCollisions() {
-                this.enemies.forEach((enemy, index) => {
-                    let d = dist(this.player.position.x, this.player.position.y, enemy.position.x + enemy.size / 2, enemy.position.y + enemy.size / 2);
-                    if (d < enemy.size / 2 + 15) {
-                        if (this.player.hasShield) {
-                            this.player.hasShield = false; // Shield absorbs the hit
-                            this.enemies.splice(index, 1);
-                        } else {
-                            this.player.health -= enemy.damage;
-                            this.enemies.splice(index, 1);
-                        }
-                        this.totalEnemiesDefeated++;
-                        if (this.player.health <= 0 && !this.testMode) {
-                            this.gameOver();
-                        }
-                    }
-                });
-
-                this.powerUps.forEach((powerUp, index) => {
-                    let d = dist(this.player.position.x, this.player.position.y, powerUp.position.x, powerUp.position.y);
-                    if (d < powerUp.size / 2 + 15) {
-                        if (powerUp.type === 'shield') {
-                            this.player.hasShield = true;
-                        } else if (powerUp.type === 'health') {
-                            this.player.health = min(this.player.health + 20, this.player.maxHealth);
-                        }
-                        this.powerUps.splice(index, 1);
-                    }
-                });
+                if (this.type === 'seeker')
