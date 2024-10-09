@@ -109,6 +109,11 @@
         let enemySpeedMultiplier = 1.0; // Enemy speed multiplier for test mode
         let enemyDamageMultiplier = 1.0; // Enemy damage multiplier for test mode
         let resourceMultiplier = 1.0; // Resource collection multiplier for test mode
+
+        function setup() {
+            createCanvas(800, 600); // Create the canvas for the game
+            noLoop(); // Start with the game loop stopped
+        }
         
         function startGame() {
             document.getElementById('modalInstructions').style.display = 'none';
@@ -117,10 +122,12 @@
         
         function showUpgradeShopModal() {
             document.getElementById('upgradeShopModal').style.display = 'flex';
+            noLoop(); // Pause game while in the upgrade shop
         }
 
         function closeUpgradeShop() {
             document.getElementById('upgradeShopModal').style.display = 'none';
+            loop(); // Resume game loop after closing the shop
         }
         
         // Function to purchase an upgrade
@@ -196,7 +203,8 @@
                 size: size,
                 health: health,
                 damage: damage,
-                speed: speed
+                speed: speed,
+                color: color
             });
         }
 
