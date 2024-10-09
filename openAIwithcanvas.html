@@ -194,6 +194,7 @@
                     wood: 0,
                     food: 0,
                 };
+                this.collectibles = []; // Array to hold collectible items
                 this.enemySpawnInterval = 3000;
                 this.lastEnemySpawnTime = 0;
                 this.enemySpeedMultiplier = 1.0;
@@ -211,11 +212,14 @@
             update() {
                 this.player.update();
                 this.updateEnemies();
+                this.updateCollectibles();
+                this.checkCollisions();
             }
 
             draw() {
                 this.player.draw();
                 this.drawEnemies();
+                this.drawCollectibles();
                 this.updateHUD();
             }
 
@@ -231,6 +235,36 @@
 
             drawEnemies() {
                 this.enemies.forEach(enemy => enemy.draw());
+            }
+
+            updateCollectibles() {
+                // Randomly add collectibles over time
+                if (frameCount % 180 === 0) { // Every 3 seconds
+                    this.collectibles.push(new Collectible());
+                }
+            }
+
+            drawCollectibles() {
+                this.collectibles.forEach(collectible => collectible.draw());
+            }
+
+            checkCollisions() {
+                // Check collision between player and enemies
+                this.enemies.forEach((enemy, index) => {
+                    let d = dist(this.player.position.x, this.player.position.y, enemy.position.x, enemy.position.y);
+                    if (d < enemy.size / 2 + 15) { // Assuming player size is 30 (radius is 15)
+                        this.player.health -= enemy.damage;
+                        this.enemies.splice(index, 1); // Remove enemy after collision
+                    }
+                });
+                // Check collision between player and collectibles
+                this.collectibles.forEach((collectible, index) => {
+                    let d = dist(this.player.position.x, this.player.position.y, collectible.position.x, collectible.position.y);
+                    if (d < 15 + collectible.size / 2) { // Assuming player size is 30 (radius is 15)
+                        this.resources[collectible.type] += 1 * this.resourceMultiplier;
+                        this.collectibles.splice(index, 1); // Remove collectible after collection
+                    }
+                });
             }
 
             updateHUD() {
@@ -258,6 +292,20 @@
             draw() {
                 fill(this.color);
                 rect(this.position.x, this.position.y, this.size, this.size);
+            }
+        }
+
+        class Collectible {
+            constructor() {
+                const types = ['gold', 'wood', 'food'];
+                this.type = random(types);
+                this.size = 20;
+                this.position = createVector(random(width), random(height));
+                this.color = this.type === 'gold' ? 'yellow' : (this.type === 'wood' ? 'brown' : 'green');
+            }
+            draw() {
+                fill(this.color);
+                ellipse(this.position.x, this.position.y, this.size, this.size);
             }
         }
 
