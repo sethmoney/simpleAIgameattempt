@@ -13,7 +13,7 @@
             justify-content: center;
             align-items: center;
         }
-        #modalInstructions, #gameOverModal, #upgradeShopModal, #victoryModal {
+        #modalInstructions, #gameOverModal, #upgradeShopModal, #victoryModal, #levelUpModal {
             position: fixed;
             top: 0;
             left: 0;
@@ -28,7 +28,7 @@
             text-align: center;
             z-index: 1001;
         }
-        #modalInstructions button, #gameOverModal button, #upgradeShopModal button, #victoryModal button {
+        #modalInstructions button, #gameOverModal button, #upgradeShopModal button, #victoryModal button, #levelUpModal button {
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
@@ -70,6 +70,18 @@
             width: 100%;
             border-radius: 5px;
         }
+        #xpBarContainer {
+            width: 100%;
+            background-color: #444;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        #xpBar {
+            height: 20px;
+            background-color: #00f;
+            width: 0%;
+            border-radius: 5px;
+        }
         .resource {
             display: flex;
             align-items: center;
@@ -107,6 +119,11 @@
         <p>You have been defeated. Better luck next time!</p>
         <button onclick="game.restartGame()">Try Again</button>
     </div>
+    <div id="levelUpModal" style="display:none;">
+        <h2>Level Up!</h2>
+        <p>Congratulations! You have reached a new level!</p>
+        <button onclick="game.closeLevelUpModal()">Continue</button>
+    </div>
     <div id="testModeDiv">
         <label>
             <input type="checkbox" id="testModeCheckbox" onclick="toggleTestMode()" /> Test Mode
@@ -115,12 +132,16 @@
             <label>Enemy Spawn Interval: <input type="range" id="enemySpawnIntervalSlider" min="500" max="5000" value="3000" onchange="updateSettings()" /> <span id="enemySpawnIntervalValue">3000</span> ms</label><br>
             <label>Enemy Speed: <input type="range" id="enemySpeedSlider" min="1" max="10" value="3" onchange="updateSettings()" /> <span id="enemySpeedValue">3</span></label><br>
             <label>Enemy Damage: <input type="range" id="enemyDamageSlider" min="5" max="50" value="20" onchange="updateSettings()" /> <span id="enemyDamageValue">20</span></label><br>
-            <label>Resource Multiplier: <input type="range" id="resourceMultiplierSlider" min="1" max="5" value="1" step="0.1" onchange="updateSettings()" /> <span id="resourceMultiplierValue">1.0</span></label>
+            <label>Resource Multiplier: <input type="range" id="resourceMultiplierSlider" min="1" max="5" value="1" step="0.1" onchange="updateSettings()" /> <span id="resourceMultiplierValue">1.0</span></label><br>
+            <label>XP Multiplier: <input type="range" id="xpMultiplierSlider" min="1" max="5" value="1" step="0.1" onchange="updateSettings()" /> <span id="xpMultiplierValue">1.0</span></label>
         </div>
     </div>
     <div id="hud">
         <div id="healthBarContainer">
             <div id="healthBar"></div>
+        </div>
+        <div id="xpBarContainer">
+            <div id="xpBar"></div>
         </div>
         <div class="resource">
             <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Gold_ingot_icon.png" alt="Gold Icon">
@@ -155,6 +176,9 @@
                 this.position = createVector(width / 2, height / 2); // Set initial position at center
                 this.health = 100;
                 this.maxHealth = 100;
+                this.xp = 0;
+                this.level = 0;
+                this.xpThreshold = 100;
                 this.hasShield = false; // Add shield property for power-up
             }
             update() {
@@ -183,6 +207,18 @@
                     noStroke();
                 }
             }
+            gainXP(amount) {
+                this.xp += amount * game.xpMultiplier;
+                if (this.xp >= this.xpThreshold) {
+                    this.levelUp();
+                }
+            }
+            levelUp() {
+                this.level++;
+                this.xp = 0;
+                this.xpThreshold *= 1.5; // Increase difficulty for next level
+                game.triggerLevelUpModal();
+            }
         }
 
         class Game {
@@ -200,7 +236,9 @@
                 this.enemySpeedMultiplier = 1.0;
                 this.enemyDamageMultiplier = 1.0;
                 this.resourceMultiplier = 1.0;
+                this.xpMultiplier = 1.0;
                 this.testMode = false;
+                this.startTime = millis();
             }
 
             startGame() {
@@ -214,6 +252,7 @@
                 this.updateEnemies();
                 this.updateCollectibles();
                 this.checkCollisions();
+                this.increaseDifficulty();
             }
 
             draw() {
@@ -234,100 +273,4 @@
             }
 
             drawEnemies() {
-                this.enemies.forEach(enemy => enemy.draw());
-            }
-
-            updateCollectibles() {
-                // Randomly add collectibles over time
-                if (frameCount % 180 === 0) { // Every 3 seconds
-                    this.collectibles.push(new Collectible());
-                }
-            }
-
-            drawCollectibles() {
-                this.collectibles.forEach(collectible => collectible.draw());
-            }
-
-            checkCollisions() {
-                // Check collision between player and enemies
-                this.enemies.forEach((enemy, index) => {
-                    let d = dist(this.player.position.x, this.player.position.y, enemy.position.x, enemy.position.y);
-                    if (d < enemy.size / 2 + 15) { // Assuming player size is 30 (radius is 15)
-                        this.player.health -= enemy.damage;
-                        this.enemies.splice(index, 1); // Remove enemy after collision
-                    }
-                });
-                // Check collision between player and collectibles
-                this.collectibles.forEach((collectible, index) => {
-                    let d = dist(this.player.position.x, this.player.position.y, collectible.position.x, collectible.position.y);
-                    if (d < 15 + collectible.size / 2) { // Assuming player size is 30 (radius is 15)
-                        this.resources[collectible.type] += 1 * this.resourceMultiplier;
-                        this.collectibles.splice(index, 1); // Remove collectible after collection
-                    }
-                });
-            }
-
-            updateHUD() {
-                let healthPercentage = this.player.health / this.player.maxHealth;
-                document.getElementById('healthBar').style.width = (healthPercentage * 100) + '%';
-                document.getElementById('goldDisplay').textContent = this.resources.gold;
-                document.getElementById('woodDisplay').textContent = this.resources.wood;
-                document.getElementById('foodDisplay').textContent = this.resources.food;
-            }
-        }
-
-        class Enemy {
-            constructor(type) {
-                this.size = type === 'seeker' ? 20 : random(20, 50);
-                this.health = this.size < 35 ? 50 : 100;
-                this.damage = (this.size >= 35 ? 20 : 10) * game.enemyDamageMultiplier;
-                this.speed = type === 'seeker' ? 2 : random(1, 3);
-                this.color = type === 'seeker' ? 'green' : (this.size < 35 ? 'red' : 'blue');
-                this.type = type;
-                this.position = createVector(width, random(height));
-            }
-            update() {
-                this.position.x -= this.speed * game.enemySpeedMultiplier;
-            }
-            draw() {
-                fill(this.color);
-                rect(this.position.x, this.position.y, this.size, this.size);
-            }
-        }
-
-        class Collectible {
-            constructor() {
-                const types = ['gold', 'wood', 'food'];
-                this.type = random(types);
-                this.size = 20;
-                this.position = createVector(random(width), random(height));
-                this.color = this.type === 'gold' ? 'yellow' : (this.type === 'wood' ? 'brown' : 'green');
-            }
-            draw() {
-                fill(this.color);
-                ellipse(this.position.x, this.position.y, this.size, this.size);
-            }
-        }
-
-        function toggleTestMode() {
-            game.testMode = document.getElementById('testModeCheckbox').checked;
-            document.getElementById('sliderControls').style.display = game.testMode ? 'block' : 'none';
-        }
-
-        function updateSettings() {
-            game.enemySpawnInterval = parseInt(document.getElementById('enemySpawnIntervalSlider').value);
-            game.enemySpeedMultiplier = parseFloat(document.getElementById('enemySpeedSlider').value);
-            game.enemyDamageMultiplier = parseFloat(document.getElementById('enemyDamageSlider').value);
-            game.resourceMultiplier = parseFloat(document.getElementById('resourceMultiplierSlider').value);
-            document.getElementById('enemySpawnIntervalValue').textContent = game.enemySpawnInterval;
-            document.getElementById('enemySpeedValue').textContent = game.enemySpeedMultiplier;
-            document.getElementById('enemyDamageValue').textContent = game.enemyDamageMultiplier;
-            document.getElementById('resourceMultiplierValue').textContent = game.resourceMultiplier;
-        }
-
-        document.getElementById('startGameButton').addEventListener('click', function() {
-            game.startGame();
-        });
-    </script>
-</body>
-</html>
+                this.enemies.forEach(enemy
