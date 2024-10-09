@@ -109,13 +109,13 @@
     </div>
     <div id="testModeDiv">
         <label>
-            <input type="checkbox" id="testModeCheckbox" onclick="game.toggleTestMode()" /> Test Mode
+            <input type="checkbox" id="testModeCheckbox" onclick="toggleTestMode()" /> Test Mode
         </label>
         <div id="sliderControls">
-            <label>Enemy Spawn Interval: <input type="range" id="enemySpawnIntervalSlider" min="500" max="5000" value="3000" onchange="game.updateSettings()" /> <span id="enemySpawnIntervalValue">3000</span> ms</label><br>
-            <label>Enemy Speed: <input type="range" id="enemySpeedSlider" min="1" max="10" value="3" onchange="game.updateSettings()" /> <span id="enemySpeedValue">3</span></label><br>
-            <label>Enemy Damage: <input type="range" id="enemyDamageSlider" min="5" max="50" value="20" onchange="game.updateSettings()" /> <span id="enemyDamageValue">20</span></label><br>
-            <label>Resource Multiplier: <input type="range" id="resourceMultiplierSlider" min="1" max="5" value="1" step="0.1" onchange="game.updateSettings()" /> <span id="resourceMultiplierValue">1.0</span></label>
+            <label>Enemy Spawn Interval: <input type="range" id="enemySpawnIntervalSlider" min="500" max="5000" value="3000" onchange="updateSettings()" /> <span id="enemySpawnIntervalValue">3000</span> ms</label><br>
+            <label>Enemy Speed: <input type="range" id="enemySpeedSlider" min="1" max="10" value="3" onchange="updateSettings()" /> <span id="enemySpeedValue">3</span></label><br>
+            <label>Enemy Damage: <input type="range" id="enemyDamageSlider" min="5" max="50" value="20" onchange="updateSettings()" /> <span id="enemyDamageValue">20</span></label><br>
+            <label>Resource Multiplier: <input type="range" id="resourceMultiplierSlider" min="1" max="5" value="1" step="0.1" onchange="updateSettings()" /> <span id="resourceMultiplierValue">1.0</span></label>
         </div>
     </div>
     <div id="hud">
@@ -185,6 +185,63 @@
             }
         }
 
+        class Game {
+            constructor() {
+                this.player = new Player();
+                this.enemies = [];
+                this.resources = {
+                    gold: 0,
+                    wood: 0,
+                    food: 0,
+                };
+                this.enemySpawnInterval = 3000;
+                this.lastEnemySpawnTime = 0;
+                this.enemySpeedMultiplier = 1.0;
+                this.enemyDamageMultiplier = 1.0;
+                this.resourceMultiplier = 1.0;
+                this.testMode = false;
+            }
+
+            startGame() {
+                document.getElementById('modalInstructions').style.display = 'none';
+                this.lastEnemySpawnTime = millis(); // Set initial spawn time to start counting from
+                loop();
+            }
+
+            update() {
+                this.player.update();
+                this.updateEnemies();
+            }
+
+            draw() {
+                this.player.draw();
+                this.drawEnemies();
+                this.updateHUD();
+            }
+
+            updateEnemies() {
+                let currentTime = millis();
+                if (currentTime - this.lastEnemySpawnTime > this.enemySpawnInterval) {
+                    this.enemies.push(new Enemy('regular'));
+                    this.lastEnemySpawnTime = currentTime;
+                }
+                this.enemies.forEach(enemy => enemy.update());
+                this.enemies = this.enemies.filter(enemy => enemy.position.x + enemy.size > 0);
+            }
+
+            drawEnemies() {
+                this.enemies.forEach(enemy => enemy.draw());
+            }
+
+            updateHUD() {
+                let healthPercentage = this.player.health / this.player.maxHealth;
+                document.getElementById('healthBar').style.width = (healthPercentage * 100) + '%';
+                document.getElementById('goldDisplay').textContent = this.resources.gold;
+                document.getElementById('woodDisplay').textContent = this.resources.wood;
+                document.getElementById('foodDisplay').textContent = this.resources.food;
+            }
+        }
+
         class Enemy {
             constructor(type) {
                 this.size = type === 'seeker' ? 20 : random(20, 50);
@@ -196,4 +253,33 @@
                 this.position = createVector(width, random(height));
             }
             update() {
-                if (this.type === 'seeker')
+                this.position.x -= this.speed * game.enemySpeedMultiplier;
+            }
+            draw() {
+                fill(this.color);
+                rect(this.position.x, this.position.y, this.size, this.size);
+            }
+        }
+
+        function toggleTestMode() {
+            game.testMode = document.getElementById('testModeCheckbox').checked;
+            document.getElementById('sliderControls').style.display = game.testMode ? 'block' : 'none';
+        }
+
+        function updateSettings() {
+            game.enemySpawnInterval = parseInt(document.getElementById('enemySpawnIntervalSlider').value);
+            game.enemySpeedMultiplier = parseFloat(document.getElementById('enemySpeedSlider').value);
+            game.enemyDamageMultiplier = parseFloat(document.getElementById('enemyDamageSlider').value);
+            game.resourceMultiplier = parseFloat(document.getElementById('resourceMultiplierSlider').value);
+            document.getElementById('enemySpawnIntervalValue').textContent = game.enemySpawnInterval;
+            document.getElementById('enemySpeedValue').textContent = game.enemySpeedMultiplier;
+            document.getElementById('enemyDamageValue').textContent = game.enemyDamageMultiplier;
+            document.getElementById('resourceMultiplierValue').textContent = game.resourceMultiplier;
+        }
+
+        document.getElementById('startGameButton').addEventListener('click', function() {
+            game.startGame();
+        });
+    </script>
+</body>
+</html>
