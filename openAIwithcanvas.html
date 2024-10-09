@@ -86,7 +86,7 @@
     <div id="modalInstructions">
         <p>Welcome to the Resource Management Game!</p>
         <p>Manage resources effectively, collect valuable items, and upgrade your abilities.</p>
-        <button onclick="game.start()">Start Game</button>
+        <button onclick="game.startGame()">Start Game</button>
     </div>
     <div id="upgradeShopModal" style="display:none;">
         <h2>Upgrade Shop</h2>
@@ -100,12 +100,12 @@
     <div id="victoryModal" style="display:none;">
         <h2>Victory!</h2>
         <p>Congratulations! You have successfully defended against all enemies and managed your resources effectively.</p>
-        <button onclick="game.restart()">Play Again</button>
+        <button onclick="game.restartGame()">Play Again</button>
     </div>
     <div id="gameOverModal" style="display:none;">
         <h2>Game Over</h2>
         <p>You have been defeated. Better luck next time!</p>
-        <button onclick="game.restart()">Try Again</button>
+        <button onclick="game.restartGame()">Try Again</button>
     </div>
     <div id="testModeDiv">
         <label>
@@ -231,7 +231,7 @@
                 this.resourceMultiplier = 1.0;
             }
 
-            start() {
+            startGame() {
                 document.getElementById('modalInstructions').style.display = 'none';
                 this.lastEnemySpawnTime = millis(); // Set initial spawn time to start counting from
                 this.lastPowerUpSpawnTime = millis();
@@ -242,6 +242,8 @@
                 this.player.update();
                 this.updateEnemies();
                 this.updatePowerUps();
+                this.checkCollisions();
+                this.checkVictoryCondition();
             }
 
             draw() {
@@ -327,7 +329,7 @@
                 document.getElementById('gameOverModal').style.display = 'flex';
             }
 
-            restart() {
+            restartGame() {
                 this.player = new Player();
                 this.enemies = [];
                 this.powerUps = [];
@@ -349,3 +351,7 @@
                 this.enemySpawnInterval = parseInt(document.getElementById('enemySpawnIntervalSlider').value);
                 document.getElementById('enemySpawnIntervalValue').textContent = this.enemySpawnInterval;
                 this.enemySpeedMultiplier = parseFloat(document.getElementById('enemySpeedSlider').value);
+                document.getElementById('enemySpeedValue').textContent = this.enemySpeedMultiplier;
+                this.enemyDamageMultiplier = parseFloat(document.getElementById('enemyDamageSlider').value);
+                document.getElementById('enemyDamageValue').textContent = this.enemyDamageMultiplier;
+                this.resourceMultiplier = parseFloat(document
