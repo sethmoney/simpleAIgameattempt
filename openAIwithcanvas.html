@@ -190,10 +190,52 @@
             }
         }
 
+        // Define the toggleTestMode function properly in the global scope
         function toggleTestMode() {
             const sliderControls = document.getElementById('sliderControls');
             if (document.getElementById('testModeCheckbox').checked) {
                 sliderControls.style.display = 'block';
             } else {
                 sliderControls.style.display = 'none';
-           
+            }
+        }
+
+        function updateSettings() {
+            // Update settings based on the test mode sliders
+            const enemySpawnInterval = document.getElementById('enemySpawnIntervalSlider').value;
+            document.getElementById('enemySpawnIntervalValue').textContent = enemySpawnInterval;
+
+            const enemySpeed = document.getElementById('enemySpeedSlider').value;
+            document.getElementById('enemySpeedValue').textContent = enemySpeed;
+
+            const enemyDamage = document.getElementById('enemyDamageSlider').value;
+            document.getElementById('enemyDamageValue').textContent = enemyDamage;
+
+            const resourceMultiplier = document.getElementById('resourceMultiplierSlider').value;
+            document.getElementById('resourceMultiplierValue').textContent = resourceMultiplier;
+
+            const xpMultiplier = document.getElementById('xpMultiplierSlider').value;
+            document.getElementById('xpMultiplierValue').textContent = xpMultiplier;
+
+            const playerSpeed = document.getElementById('playerSpeedSlider').value;
+            document.getElementById('playerSpeedValue').textContent = playerSpeed;
+
+            const collectibleSpawnInterval = document.getElementById('collectibleSpawnIntervalSlider').value;
+            document.getElementById('collectibleSpawnIntervalValue').textContent = collectibleSpawnInterval;
+
+            // Pass the updated values to the game object if it exists
+            if (game) {
+                game.updateSettings({
+                    enemySpawnInterval,
+                    enemySpeed,
+                    enemyDamage,
+                    resourceMultiplier,
+                    xpMultiplier,
+                    playerSpeed,
+                    collectibleSpawnInterval
+                });
+            }
+        }
+    </script>
+</body>
+</html>
