@@ -133,7 +133,9 @@
             <label>Enemy Speed: <input type="range" id="enemySpeedSlider" min="1" max="10" value="3" onchange="updateSettings()" /> <span id="enemySpeedValue">3</span></label><br>
             <label>Enemy Damage: <input type="range" id="enemyDamageSlider" min="5" max="50" value="20" onchange="updateSettings()" /> <span id="enemyDamageValue">20</span></label><br>
             <label>Resource Multiplier: <input type="range" id="resourceMultiplierSlider" min="1" max="5" value="1" step="0.1" onchange="updateSettings()" /> <span id="resourceMultiplierValue">1.0</span></label><br>
-            <label>XP Multiplier: <input type="range" id="xpMultiplierSlider" min="1" max="5" value="1" step="0.1" onchange="updateSettings()" /> <span id="xpMultiplierValue">1.0</span></label>
+            <label>XP Multiplier: <input type="range" id="xpMultiplierSlider" min="1" max="5" value="1" step="0.1" onchange="updateSettings()" /> <span id="xpMultiplierValue">1.0</span></label><br>
+            <label>Player Speed: <input type="range" id="playerSpeedSlider" min="1" max="10" value="5" onchange="updateSettings()" /> <span id="playerSpeedValue">5</span></label><br>
+            <label>Collectible Spawn Interval: <input type="range" id="collectibleSpawnIntervalSlider" min="100" max="5000" value="3000" onchange="updateSettings()" /> <span id="collectibleSpawnIntervalValue">3000</span> ms</label><br>
         </div>
     </div>
     <div id="hud">
@@ -182,6 +184,36 @@
             game.draw(); // Draw game elements
         }
 
+        function toggleTestMode() {
+            const sliderControls = document.getElementById('sliderControls');
+            game.testMode = document.getElementById('testModeCheckbox').checked;
+            if (game.testMode) {
+                sliderControls.style.display = 'block';
+            } else {
+                sliderControls.style.display = 'none';
+            }
+        }
+
+        function updateSettings() {
+            if (game && game.testMode) {
+                game.enemySpawnInterval = parseInt(document.getElementById('enemySpawnIntervalSlider').value);
+                game.enemySpeedMultiplier = parseFloat(document.getElementById('enemySpeedSlider').value);
+                game.enemyDamageMultiplier = parseFloat(document.getElementById('enemyDamageSlider').value);
+                game.resourceMultiplier = parseFloat(document.getElementById('resourceMultiplierSlider').value);
+                game.xpMultiplier = parseFloat(document.getElementById('xpMultiplierSlider').value);
+                game.playerSpeed = parseInt(document.getElementById('playerSpeedSlider').value);
+                game.collectibleSpawnInterval = parseInt(document.getElementById('collectibleSpawnIntervalSlider').value);
+
+                document.getElementById('enemySpawnIntervalValue').textContent = game.enemySpawnInterval;
+                document.getElementById('enemySpeedValue').textContent = game.enemySpeedMultiplier;
+                document.getElementById('enemyDamageValue').textContent = game.enemyDamageMultiplier;
+                document.getElementById('resourceMultiplierValue').textContent = game.resourceMultiplier;
+                document.getElementById('xpMultiplierValue').textContent = game.xpMultiplier;
+                document.getElementById('playerSpeedValue').textContent = game.playerSpeed;
+                document.getElementById('collectibleSpawnIntervalValue').textContent = game.collectibleSpawnInterval;
+            }
+        }
+
         class Player {
             constructor() {
                 this.position = createVector(width / 2, height / 2); // Set initial position at center
@@ -194,16 +226,16 @@
             }
             update() {
                 if (keyIsDown(LEFT_ARROW)) {
-                    this.position.x -= 5;
+                    this.position.x -= game.playerSpeed;
                 }
                 if (keyIsDown(RIGHT_ARROW)) {
-                    this.position.x += 5;
+                    this.position.x += game.playerSpeed;
                 }
                 if (keyIsDown(UP_ARROW)) {
-                    this.position.y -= 5;
+                    this.position.y -= game.playerSpeed;
                 }
                 if (keyIsDown(DOWN_ARROW)) {
-                    this.position.y += 5;
+                    this.position.y += game.playerSpeed;
                 }
                 this.position.x = constrain(this.position.x, 0, width);
                 this.position.y = constrain(this.position.y, 0, height);
@@ -248,6 +280,8 @@
                 this.enemyDamageMultiplier = 1.0;
                 this.resourceMultiplier = 1.0;
                 this.xpMultiplier = 1.0;
+                this.playerSpeed = 5;
+                this.collectibleSpawnInterval = 3000;
                 this.testMode = false;
                 this.startTime = millis();
             }
@@ -287,98 +321,10 @@
             }
 
             updateCollectibles() {
-                // Randomly add collectibles over time
-                if (frameCount % 180 === 0) { // Every 3 seconds
+                if (frameCount % int(this.collectibleSpawnInterval / 60) === 0) { // Control spawn rate based on interval
                     this.collectibles.push(new Collectible());
                 }
             }
 
             drawCollectibles() {
-                this.collectibles.forEach(collectible => collectible.draw());
-            }
-
-            checkCollisions() {
-                // Check collision between player and enemies
-                this.enemies.forEach((enemy, index) => {
-                    let d = dist(this.player.position.x, this.player.position.y, enemy.position.x, enemy.position.y);
-                    if (d < enemy.size / 2 + 15) { // Assuming player size is 30 (radius is 15)
-                        this.player.health -= enemy.damage;
-                        this.enemies.splice(index, 1); // Remove enemy after collision
-                    }
-                });
-                // Check collision between player and collectibles
-                this.collectibles.forEach((collectible, index) => {
-                    let d = dist(this.player.position.x, this.player.position.y, collectible.position.x, collectible.position.y);
-                    if (d < 15 + collectible.size / 2) { // Assuming player size is 30 (radius is 15)
-                        this.resources[collectible.type] += 1 * this.resourceMultiplier;
-                        this.collectibles.splice(index, 1); // Remove collectible after collection
-                        this.player.gainXP(10); // Gain XP when collecting an item
-                    }
-                });
-            }
-
-            updateHUD() {
-                let healthPercentage = this.player.health / this.player.maxHealth;
-                document.getElementById('healthBar').style.width = (healthPercentage * 100) + '%';
-                let xpPercentage = this.player.xp / this.player.xpThreshold;
-                document.getElementById('xpBar').style.width = (xpPercentage * 100) + '%';
-                document.getElementById('goldDisplay').textContent = this.resources.gold;
-                document.getElementById('woodDisplay').textContent = this.resources.wood;
-                document.getElementById('foodDisplay').textContent = this.resources.food;
-            }
-
-            triggerLevelUpModal() {
-                document.getElementById('levelUpModal').style.display = 'flex';
-                noLoop();
-            }
-
-            closeLevelUpModal() {
-                document.getElementById('levelUpModal').style.display = 'none';
-                loop();
-            }
-
-            increaseDifficulty() {
-                let elapsedTime = millis() - this.startTime;
-                this.enemySpawnInterval = max(1000, 3000 - elapsedTime / 10000); // Decrease spawn interval over time
-                this.enemySpeedMultiplier = 1.0 + elapsedTime / 60000; // Increase speed multiplier over time
-            }
-        }
-
-        class Enemy {
-            constructor(type) {
-                this.size = type === 'seeker' ? 20 : random(20, 50);
-                this.health = this.size < 35 ? 50 : 100;
-                this.position = createVector(width, random(height));
-                this.speed = random(1, 3);
-                this.damage = this.size < 35 ? 10 : 20;
-            }
-            update() {
-                this.position.x -= this.speed * game.enemySpeedMultiplier;
-            }
-            draw() {
-                fill(255, 0, 0);
-                ellipse(this.position.x, this.position.y, this.size, this.size);
-            }
-        }
-
-        class Collectible {
-            constructor() {
-                this.position = createVector(random(width), random(height));
-                this.size = 15;
-                this.type = random(['gold', 'wood', 'food']);
-            }
-            draw() {
-                fill(255, 215, 0);
-                if (this.type === 'gold') {
-                    fill(255, 215, 0);
-                } else if (this.type === 'wood') {
-                    fill(139, 69, 19);
-                } else if (this.type === 'food') {
-                    fill(34, 139, 34);
-                }
-                ellipse(this.position.x, this.position.y, this.size, this.size);
-            }
-        }
-    </script>
-</body>
-</html>
+                this
