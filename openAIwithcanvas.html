@@ -123,15 +123,15 @@
             <div id="healthBar"></div>
         </div>
         <div class="resource">
-            <img src="https://example.com/gold-icon.png" alt="Gold Icon">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Gold_ingot_icon.png" alt="Gold Icon">
             <span>Gold: <span id="goldDisplay">0</span></span>
         </div>
         <div class="resource">
-            <img src="https://example.com/wood-icon.png" alt="Wood Icon">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6c/Tree_icon.png" alt="Wood Icon">
             <span>Wood: <span id="woodDisplay">0</span></span>
         </div>
         <div class="resource">
-            <img src="https://example.com/food-icon.png" alt="Food Icon">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/1/1e/Food_icon.png" alt="Food Icon">
             <span>Food: <span id="foodDisplay">0</span></span>
         </div>
     </div>
@@ -332,4 +332,20 @@
                 this.enemies = [];
                 this.powerUps = [];
                 this.totalEnemiesDefeated = 0;
-                this.resources = { gold: 0, wood: 0, food
+                this.resources = { gold: 0, wood: 0, food: 0 };
+                document.getElementById('victoryModal').style.display = 'none';
+                document.getElementById('gameOverModal').style.display = 'none';
+                this.lastEnemySpawnTime = millis(); // Reset enemy spawn time
+                this.lastPowerUpSpawnTime = millis();
+                loop();
+            }
+
+            toggleTestMode() {
+                this.testMode = document.getElementById('testModeCheckbox').checked;
+                document.getElementById('sliderControls').style.display = this.testMode ? 'block' : 'none';
+            }
+
+            updateSettings() {
+                this.enemySpawnInterval = parseInt(document.getElementById('enemySpawnIntervalSlider').value);
+                document.getElementById('enemySpawnIntervalValue').textContent = this.enemySpawnInterval;
+                this.enemySpeedMultiplier = parseFloat(document.getElementById('enemySpeedSlider').value);
