@@ -47,6 +47,16 @@
             margin-top: 10px;
             display: none;
         }
+        #hud {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1003;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -85,6 +95,12 @@
             <label>Resource Multiplier: <input type="range" id="resourceMultiplierSlider" min="1" max="5" value="1" step="0.1" onchange="updateSettings()" /> <span id="resourceMultiplierValue">1.0</span></label>
         </div>
     </div>
+    <div id="hud">
+        <p>Health: <span id="healthDisplay">100</span> / <span id="maxHealthDisplay">100</span></p>
+        <p>Gold: <span id="goldDisplay">0</span></p>
+        <p>Wood: <span id="woodDisplay">0</span></p>
+        <p>Food: <span id="foodDisplay">0</span></p>
+    </div>
     <script>
         let currentHealth = 100;
         let maxHealth = 100;
@@ -109,9 +125,11 @@
         let enemySpeedMultiplier = 1.0; // Enemy speed multiplier for test mode
         let enemyDamageMultiplier = 1.0; // Enemy damage multiplier for test mode
         let resourceMultiplier = 1.0; // Resource collection multiplier for test mode
+        let player; // Player character
 
         function setup() {
             createCanvas(800, 600); // Create the canvas for the game
+            player = createVector(width / 2, height / 2); // Initialize player position
             noLoop(); // Start with the game loop stopped
         }
         
@@ -159,118 +177,19 @@
 
         function draw() {
             background(200);
+            updatePlayer(); // Update player position
             updateEnemies(); // Update enemy positions and states
+            drawPlayer(); // Draw the player character
             drawEnemies(); // Draw enemies on the canvas
             checkCollisions(); // Check for collisions between player and enemies
             checkVictoryCondition(); // Check if the player has met the victory condition
+            updateHUD(); // Update the HUD with the latest values
         }
 
-        // Function to update enemies
-        function updateEnemies() {
-            let currentTime = millis();
-            if (currentTime - lastEnemySpawnTime > enemySpawnInterval) {
-                spawnEnemy(); // Spawn a new enemy
-                lastEnemySpawnTime = currentTime;
+        // Function to update player position based on arrow key input
+        function updatePlayer() {
+            if (keyIsDown(LEFT_ARROW)) {
+                player.x -= 5;
             }
-
-            // Update each enemy's position
-            enemies.forEach(enemy => {
-                enemy.position.x -= enemy.speed * enemySpeedMultiplier;
-            });
-
-            // Remove enemies that go off-screen
-            enemies = enemies.filter(enemy => enemy.position.x + enemy.size > 0);
-        }
-
-        // Function to draw enemies
-        function drawEnemies() {
-            enemies.forEach(enemy => {
-                fill(enemy.color);
-                rect(enemy.position.x, enemy.position.y, enemy.size, enemy.size);
-            });
-        }
-
-        // Function to spawn a new enemy
-        function spawnEnemy() {
-            let size = random(20, 50);
-            let health = size < 35 ? 50 : 100; // Smaller enemies have more health
-            let damage = (size >= 35 ? 20 : 10) * enemyDamageMultiplier; // Larger enemies deal more damage
-            let speed = random(1, 3);
-            let color = size < 35 ? 'red' : 'blue';
-            // Add a new enemy to the enemies array
-            enemies.push({
-                position: createVector(width, random(height)),
-                size: size,
-                health: health,
-                damage: damage,
-                speed: speed,
-                color: color
-            });
-        }
-
-        // Function to check collisions between player and enemies
-        function checkCollisions() {
-            enemies.forEach((enemy, index) => {
-                let d = dist(width / 2, height / 2, enemy.position.x + enemy.size / 2, enemy.position.y + enemy.size / 2);
-                if (d < enemy.size / 2) {
-                    currentHealth -= enemy.damage; // Reduce player health based on enemy damage
-                    enemies.splice(index, 1); // Remove enemy after collision
-                    totalEnemiesDefeated++; // Increment the count of defeated enemies
-                    if (currentHealth <= 0 && !testMode) {
-                        gameOver(); // Trigger game over if health reaches 0 and test mode is not active
-                    }
-                }
-            });
-        }
-
-        // Function to check if the player has achieved victory
-        function checkVictoryCondition() {
-            if (totalEnemiesDefeated >= victoryThreshold) {
-                victory(); // Trigger victory if the player defeats enough enemies
-            }
-        }
-
-        // Function to handle victory
-        function victory() {
-            noLoop(); // Stop the game loop
-            document.getElementById('victoryModal').style.display = 'flex'; // Show victory modal
-        }
-
-        // Function to handle game over
-        function gameOver() {
-            noLoop(); // Stop the game loop
-            document.getElementById('gameOverModal').style.display = 'flex'; // Show game over modal
-        }
-
-        // Function to restart the game
-        function restartGame() {
-            // Reset all game variables
-            currentHealth = maxHealth = 100;
-            resources = { gold: 0, wood: 0, food: 0 };
-            enemies = [];
-            totalEnemiesDefeated = 0;
-            document.getElementById('victoryModal').style.display = 'none';
-            document.getElementById('gameOverModal').style.display = 'none';
-            loop(); // Restart the game loop
-        }
-
-        // Function to toggle test mode
-        function toggleTestMode() {
-            testMode = document.getElementById('testModeCheckbox').checked;
-            document.getElementById('sliderControls').style.display = testMode ? 'block' : 'none';
-        }
-
-        // Function to update game settings based on slider values
-        function updateSettings() {
-            enemySpawnInterval = parseInt(document.getElementById('enemySpawnIntervalSlider').value);
-            document.getElementById('enemySpawnIntervalValue').textContent = enemySpawnInterval;
-            enemySpeedMultiplier = parseFloat(document.getElementById('enemySpeedSlider').value);
-            document.getElementById('enemySpeedValue').textContent = enemySpeedMultiplier;
-            enemyDamageMultiplier = parseFloat(document.getElementById('enemyDamageSlider').value);
-            document.getElementById('enemyDamageValue').textContent = enemyDamageMultiplier;
-            resourceMultiplier = parseFloat(document.getElementById('resourceMultiplierSlider').value);
-            document.getElementById('resourceMultiplierValue').textContent = resourceMultiplier;
-        }
-    </script>
-</body>
-</html>
+            if (keyIsDown(RIGHT_ARROW)) {
+               
