@@ -236,6 +236,45 @@
                 });
             }
         }
-    </script>
-</body>
-</html>
+
+        class Game {
+            constructor() {
+                this.player = new Player();
+                this.enemies = [];
+                this.collectibles = [];
+                this.enemySpawnInterval = 3000;
+                this.enemySpeed = 3;
+                this.enemyDamage = 20;
+                this.resourceMultiplier = 1.0;
+                this.xpMultiplier = 1.0;
+                this.playerSpeed = 5;
+                this.collectibleSpawnInterval = 3000;
+                this.lastEnemySpawn = 0;
+                this.lastCollectibleSpawn = 0;
+                this.health = 100;
+                this.xp = 0;
+                this.level = 0;
+                this.resources = {
+                    gold: 0,
+                    wood: 0,
+                    food: 0
+                };
+                loop();
+            }
+
+            startGame() {
+                loop();
+            }
+
+            resetGame() {
+                this.enemies = [];
+                this.collectibles = [];
+                this.health = 100;
+                this.xp = 0;
+                this.level = 0;
+                this.resources = {
+                    gold: 0,
+                    wood: 0,
+                    food: 0
+                };
+                loop
