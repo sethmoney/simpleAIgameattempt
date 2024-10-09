@@ -159,9 +159,20 @@
     <script>
         let game; // Declare the game variable globally
 
+        window.onload = function() {
+            document.getElementById('startGameButton').addEventListener('click', function() {
+                startGameHandler();
+            });
+        };
+
+        function startGameHandler() {
+            document.getElementById('modalInstructions').style.display = 'none';
+            game = new Game(); // Reinitialize the game to reset state
+            game.startGame();
+        }
+
         function setup() {
             createCanvas(800, 600); // Set canvas size
-            game = new Game(); // Initialize game instance
             noLoop(); // Stop draw loop until game starts
         }
 
@@ -242,7 +253,6 @@
             }
 
             startGame() {
-                document.getElementById('modalInstructions').style.display = 'none';
                 this.lastEnemySpawnTime = millis(); // Set initial spawn time to start counting from
                 loop();
             }
@@ -338,4 +348,37 @@
             constructor(type) {
                 this.size = type === 'seeker' ? 20 : random(20, 50);
                 this.health = this.size < 35 ? 50 : 100;
-                this
+                this.position = createVector(width, random(height));
+                this.speed = random(1, 3);
+                this.damage = this.size < 35 ? 10 : 20;
+            }
+            update() {
+                this.position.x -= this.speed * game.enemySpeedMultiplier;
+            }
+            draw() {
+                fill(255, 0, 0);
+                ellipse(this.position.x, this.position.y, this.size, this.size);
+            }
+        }
+
+        class Collectible {
+            constructor() {
+                this.position = createVector(random(width), random(height));
+                this.size = 15;
+                this.type = random(['gold', 'wood', 'food']);
+            }
+            draw() {
+                fill(255, 215, 0);
+                if (this.type === 'gold') {
+                    fill(255, 215, 0);
+                } else if (this.type === 'wood') {
+                    fill(139, 69, 19);
+                } else if (this.type === 'food') {
+                    fill(34, 139, 34);
+                }
+                ellipse(this.position.x, this.position.y, this.size, this.size);
+            }
+        }
+    </script>
+</body>
+</html>
