@@ -273,4 +273,69 @@
             }
 
             drawEnemies() {
-                this.enemies.forEach(enemy
+                this.enemies.forEach(enemy => enemy.draw());
+            }
+
+            updateCollectibles() {
+                // Randomly add collectibles over time
+                if (frameCount % 180 === 0) { // Every 3 seconds
+                    this.collectibles.push(new Collectible());
+                }
+            }
+
+            drawCollectibles() {
+                this.collectibles.forEach(collectible => collectible.draw());
+            }
+
+            checkCollisions() {
+                // Check collision between player and enemies
+                this.enemies.forEach((enemy, index) => {
+                    let d = dist(this.player.position.x, this.player.position.y, enemy.position.x, enemy.position.y);
+                    if (d < enemy.size / 2 + 15) { // Assuming player size is 30 (radius is 15)
+                        this.player.health -= enemy.damage;
+                        this.enemies.splice(index, 1); // Remove enemy after collision
+                    }
+                });
+                // Check collision between player and collectibles
+                this.collectibles.forEach((collectible, index) => {
+                    let d = dist(this.player.position.x, this.player.position.y, collectible.position.x, collectible.position.y);
+                    if (d < 15 + collectible.size / 2) { // Assuming player size is 30 (radius is 15)
+                        this.resources[collectible.type] += 1 * this.resourceMultiplier;
+                        this.collectibles.splice(index, 1); // Remove collectible after collection
+                        this.player.gainXP(10); // Gain XP when collecting an item
+                    }
+                });
+            }
+
+            updateHUD() {
+                let healthPercentage = this.player.health / this.player.maxHealth;
+                document.getElementById('healthBar').style.width = (healthPercentage * 100) + '%';
+                let xpPercentage = this.player.xp / this.player.xpThreshold;
+                document.getElementById('xpBar').style.width = (xpPercentage * 100) + '%';
+                document.getElementById('goldDisplay').textContent = this.resources.gold;
+                document.getElementById('woodDisplay').textContent = this.resources.wood;
+                document.getElementById('foodDisplay').textContent = this.resources.food;
+            }
+
+            triggerLevelUpModal() {
+                document.getElementById('levelUpModal').style.display = 'flex';
+                noLoop();
+            }
+
+            closeLevelUpModal() {
+                document.getElementById('levelUpModal').style.display = 'none';
+                loop();
+            }
+
+            increaseDifficulty() {
+                let elapsedTime = millis() - this.startTime;
+                this.enemySpawnInterval = max(1000, 3000 - elapsedTime / 10000); // Decrease spawn interval over time
+                this.enemySpeedMultiplier = 1.0 + elapsedTime / 60000; // Increase speed multiplier over time
+            }
+        }
+
+        class Enemy {
+            constructor(type) {
+                this.size = type === 'seeker' ? 20 : random(20, 50);
+                this.health = this.size < 35 ? 50 : 100;
+                this
