@@ -179,15 +179,16 @@
         }
 
         function draw() {
-            background(200); // Clear canvas
-            game.update(); // Update game state
-            game.draw(); // Draw game elements
+            if (game) {
+                background(200); // Clear canvas
+                game.update(); // Update game state
+                game.draw(); // Draw game elements
+            }
         }
 
         function toggleTestMode() {
             const sliderControls = document.getElementById('sliderControls');
-            game.testMode = document.getElementById('testModeCheckbox').checked;
-            if (game.testMode) {
+            if (document.getElementById('testModeCheckbox').checked) {
                 sliderControls.style.display = 'block';
             } else {
                 sliderControls.style.display = 'none';
@@ -195,7 +196,7 @@
         }
 
         function updateSettings() {
-            if (game && game.testMode) {
+            if (game) {
                 game.enemySpawnInterval = parseInt(document.getElementById('enemySpawnIntervalSlider').value);
                 game.enemySpeedMultiplier = parseFloat(document.getElementById('enemySpeedSlider').value);
                 game.enemyDamageMultiplier = parseFloat(document.getElementById('enemyDamageSlider').value);
@@ -327,4 +328,58 @@
             }
 
             drawCollectibles() {
-                this
+                this.collectibles.forEach(collectible => collectible.draw());
+            }
+
+            checkCollisions() {
+                // Add collision detection logic
+            }
+
+            updateHUD() {
+                document.getElementById('goldDisplay').textContent = this.resources.gold;
+                document.getElementById('woodDisplay').textContent = this.resources.wood;
+                document.getElementById('foodDisplay').textContent = this.resources.food;
+                document.getElementById('healthBar').style.width = (this.player.health / this.player.maxHealth * 100) + '%';
+                document.getElementById('xpBar').style.width = (this.player.xp / this.player.xpThreshold * 100) + '%';
+            }
+
+            triggerLevelUpModal() {
+                document.getElementById('levelUpModal').style.display = 'flex';
+                noLoop();
+            }
+
+            closeLevelUpModal() {
+                document.getElementById('levelUpModal').style.display = 'none';
+                loop();
+            }
+        }
+
+        class Enemy {
+            constructor(type) {
+                this.type = type;
+                this.position = createVector(random(width, width + 100), random(height));
+                this.size = 30;
+                this.speed = random(1, 3) * game.enemySpeedMultiplier;
+            }
+            update() {
+                this.position.x -= this.speed;
+            }
+            draw() {
+                fill(255, 0, 0);
+                ellipse(this.position.x, this.position.y, this.size, this.size);
+            }
+        }
+
+        class Collectible {
+            constructor() {
+                this.position = createVector(random(width), random(height));
+                this.size = 20;
+            }
+            draw() {
+                fill(0, 255, 0);
+                ellipse(this.position.x, this.position.y, this.size, this.size);
+            }
+        }
+    </script>
+</body>
+</html>
