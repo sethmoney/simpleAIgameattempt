@@ -56,6 +56,29 @@
             color: #fff;
             padding: 10px;
             border-radius: 5px;
+            width: 200px;
+        }
+        #healthBarContainer {
+            width: 100%;
+            background-color: #555;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        #healthBar {
+            height: 20px;
+            background-color: #f00;
+            width: 100%;
+            border-radius: 5px;
+        }
+        .resource {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .resource img {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
         }
     </style>
 </head>
@@ -96,10 +119,21 @@
         </div>
     </div>
     <div id="hud">
-        <p>Health: <span id="healthDisplay">100</span> / <span id="maxHealthDisplay">100</span></p>
-        <p>Gold: <span id="goldDisplay">0</span></p>
-        <p>Wood: <span id="woodDisplay">0</span></p>
-        <p>Food: <span id="foodDisplay">0</span></p>
+        <div id="healthBarContainer">
+            <div id="healthBar"></div>
+        </div>
+        <div class="resource">
+            <img src="https://example.com/gold-icon.png" alt="Gold Icon">
+            <span>Gold: <span id="goldDisplay">0</span></span>
+        </div>
+        <div class="resource">
+            <img src="https://example.com/wood-icon.png" alt="Wood Icon">
+            <span>Wood: <span id="woodDisplay">0</span></span>
+        </div>
+        <div class="resource">
+            <img src="https://example.com/food-icon.png" alt="Food Icon">
+            <span>Food: <span id="foodDisplay">0</span></span>
+        </div>
     </div>
     <script>
         class Player {
@@ -107,6 +141,7 @@
                 this.position = createVector(400, 300); // Set initial position with fixed values for setup
                 this.health = 100;
                 this.maxHealth = 100;
+                this.hasShield = false; // Add shield property for power-up
             }
             update() {
                 if (keyIsDown(LEFT_ARROW)) {
@@ -127,20 +162,33 @@
             draw() {
                 fill(0, 0, 255);
                 ellipse(this.position.x, this.position.y, 30, 30);
+                if (this.hasShield) {
+                    noFill();
+                    stroke(0, 255, 0);
+                    ellipse(this.position.x, this.position.y, 50, 50); // Draw a shield outline
+                    noStroke();
+                }
             }
         }
 
         class Enemy {
-            constructor() {
-                this.size = random(20, 50);
+            constructor(type) {
+                this.size = type === 'seeker' ? 20 : random(20, 50);
                 this.health = this.size < 35 ? 50 : 100;
                 this.damage = (this.size >= 35 ? 20 : 10) * game.enemyDamageMultiplier;
-                this.speed = random(1, 3);
-                this.color = this.size < 35 ? 'red' : 'blue';
+                this.speed = type === 'seeker' ? 2 : random(1, 3);
+                this.color = type === 'seeker' ? 'green' : (this.size < 35 ? 'red' : 'blue');
+                this.type = type;
                 this.position = createVector(width, random(height));
             }
             update() {
-                this.position.x -= this.speed * game.enemySpeedMultiplier;
+                if (this.type === 'seeker') {
+                    let direction = p5.Vector.sub(game.player.position, this.position);
+                    direction.setMag(this.speed * game.enemySpeedMultiplier);
+                    this.position.add(direction);
+                } else {
+                    this.position.x -= this.speed * game.enemySpeedMultiplier;
+                }
             }
             draw() {
                 fill(this.color);
@@ -148,10 +196,24 @@
             }
         }
 
+        class PowerUp {
+            constructor(type) {
+                this.type = type;
+                this.position = createVector(random(width), random(height));
+                this.size = 20;
+                this.color = type === 'shield' ? 'yellow' : 'purple';
+            }
+            draw() {
+                fill(this.color);
+                ellipse(this.position.x, this.position.y, this.size, this.size);
+            }
+        }
+
         class Game {
             constructor() {
                 this.player = new Player();
                 this.enemies = [];
+                this.powerUps = [];
                 this.resources = {
                     gold: 0,
                     wood: 0,
@@ -159,6 +221,8 @@
                 };
                 this.enemySpawnInterval = 3000;
                 this.lastEnemySpawnTime = 0;
+                this.powerUpSpawnInterval = 8000;
+                this.lastPowerUpSpawnTime = 0;
                 this.totalEnemiesDefeated = 0;
                 this.victoryThreshold = 50;
                 this.testMode = false;
@@ -170,25 +234,29 @@
             start() {
                 document.getElementById('modalInstructions').style.display = 'none';
                 this.lastEnemySpawnTime = millis(); // Set initial spawn time to start counting from
+                this.lastPowerUpSpawnTime = millis();
                 loop();
             }
 
             update() {
                 this.player.update();
                 this.updateEnemies();
+                this.updatePowerUps();
             }
 
             draw() {
                 background(200);
                 this.player.draw();
                 this.drawEnemies();
+                this.drawPowerUps();
                 this.updateHUD();
             }
 
             updateEnemies() {
                 let currentTime = millis();
                 if (currentTime - this.lastEnemySpawnTime > this.enemySpawnInterval) {
-                    this.enemies.push(new Enemy());
+                    const enemyType = random() < 0.2 ? 'seeker' : 'regular';
+                    this.enemies.push(new Enemy(enemyType));
                     this.lastEnemySpawnTime = currentTime;
                 }
                 this.enemies.forEach(enemy => enemy.update());
@@ -199,16 +267,46 @@
                 this.enemies.forEach(enemy => enemy.draw());
             }
 
+            updatePowerUps() {
+                let currentTime = millis();
+                if (currentTime - this.lastPowerUpSpawnTime > this.powerUpSpawnInterval) {
+                    const powerUpType = random() < 0.5 ? 'shield' : 'health';
+                    this.powerUps.push(new PowerUp(powerUpType));
+                    this.lastPowerUpSpawnTime = currentTime;
+                }
+            }
+
+            drawPowerUps() {
+                this.powerUps.forEach(powerUp => powerUp.draw());
+            }
+
             checkCollisions() {
                 this.enemies.forEach((enemy, index) => {
                     let d = dist(this.player.position.x, this.player.position.y, enemy.position.x + enemy.size / 2, enemy.position.y + enemy.size / 2);
                     if (d < enemy.size / 2 + 15) {
-                        this.player.health -= enemy.damage;
-                        this.enemies.splice(index, 1);
+                        if (this.player.hasShield) {
+                            this.player.hasShield = false; // Shield absorbs the hit
+                            this.enemies.splice(index, 1);
+                        } else {
+                            this.player.health -= enemy.damage;
+                            this.enemies.splice(index, 1);
+                        }
                         this.totalEnemiesDefeated++;
                         if (this.player.health <= 0 && !this.testMode) {
                             this.gameOver();
                         }
+                    }
+                });
+
+                this.powerUps.forEach((powerUp, index) => {
+                    let d = dist(this.player.position.x, this.player.position.y, powerUp.position.x, powerUp.position.y);
+                    if (d < powerUp.size / 2 + 15) {
+                        if (powerUp.type === 'shield') {
+                            this.player.hasShield = true;
+                        } else if (powerUp.type === 'health') {
+                            this.player.health = min(this.player.health + 20, this.player.maxHealth);
+                        }
+                        this.powerUps.splice(index, 1);
                     }
                 });
             }
@@ -232,88 +330,6 @@
             restart() {
                 this.player = new Player();
                 this.enemies = [];
+                this.powerUps = [];
                 this.totalEnemiesDefeated = 0;
-                this.resources = { gold: 0, wood: 0, food: 0 };
-                document.getElementById('victoryModal').style.display = 'none';
-                document.getElementById('gameOverModal').style.display = 'none';
-                this.lastEnemySpawnTime = millis(); // Reset enemy spawn time
-                loop();
-            }
-
-            toggleTestMode() {
-                this.testMode = document.getElementById('testModeCheckbox').checked;
-                document.getElementById('sliderControls').style.display = this.testMode ? 'block' : 'none';
-            }
-
-            updateSettings() {
-                this.enemySpawnInterval = parseInt(document.getElementById('enemySpawnIntervalSlider').value);
-                document.getElementById('enemySpawnIntervalValue').textContent = this.enemySpawnInterval;
-                this.enemySpeedMultiplier = parseFloat(document.getElementById('enemySpeedSlider').value);
-                document.getElementById('enemySpeedValue').textContent = this.enemySpeedMultiplier;
-                this.enemyDamageMultiplier = parseFloat(document.getElementById('enemyDamageSlider').value);
-                document.getElementById('enemyDamageValue').textContent = this.enemyDamageMultiplier;
-                this.resourceMultiplier = parseFloat(document.getElementById('resourceMultiplierSlider').value);
-                document.getElementById('resourceMultiplierValue').textContent = this.resourceMultiplier;
-            }
-
-            purchaseUpgrade(upgrade) {
-                let upgradeCosts = {
-                    healthBoost: 20,
-                    workerEfficiency: 15,
-                    resourceMagnet: 30,
-                };
-                if (this.resources.gold >= upgradeCosts[upgrade]) {
-                    this.resources.gold -= upgradeCosts[upgrade];
-                    this.applyUpgrade(upgrade);
-                    this.closeUpgradeShop();
-                } else {
-                    alert("Not enough resources to purchase this upgrade!");
-                }
-            }
-
-            applyUpgrade(upgrade) {
-                switch (upgrade) {
-                    case 'healthBoost':
-                        this.player.maxHealth += 25;
-                        this.player.health += 25;
-                        break;
-                    case 'workerEfficiency':
-                        this.resourceMultiplier += 0.1;
-                        break;
-                    case 'resourceMagnet':
-                        // Implement resource magnet upgrade
-                        break;
-                }
-            }
-
-            closeUpgradeShop() {
-                document.getElementById('upgradeShopModal').style.display = 'none';
-                loop();
-            }
-
-            updateHUD() {
-                document.getElementById('healthDisplay').textContent = this.player.health;
-                document.getElementById('maxHealthDisplay').textContent = this.player.maxHealth;
-                document.getElementById('goldDisplay').textContent = this.resources.gold;
-                document.getElementById('woodDisplay').textContent = this.resources.wood;
-                document.getElementById('foodDisplay').textContent = this.resources.food;
-            }
-        }
-
-        let game;
-
-        function setup() {
-            createCanvas(800, 600);
-            game = new Game();
-            noLoop();
-        }
-
-        function draw() {
-            game.update();
-            game.draw();
-            game.checkCollisions();
-            game.checkVictoryCondition();
-        }
-    </script>
-</body>
-</html>
+                this.resources = { gold: 0, wood: 0, food
