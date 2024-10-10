@@ -214,4 +214,26 @@
             const resourceMultiplier = document.getElementById('resourceMultiplierSlider').value;
             document.getElementById('resourceMultiplierValue').textContent = resourceMultiplier;
 
-            const xpMultiplier = document.getElementById('
+            const xpMultiplier = document.getElementById('xpMultiplierSlider').value;
+            document.getElementById('xpMultiplierValue').textContent = xpMultiplier;
+
+            const playerSpeed = document.getElementById('playerSpeedSlider').value;
+            document.getElementById('playerSpeedValue').textContent = playerSpeed;
+
+            const collectibleSpawnInterval = document.getElementById('collectibleSpawnIntervalSlider').value;
+            document.getElementById('collectibleSpawnIntervalValue').textContent = collectibleSpawnInterval;
+
+            // Apply the settings to the game if it has started
+            if (game) {
+                game.enemySpawnInterval = parseInt(enemySpawnInterval);
+                game.enemySpeed = parseFloat(enemySpeed);
+                game.enemyDamage = parseInt(enemyDamage);
+                game.resourceMultiplier = parseFloat(resourceMultiplier);
+                game.xpMultiplier = parseFloat(xpMultiplier);
+                game.playerSpeed = parseFloat(playerSpeed);
+                game.collectibleSpawnInterval = parseInt(collectibleSpawnInterval);
+            }
+        }
+    </script>
+</body>
+</html>
