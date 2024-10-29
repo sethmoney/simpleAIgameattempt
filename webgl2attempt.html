@@ -29,8 +29,7 @@
         let position = [0, 1, 5];
         let rotation = 0;
         let lastTime = 0;
-        const MOVE_SPEED = 0.1;
-        const ROTATION_SPEED = 0.05;
+        const MOVE_DISTANCE = 2.0; // Each grid square is 2 units wide
         let isAnimating = true;
         let keys = {};
 
@@ -115,11 +114,8 @@
 
         function initBuffers(gl) {
             const positions = [
-                // Ground plane
-                -20.0, 0.0, -20.0,
-                20.0, 0.0, -20.0,
-                20.0, 0.0, 20.0,
-                -20.0, 0.0, 20.0,
+                // Ground plane grid (20x20 squares, each square 2 units)
+                ...generateGridPositions(-20, 0, 20, 2),
 
                 // Cube 1
                 -5.0, 0.0, -5.0,
@@ -134,17 +130,13 @@
                 3.0, 2.0, 3.0,
             ];
 
-            // Using DYNAMIC_DRAW for position buffer
             const positionBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.DYNAMIC_DRAW);
 
             const colors = [
-                // Ground plane (green)
-                0.4, 0.8, 0.4, 1.0,
-                0.4, 0.8, 0.4, 1.0,
-                0.4, 0.8, 0.4, 1.0,
-                0.4, 0.8, 0.4, 1.0,
+                // Ground plane grid (green)
+                ...generateGridColors(20 * 20, [0.4, 0.8, 0.4, 1.0]),
 
                 // Cube 1 (blue)
                 0.0, 0.0, 1.0, 1.0,
@@ -164,17 +156,16 @@
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
 
             const indices = [
-                // Ground plane
-                0, 1, 2,
-                0, 2, 3,
+                // Ground plane grid
+                ...generateGridIndices(20, 20),
 
                 // Cube 1 front face
-                4, 5, 6,
-                4, 6, 7,
+                400, 401, 402,
+                400, 402, 403,
 
                 // Cube 2 front face
-                8, 9, 10,
-                8, 10, 11,
+                404, 405, 406,
+                404, 406, 407,
             ];
 
             const indexBuffer = gl.createBuffer();
@@ -188,23 +179,18 @@
             };
         }
 
-        function updateMovement(deltaTime) {
-            const moveX = Math.sin(rotation) * MOVE_SPEED * deltaTime;
-            const moveZ = Math.cos(rotation) * MOVE_SPEED * deltaTime;
-
+        function updateMovement() {
             if (keys['ArrowUp']) {
-                position[0] -= moveX;
-                position[2] -= moveZ;
+                position[2] -= MOVE_DISTANCE;
             }
             if (keys['ArrowDown']) {
-                position[0] += moveX;
-                position[2] += moveZ;
+                position[2] += MOVE_DISTANCE;
             }
             if (keys['ArrowLeft']) {
-                rotation += ROTATION_SPEED * deltaTime;
+                position[0] -= MOVE_DISTANCE;
             }
             if (keys['ArrowRight']) {
-                rotation -= ROTATION_SPEED * deltaTime;
+                position[0] += MOVE_DISTANCE;
             }
         }
 
@@ -215,7 +201,7 @@
             const deltaTime = Math.min(currentTime - lastTime, 0.1); // Cap delta time
             lastTime = currentTime;
 
-            updateMovement(deltaTime * 60); // Normalize to 60 FPS
+            updateMovement();
 
             gl.viewport(0, 0, canvas.width, canvas.height);
             gl.clearColor(0.5, 0.7, 1.0, 1.0);
@@ -252,7 +238,7 @@
             gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, projectionMatrix);
             gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix);
 
-            gl.drawElements(gl.TRIANGLES, 18, gl.UNSIGNED_SHORT, 0);
+            gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 
             requestAnimationFrame(render);
         }
@@ -299,6 +285,40 @@
                 return true;
             }
             return false;
+        }
+
+        function generateGridPositions(startX, startY, endX, spacing) {
+            const positions = [];
+            for (let x = startX; x <= endX; x += spacing) {
+                for (let z = startX; z <= endX; z += spacing) {
+                    positions.push(x, startY, z);
+                    positions.push(x + spacing, startY, z);
+                    positions.push(x + spacing, startY, z + spacing);
+                    positions.push(x, startY, z + spacing);
+                }
+            }
+            return positions;
+        }
+
+        function generateGridColors(count, color) {
+            const colors = [];
+            for (let i = 0; i < count; i++) {
+                colors.push(...color);
+            }
+            return colors;
+        }
+
+        function generateGridIndices(rows, cols) {
+            const indices = [];
+            let offset = 0;
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    indices.push(offset, offset + 1, offset + 2);
+                    indices.push(offset, offset + 2, offset + 3);
+                    offset += 4;
+                }
+            }
+            return indices;
         }
 
         window.onload = main;
