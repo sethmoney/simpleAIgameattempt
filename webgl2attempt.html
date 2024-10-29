@@ -1,255 +1,404 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WebGL Walking Demo</title>
+    <title>WebGL2 Grid Game</title>
     <style>
+        canvas { width: 100%; height: 100%; }
         body { margin: 0; overflow: hidden; }
-        canvas { width: 100vw; height: 100vh; display: block; }
-        #instructions {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            font-family: Arial, sans-serif;
-        }
     </style>
 </head>
 <body>
-    <div id="instructions">Use arrow keys to move around</div>
-    <canvas id="glcanvas"></canvas>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
+    <canvas id="canvas"></canvas>
     <script>
-        let canvas;
-        let gl;
-        let programInfo;
-        let buffers;
-        let position = [0, 1, 5];
-        let lastTime = 0;
-        const MOVE_DISTANCE = 2.0; // Each grid square is 2 units wide
-        let isAnimating = true;
-        let keys = {};
+        const canvas = document.querySelector('#canvas');
+        const gl = canvas.getContext('webgl2');
 
-        // Improved WebGL context initialization
-        function initGL(canvas) {
-            let gl = canvas.getContext('webgl2');
-            if (!gl) {
-                console.log('WebGL2 not available, falling back to WebGL1');
-                gl = canvas.getContext('webgl');
-                if (!gl) {
-                    alert('Unable to initialize WebGL');
-                    return null;
-                }
-            }
-            return gl;
+        if (!gl) {
+            alert('WebGL2 not supported');
+            throw new Error('WebGL2 not supported');
         }
 
-        const vsSource = `
-            attribute vec4 aVertexPosition;
-            attribute vec4 aVertexColor;
-            uniform mat4 uModelViewMatrix;
-            uniform mat4 uProjectionMatrix;
-            varying lowp vec4 vColor;
-            void main(void) {
-                gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-                vColor = aVertexColor;
+        // Vertex shader
+        const vertexShaderSource = `#version 300 es
+        layout(location = 0) in vec3 a_position;
+        layout(location = 1) in vec3 a_normal;
+        
+        uniform mat4 u_worldMatrix;
+        uniform mat4 u_viewMatrix;
+        uniform mat4 u_projectionMatrix;
+        
+        out vec3 v_normal;
+        out vec3 v_position;
+        
+        void main() {
+            v_normal = (u_worldMatrix * vec4(a_normal, 0.0)).xyz;
+            v_position = (u_worldMatrix * vec4(a_position, 1.0)).xyz;
+            gl_Position = u_projectionMatrix * u_viewMatrix * u_worldMatrix * vec4(a_position, 1.0);
+        }`;
+
+        // Fragment shader
+        const fragmentShaderSource = `#version 300 es
+        precision highp float;
+        
+        in vec3 v_normal;
+        in vec3 v_position;
+        
+        uniform vec3 u_color;
+        uniform vec3 u_lightPosition;
+        
+        out vec4 outColor;
+        
+        void main() {
+            vec3 normal = normalize(v_normal);
+            vec3 lightDir = normalize(u_lightPosition - v_position);
+            float diff = max(dot(normal, lightDir), 0.0);
+            vec3 diffuse = diff * vec3(1.0);
+            vec3 ambient = vec3(0.3);
+            outColor = vec4(u_color * (ambient + diffuse), 1.0);
+        }`;
+
+        // Compile shaders
+        function createShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error(gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
             }
-        `;
+            return shader;
+        }
 
-        const fsSource = `
-            varying lowp vec4 vColor;
-            void main(void) {
-                gl_FragColor = vColor;
-            }
-        `;
+        const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+        const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
 
-        function main() {
-            canvas = document.querySelector('#glcanvas');
-            gl = initGL(canvas);
+        // Create program
+        const program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
 
-            if (!gl) return;
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+            console.error(gl.getProgramInfoLog(program));
+            throw new Error('Program link failed');
+        }
 
-            const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+        // Get uniform locations
+        const worldMatrixLocation = gl.getUniformLocation(program, 'u_worldMatrix');
+        const viewMatrixLocation = gl.getUniformLocation(program, 'u_viewMatrix');
+        const projectionMatrixLocation = gl.getUniformLocation(program, 'u_projectionMatrix');
+        const colorLocation = gl.getUniformLocation(program, 'u_color');
+        const lightPositionLocation = gl.getUniformLocation(program, 'u_lightPosition');
 
-            programInfo = {
-                program: shaderProgram,
-                attribLocations: {
-                    vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-                    vertexColor: gl.getAttribLocation(shaderProgram, 'aVertexColor'),
-                },
-                uniformLocations: {
-                    projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-                    modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
-                },
-            };
+        // Create sphere geometry
+        function createSphere(radius, segments) {
+            const vertices = [];
+            const normals = [];
+            const indices = [];
 
-            buffers = initBuffers(gl);
+            for (let lat = 0; lat <= segments; lat++) {
+                const theta = lat * Math.PI / segments;
+                const sinTheta = Math.sin(theta);
+                const cosTheta = Math.cos(theta);
 
-            // Improved keyboard event handling
-            document.addEventListener('keydown', (e) => keys[e.key] = true);
-            document.addEventListener('keyup', (e) => keys[e.key] = false);
+                for (let lon = 0; lon <= segments; lon++) {
+                    const phi = lon * 2 * Math.PI / segments;
+                    const sinPhi = Math.sin(phi);
+                    const cosPhi = Math.cos(phi);
 
-            // Improved window resize handling
-            window.addEventListener('resize', () => {
-                resizeCanvasToDisplaySize(canvas);
-            });
+                    const x = cosPhi * sinTheta;
+                    const y = cosTheta;
+                    const z = sinPhi * sinTheta;
 
-            // Initial canvas size
-            resizeCanvasToDisplaySize(canvas);
-
-            // Page visibility handling
-            document.addEventListener('visibilitychange', () => {
-                isAnimating = !document.hidden;
-                if (isAnimating) {
-                    lastTime = performance.now() * 0.001;
-                    requestAnimationFrame(render);
+                    vertices.push(radius * x, radius * y, radius * z);
+                    normals.push(x, y, z);
                 }
-            });
+            }
+
+            for (let lat = 0; lat < segments; lat++) {
+                for (let lon = 0; lon < segments; lon++) {
+                    const first = (lat * (segments + 1)) + lon;
+                    const second = first + segments + 1;
+
+                    indices.push(first, second, first + 1);
+                    indices.push(second, second + 1, first + 1);
+                }
+            }
+
+            return { vertices, normals, indices };
+        }
+
+        // Create grid geometry
+        function createGrid(size, divisions) {
+            const vertices = [];
+            const normals = [];
+            const indices = [];
+            const step = size / divisions;
+            const halfSize = size / 2;
+
+            for (let i = 0; i <= divisions; i++) {
+                for (let j = 0; j <= divisions; j++) {
+                    const x = j * step - halfSize;
+                    const z = i * step - halfSize;
+                    vertices.push(x, 0, z);
+                    normals.push(0, 1, 0);
+                }
+            }
+
+            for (let i = 0; i < divisions; i++) {
+                for (let j = 0; j < divisions; j++) {
+                    const first = i * (divisions + 1) + j;
+                    const second = first + divisions + 1;
+
+                    indices.push(first, second, first + 1);
+                    indices.push(second, second + 1, first + 1);
+                }
+            }
+
+            return { vertices, normals, indices };
+        }
+
+        // Create geometries
+        const sphere = createSphere(0.3, 32);
+        const grid = createGrid(10, 10);
+
+        // Create buffers for sphere
+        const sphereVAO = gl.createVertexArray();
+        gl.bindVertexArray(sphereVAO);
+
+        const sphereVertexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, sphereVertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sphere.vertices), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+
+        const sphereNormalBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, sphereNormalBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sphere.normals), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(1);
+        gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
+
+        const sphereIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, sphereIndexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(sphere.indices), gl.STATIC_DRAW);
+
+        // Create buffers for grid
+        const gridVAO = gl.createVertexArray();
+        gl.bindVertexArray(gridVAO);
+
+        const gridVertexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, gridVertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(grid.vertices), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+
+        const gridNormalBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, gridNormalBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(grid.normals), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(1);
+        gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
+
+        const gridIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gridIndexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(grid.indices), gl.STATIC_DRAW);
+
+        // Matrix math functions
+        const mat4 = {
+            perspective: function(out, fov, aspect, near, far) {
+                const f = 1.0 / Math.tan(fov / 2);
+                out[0] = f / aspect;
+                out[1] = 0;
+                out[2] = 0;
+                out[3] = 0;
+                out[4] = 0;
+                out[5] = f;
+                out[6] = 0;
+                out[7] = 0;
+                out[8] = 0;
+                out[9] = 0;
+                out[10] = (far + near) / (near - far);
+                out[11] = -1;
+                out[12] = 0;
+                out[13] = 0;
+                out[14] = (2 * far * near) / (near - far);
+                out[15] = 0;
+                return out;
+            },
+
+            lookAt: function(out, eye, center, up) {
+                let x0, x1, x2, y0, y1, y2, z0, z1, z2, len;
+
+                z0 = eye[0] - center[0];
+                z1 = eye[1] - center[1];
+                z2 = eye[2] - center[2];
+
+                len = 1 / Math.sqrt(z0 * z0 + z1 * z1 + z2 * z2);
+                z0 *= len;
+                z1 *= len;
+                z2 *= len;
+
+                x0 = up[1] * z2 - up[2] * z1;
+                x1 = up[2] * z0 - up[0] * z2;
+                x2 = up[0] * z1 - up[1] * z0;
+                len = Math.sqrt(x0 * x0 + x1 * x1 + x2 * x2);
+                if (!len) {
+                    x0 = 0;
+                    x1 = 0;
+                    x2 = 0;
+                } else {
+                    len = 1 / len;
+                    x0 *= len;
+                    x1 *= len;
+                    x2 *= len;
+                }
+
+                y0 = z1 * x2 - z2 * x1;
+                y1 = z2 * x0 - z0 * x2;
+                y2 = z0 * x1 - z1 * x0;
+
+                out[0] = x0;
+                out[1] = y0;
+                out[2] = z0;
+                out[3] = 0;
+                out[4] = x1;
+                out[5] = y1;
+                out[6] = z1;
+                out[7] = 0;
+                out[8] = x2;
+                out[9] = y2;
+                out[10] = z2;
+                out[11] = 0;
+                out[12] = -(x0 * eye[0] + x1 * eye[1] + x2 * eye[2]);
+                out[13] = -(y0 * eye[0] + y1 * eye[1] + y2 * eye[2]);
+                out[14] = -(z0 * eye[0] + z1 * eye[1] + z2 * eye[2]);
+                out[15] = 1;
+
+                return out;
+            },
+
+            translate: function(out, a, v) {
+                out[0] = a[0];
+                out[1] = a[1];
+                out[2] = a[2];
+                out[3] = a[3];
+                out[4] = a[4];
+                out[5] = a[5];
+                out[6] = a[6];
+                out[7] = a[7];
+                out[8] = a[8];
+                out[9] = a[9];
+                out[10] = a[10];
+                out[11] = a[11];
+                out[12] = a[0] * v[0] + a[4] * v[1] + a[8] * v[2] + a[12];
+                out[13] = a[1] * v[0] + a[5] * v[1] + a[9] * v[2] + a[13];
+                out[14] = a[2] * v[0] + a[6] * v[1] + a[10] * v[2] + a[14];
+                out[15] = a[3] * v[0] + a[7] * v[1] + a[11] * v[2] + a[15];
+                return out;
+            },
+
+            identity: function(out) {
+                out[0] = 1;
+                out[1] = 0;
+                out[2] = 0;
+                out[3] = 0;
+                out[4] = 0;
+                out[5] = 1;
+                out[6] = 0;
+                out[7] = 0;
+                out[8] = 0;
+                out[9] = 0;
+                out[10] = 1;
+                out[11] = 0;
+                out[12] = 0;
+                out[13] = 0;
+                out[14] = 0;
+                out[15] = 1;
+                return out;
+            }
+        };
+
+        // Game state
+        const state = {
+            spherePosition: [0, 0.3, 0],
+            gridSize: 1.0,
+            cameraDistance: 5,
+            cameraAngle: Math.PI / 6 // 30 degrees
+        };
+
+        // Handle keyboard input
+        document.addEventListener('keydown', (e) => {
+            const step = state.gridSize;
+            switch(e.key) {
+                case 'ArrowUp':
+                    state.spherePosition[2] -= step;
+                    break;
+                case 'ArrowDown':
+                    state.spherePosition[2] += step;
+                    break;
+                case 'ArrowLeft':
+                    state.spherePosition[0] -= step;
+                    break;
+                case 'ArrowRight':
+                    state.spherePosition[0] += step;
+                    break;
+            }
+        });
+
+        // Resize canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            gl.viewport(0, 0, canvas.width, canvas.height);
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Render loop
+        function render() {
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            gl.useProgram(program);
+
+            // Set light position
+            gl.uniform3fv(lightPositionLocation, [5.0, 5.0, 5.0]);
+
+            // Set view and projection matrices
+            const aspect = canvas.width / canvas.height;
+            const projectionMatrix = new Float32Array(16);
+            mat4.perspective(projectionMatrix, Math.PI / 4, aspect, 0.1, 100.0);
+            gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
+
+            const viewMatrix = new Float32Array(16);
+            mat4.lookAt(viewMatrix, [state.cameraDistance * Math.sin(state.cameraAngle), 5, state.cameraDistance * Math.cos(state.cameraAngle)], [0, 0, 0], [0, 1, 0]);
+            gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix);
+
+            // Draw grid
+            gl.bindVertexArray(gridVAO);
+            const gridWorldMatrix = new Float32Array(16);
+            mat4.identity(gridWorldMatrix);
+            gl.uniformMatrix4fv(worldMatrixLocation, false, gridWorldMatrix);
+            gl.uniform3fv(colorLocation, [0.5, 0.5, 0.5]);
+            gl.drawElements(gl.TRIANGLES, grid.indices.length, gl.UNSIGNED_SHORT, 0);
+
+            // Draw sphere
+            gl.bindVertexArray(sphereVAO);
+            const sphereWorldMatrix = new Float32Array(16);
+            mat4.identity(sphereWorldMatrix);
+            mat4.translate(sphereWorldMatrix, sphereWorldMatrix, state.spherePosition);
+            gl.uniformMatrix4fv(worldMatrixLocation, false, sphereWorldMatrix);
+            gl.uniform3fv(colorLocation, [1.0, 0.0, 0.0]);
+            gl.drawElements(gl.TRIANGLES, sphere.indices.length, gl.UNSIGNED_SHORT, 0);
 
             requestAnimationFrame(render);
         }
 
-        function initBuffers(gl) {
-            const positions = [
-                // Ground plane grid (20x20 squares, each square 2 units)
-                ...generateGridPositions(-20, 0, 20, 2),
+        // Enable depth testing
+        gl.enable(gl.DEPTH_TEST);
 
-                // Cube 1
-                -5.0, 0.0, -5.0,
-                -3.0, 0.0, -5.0,
-                -3.0, 2.0, -5.0,
-                -5.0, 2.0, -5.0,
-
-                // Cube 2
-                3.0, 0.0, 3.0,
-                5.0, 0.0, 3.0,
-                5.0, 2.0, 3.0,
-                3.0, 2.0, 3.0,
-
-                // Character Cube (small cube)
-                -1.0, 0.0, -1.0,
-                1.0, 0.0, -1.0,
-                1.0, 2.0, -1.0,
-                -1.0, 2.0, -1.0
-            ];
-
-            const positionBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
-            const colors = [
-                // Ground plane grid (green)
-                ...generateGridColors(20 * 20, [0.4, 0.8, 0.4, 1.0]),
-
-                // Cube 1 (blue)
-                0.0, 0.0, 1.0, 1.0,
-                0.0, 0.0, 1.0, 1.0,
-                0.0, 0.0, 1.0, 1.0,
-                0.0, 0.0, 1.0, 1.0,
-
-                // Cube 2 (red)
-                1.0, 0.0, 0.0, 1.0,
-                1.0, 0.0, 0.0, 1.0,
-                1.0, 0.0, 0.0, 1.0,
-                1.0, 0.0, 0.0, 1.0,
-
-                // Character Cube (yellow)
-                1.0, 1.0, 0.0, 1.0,
-                1.0, 1.0, 0.0, 1.0,
-                1.0, 1.0, 0.0, 1.0,
-                1.0, 1.0, 0.0, 1.0
-            ];
-
-            const colorBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-
-            const indices = [
-                // Ground plane grid
-                ...generateGridIndices(20, 20),
-
-                // Cube 1 front face
-                1600, 1601, 1602,
-                1600, 1602, 1603,
-
-                // Cube 2 front face
-                1604, 1605, 1606,
-                1604, 1606, 1607,
-
-                // Character Cube front face
-                1608, 1609, 1610,
-                1608, 1610, 1611
-            ];
-
-            const indexBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-
-            return {
-                position: positionBuffer,
-                color: colorBuffer,
-                indices: indexBuffer,
-                indexCount: indices.length,
-            };
-        }
-
-        function updateMovement() {
-            if (keys['ArrowUp']) {
-                position[2] -= MOVE_DISTANCE;
-            }
-            if (keys['ArrowDown']) {
-                position[2] += MOVE_DISTANCE;
-            }
-            if (keys['ArrowLeft']) {
-                position[0] -= MOVE_DISTANCE;
-            }
-            if (keys['ArrowRight']) {
-                position[0] += MOVE_DISTANCE;
-            }
-        }
-
-        function render(currentTime) {
-            if (!isAnimating) return;
-
-            currentTime *= 0.001;
-            const deltaTime = Math.min(currentTime - lastTime, 0.1); // Cap delta time
-            lastTime = currentTime;
-
-            updateMovement();
-
-            gl.viewport(0, 0, canvas.width, canvas.height);
-            gl.clearColor(0.5, 0.7, 1.0, 1.0);
-            gl.clearDepth(1.0);
-            gl.enable(gl.DEPTH_TEST);
-            gl.depthFunc(gl.LEQUAL);
-
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-            const fieldOfView = 45 * Math.PI / 180;
-            const aspect = canvas.clientWidth / canvas.clientHeight;
-            const zNear = 0.1;
-            const zFar = 100.0;
-            const projectionMatrix = mat4.create();
-
-            mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
-
-            // Adjust the camera to a 30 degree angle and follow the character
-            const modelViewMatrix = mat4.create();
-            mat4.lookAt(modelViewMatrix, [position[0], 10, position[2] + 10], position, [0, 1, 0]);
-            mat4.rotateX(modelViewMatrix, modelViewMatrix, Math.PI / 6); // Rotate to look down at 30 degrees
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-            gl.vertexAttribPointer(programInfo.attribLocations.vertexPosition, 3, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
-            gl.vertexAttribPointer(programInfo.attribLocations.vertexColor, 4, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
-
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-
-            gl.useProgram(programInfo.program);
-
-            gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix,
+        // Start rendering
+        render();
+    </script>
+</body>
+</html>
