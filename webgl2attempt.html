@@ -132,7 +132,7 @@
 
             const positionBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.DYNAMIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
             const colors = [
                 // Ground plane grid (green)
@@ -160,12 +160,12 @@
                 ...generateGridIndices(20, 20),
 
                 // Cube 1 front face
-                400, 401, 402,
-                400, 402, 403,
+                1600, 1601, 1602,
+                1600, 1602, 1603,
 
                 // Cube 2 front face
-                404, 405, 406,
-                404, 406, 407,
+                1604, 1605, 1606,
+                1604, 1606, 1607,
             ];
 
             const indexBuffer = gl.createBuffer();
@@ -176,6 +176,7 @@
                 position: positionBuffer,
                 color: colorBuffer,
                 indices: indexBuffer,
+                indexCount: indices.length,
             };
         }
 
@@ -238,7 +239,7 @@
             gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, projectionMatrix);
             gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix);
 
-            gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+            gl.drawElements(gl.TRIANGLES, buffers.indexCount, gl.UNSIGNED_SHORT, 0);
 
             requestAnimationFrame(render);
         }
