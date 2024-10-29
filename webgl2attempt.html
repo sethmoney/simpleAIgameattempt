@@ -128,6 +128,12 @@
                 5.0, 0.0, 3.0,
                 5.0, 2.0, 3.0,
                 3.0, 2.0, 3.0,
+
+                // Character Cube (small cube)
+                -1.0, 0.0, -1.0,
+                1.0, 0.0, -1.0,
+                1.0, 2.0, -1.0,
+                -1.0, 2.0, -1.0
             ];
 
             const positionBuffer = gl.createBuffer();
@@ -149,6 +155,12 @@
                 1.0, 0.0, 0.0, 1.0,
                 1.0, 0.0, 0.0, 1.0,
                 1.0, 0.0, 0.0, 1.0,
+
+                // Character Cube (yellow)
+                1.0, 1.0, 0.0, 1.0,
+                1.0, 1.0, 0.0, 1.0,
+                1.0, 1.0, 0.0, 1.0,
+                1.0, 1.0, 0.0, 1.0
             ];
 
             const colorBuffer = gl.createBuffer();
@@ -166,6 +178,10 @@
                 // Cube 2 front face
                 1604, 1605, 1606,
                 1604, 1606, 1607,
+
+                // Character Cube front face
+                1608, 1609, 1610,
+                1608, 1610, 1611
             ];
 
             const indexBuffer = gl.createBuffer();
@@ -220,109 +236,13 @@
 
             mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
 
+            // Adjust the camera to a 30 degree angle and follow the character
             const modelViewMatrix = mat4.create();
-            mat4.translate(modelViewMatrix, modelViewMatrix, [-position[0], -position[1], -position[2]]);
-            mat4.rotate(modelViewMatrix, modelViewMatrix, rotation, [0, 1, 0]);
+            mat4.translate(modelViewMatrix, modelViewMatrix, [-position[0], -10, -position[2] - 10]);
+            mat4.rotateX(modelViewMatrix, modelViewMatrix, Math.PI / 6); // Rotate to look down at 30 degrees
 
             gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
             gl.vertexAttribPointer(programInfo.attribLocations.vertexPosition, 3, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
-            gl.vertexAttribPointer(programInfo.attribLocations.vertexColor, 4, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
-
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-
-            gl.useProgram(programInfo.program);
-
-            gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, projectionMatrix);
-            gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix);
-
-            gl.drawElements(gl.TRIANGLES, buffers.indexCount, gl.UNSIGNED_SHORT, 0);
-
-            requestAnimationFrame(render);
-        }
-
-        function initShaderProgram(gl, vsSource, fsSource) {
-            const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-            const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
-
-            const shaderProgram = gl.createProgram();
-            gl.attachShader(shaderProgram, vertexShader);
-            gl.attachShader(shaderProgram, fragmentShader);
-            gl.linkProgram(shaderProgram);
-
-            if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-                alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
-                return null;
-            }
-
-            return shaderProgram;
-        }
-
-        function loadShader(gl, type, source) {
-            const shader = gl.createShader(type);
-            gl.shaderSource(shader, source);
-            gl.compileShader(shader);
-
-            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
-                gl.deleteShader(shader);
-                return null;
-            }
-
-            return shader;
-        }
-
-        function resizeCanvasToDisplaySize(canvas) {
-            const displayWidth = canvas.clientWidth;
-            const displayHeight = canvas.clientHeight;
-
-            if (canvas.width !== displayWidth ||
-                canvas.height !== displayHeight) {
-                canvas.width = displayWidth;
-                canvas.height = displayHeight;
-                return true;
-            }
-            return false;
-        }
-
-        function generateGridPositions(startX, startY, endX, spacing) {
-            const positions = [];
-            for (let x = startX; x <= endX; x += spacing) {
-                for (let z = startX; z <= endX; z += spacing) {
-                    positions.push(x, startY, z);
-                    positions.push(x + spacing, startY, z);
-                    positions.push(x + spacing, startY, z + spacing);
-                    positions.push(x, startY, z + spacing);
-                }
-            }
-            return positions;
-        }
-
-        function generateGridColors(count, color) {
-            const colors = [];
-            for (let i = 0; i < count; i++) {
-                colors.push(...color);
-            }
-            return colors;
-        }
-
-        function generateGridIndices(rows, cols) {
-            const indices = [];
-            let offset = 0;
-            for (let row = 0; row < rows; row++) {
-                for (let col = 0; col < cols; col++) {
-                    indices.push(offset, offset + 1, offset + 2);
-                    indices.push(offset, offset + 2, offset + 3);
-                    offset += 4;
-                }
-            }
-            return indices;
-        }
-
-        window.onload = main;
-    </script>
-</body>
-</html>
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffers
