@@ -323,7 +323,8 @@
             spherePosition: [0, 0.3, 0],
             gridSize: 1.0,
             cameraDistance: 5,
-            cameraAngle: Math.PI / 6 // 30 degrees
+            cameraAngle: Math.PI / 6, // 30 degrees
+            direction: 1
         };
 
         // Handle keyboard input
@@ -354,6 +355,11 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
+        // Animation settings
+        let animationDirection = 1;
+        const animationSpeed = 0.02;
+        const maxMovement = 3;
+
         // Render loop
         function render() {
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -373,6 +379,12 @@
             const viewMatrix = new Float32Array(16);
             mat4.lookAt(viewMatrix, [state.spherePosition[0], 5, state.spherePosition[2] + state.cameraDistance], state.spherePosition, [0, 1, 0]);
             gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix);
+
+            // Animate sphere position
+            state.spherePosition[0] += animationSpeed * animationDirection;
+            if (state.spherePosition[0] > maxMovement || state.spherePosition[0] < -maxMovement) {
+                animationDirection *= -1;
+            }
 
             // Draw grid
             gl.bindVertexArray(gridVAO);
