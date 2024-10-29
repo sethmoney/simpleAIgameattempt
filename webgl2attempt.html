@@ -371,7 +371,7 @@
             gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
 
             const viewMatrix = new Float32Array(16);
-            mat4.lookAt(viewMatrix, [state.cameraDistance * Math.sin(state.cameraAngle), 5, state.cameraDistance * Math.cos(state.cameraAngle)], [0, 0, 0], [0, 1, 0]);
+            mat4.lookAt(viewMatrix, [state.spherePosition[0], 5, state.spherePosition[2] + state.cameraDistance], state.spherePosition, [0, 1, 0]);
             gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix);
 
             // Draw grid
