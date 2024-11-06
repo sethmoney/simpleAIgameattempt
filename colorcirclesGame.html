@@ -158,6 +158,9 @@
         let boostCooldown = 120; // Frames (2 seconds)
         let boostTimer = 0;
 
+        // Array to hold red circles for collision
+        let redCircles = [];
+
         function startGame() {
             document.getElementById('modalInstructions').style.display = 'none';
             loop();
@@ -214,6 +217,7 @@
             timer = timerDuration;
             score = 0;
             powerUps = [];
+            redCircles = [];
             addPowerUps(5);
             playerPosition = createVector(width / 2, height / 2);
             playerSize = 20;
@@ -270,6 +274,7 @@
                         }
                         let currentRedSpeed = min(redSpeed + (score / 40) * redSpeedIncrement, redMaxSpeed);
                         direction.mult(currentRedSpeed);
+                        redCircles.push(powerUp); // Add to redCircles for collision
                     } else {
                         if (magnetActive && distance < magnetRadius) {
                             direction.mult(magnetStrength);
@@ -286,8 +291,8 @@
 
         function displayHUD() {
             // Ammo HUD
-            let ammoX = 10;
-            let ammoY = height - 60;
+            let ammoX = playerPosition.x - 60;
+            let ammoY = playerPosition.y + 40;
             let ammoSpacing = 30;
             for (let i = 0; i < 6; i++) {
                 if (i < ammoClip) {
@@ -299,21 +304,21 @@
                 ellipse(ammoX + i * ammoSpacing, ammoY, 20, 20);
             }
 
-            // Reload Indicator
+            // Reload Indicator near player
             if (isReloading) {
                 push();
-                translate(ammoX + 3 * ammoSpacing, ammoY);
+                translate(playerPosition.x, playerPosition.y);
                 rotate((frameCount % 360) * PI / 180);
                 noFill();
                 stroke(0, 255, 0);
                 strokeWeight(4);
-                arc(0, 0, 30, 30, 0, map(reloadTimer, 0, reloadDuration, 0, TWO_PI));
+                arc(0, -30, 30, 30, 0, map(reloadTimer, 0, reloadDuration, 0, TWO_PI));
                 pop();
             }
 
             // Green Boost HUD
-            let boostX = 10;
-            let boostY = height - 20;
+            let boostX = playerPosition.x - 60;
+            let boostY = playerPosition.y + 80;
             let boostSpacing = 30;
             for (let i = 0; i < maxGreenBoost; i++) {
                 if (i < greenBoostCount) {
@@ -329,11 +334,11 @@
             if (boostTimer > 0) {
                 fill(255, 0, 0, 150);
                 noStroke();
-                rect(10, height - 80, map(boostTimer, 0, boostCooldown, 0, 100), 10);
+                rect(playerPosition.x - 60, playerPosition.y - 40, map(boostTimer, 0, boostCooldown, 0, 100), 10);
                 fill(255);
                 textSize(12);
                 textAlign(LEFT, TOP);
-                text(`Boost Cooldown: ${(boostTimer / 60).toFixed(1)}s`, 10, height - 90);
+                text(`Boost Cooldown: ${(boostTimer / 60).toFixed(1)}s`, playerPosition.x - 60, playerPosition.y - 50);
             }
 
             // Boosting Indicator
@@ -342,7 +347,7 @@
                 noStroke();
                 textSize(16);
                 textAlign(LEFT, TOP);
-                text("Boosting!", 150, height - 60);
+                text("Boosting!", playerPosition.x + 20, playerPosition.y - 40);
             }
         }
 
@@ -473,6 +478,25 @@
                     }
                 }
             });
+
+            // Check collision between projectiles and red circles
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                let proj = projectiles[i];
+                for (let j = redCircles.length - 1; j >= 0; j--) {
+                    let red = redCircles[j];
+                    if (!red.collected && dist(proj.position.x, proj.position.y, red.position.x, red.position.y) < proj.size / 2 + powerUpSize / 2) {
+                        // Destroy red circle
+                        red.collected = true;
+                        // Remove the red circle from powerUps and redCircles
+                        powerUps.splice(powerUps.indexOf(red), 1);
+                        redCircles.splice(j, 1);
+                        // Remove the projectile
+                        projectiles.splice(i, 1);
+                        score += pointValues['red'] || 0; // Optional: add score for destroying red
+                        break;
+                    }
+                }
+            }
         }
 
         function showUpgradeShopModal() {
@@ -500,7 +524,7 @@
                     magnetStrength += 1;
                     break;
                 case 'ammo':
-                    if (score >= 10 && ammoTotal < 50) { // Example cost: 10 points per ammo pack
+                    if (score >= 10 && ammoTotal + 6 <= 50) { // Example cost: 10 points per ammo pack
                         ammoTotal += 6;
                         score -= 10;
                     }
@@ -550,10 +574,11 @@
         function handleBoost() {
             if (isBoosting) {
                 isGreenPowerUpActive = true;
-                boostTimer--;
-                if (boostTimer <= 0) {
+                greenBoostTimer++;
+                if (greenBoostTimer > 120) { // Boost lasts for 2 seconds
                     isBoosting = false;
                     isGreenPowerUpActive = false;
+                    greenBoostTimer = 0;
                     boostTimer = boostCooldown;
                 }
             } else if (boostTimer > 0) {
@@ -638,68 +663,6 @@
                 textSize(32);
                 textAlign(RIGHT, TOP);
                 text(`Time: ${seconds.toFixed(1)}`, width - 10, 10);
-            }
-        }
-
-        function displayHUD() {
-            // Ammo HUD
-            let ammoX = 10;
-            let ammoY = height - 60;
-            let ammoSpacing = 30;
-            for (let i = 0; i < 6; i++) {
-                if (i < ammoClip) {
-                    fill(255, 255, 0); // Filled circle for available ammo
-                } else {
-                    noFill();
-                }
-                stroke(255);
-                ellipse(ammoX + i * ammoSpacing, ammoY, 20, 20);
-            }
-
-            // Reload Indicator
-            if (isReloading) {
-                push();
-                translate(ammoX + 3 * ammoSpacing, ammoY);
-                rotate((frameCount % 360) * PI / 180);
-                noFill();
-                stroke(0, 255, 0);
-                strokeWeight(4);
-                arc(0, 0, 30, 30, 0, map(reloadTimer, 0, reloadDuration, 0, TWO_PI));
-                pop();
-            }
-
-            // Green Boost HUD
-            let boostX = 10;
-            let boostY = height - 20;
-            let boostSpacing = 30;
-            for (let i = 0; i < maxGreenBoost; i++) {
-                if (i < greenBoostCount) {
-                    fill(0, 255, 0); // Filled circle for available boosts
-                } else {
-                    noFill();
-                }
-                stroke(255);
-                ellipse(boostX + i * boostSpacing, boostY, 20, 20);
-            }
-
-            // Boost Cooldown Indicator
-            if (boostTimer > 0) {
-                fill(255, 0, 0, 150);
-                noStroke();
-                rect(10, height - 80, map(boostTimer, 0, boostCooldown, 0, 100), 10);
-                fill(255);
-                textSize(12);
-                textAlign(LEFT, TOP);
-                text(`Boost Cooldown: ${(boostTimer / 60).toFixed(1)}s`, 10, height - 90);
-            }
-
-            // Boosting Indicator
-            if (isBoosting) {
-                fill(0, 255, 0);
-                noStroke();
-                textSize(16);
-                textAlign(LEFT, TOP);
-                text("Boosting!", 150, height - 60);
             }
         }
 
