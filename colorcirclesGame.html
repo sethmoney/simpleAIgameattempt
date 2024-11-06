@@ -13,7 +13,7 @@
             justify-content: center;
             align-items: center;
         }
-        #modalInstructions, #gameOverModal, #upgradeShopModal {
+        #modalInstructions, #gameOverModal {
             position: fixed;
             top: 0;
             left: 0;
@@ -27,21 +27,11 @@
             flex-direction: column;
             text-align: center;
         }
-        #modalInstructions button, #gameOverModal button, #upgradeShopModal button {
+        #modalInstructions button, #gameOverModal button {
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
             margin-top: 20px;
-            margin-right: 10px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            transition: all 0.2s ease;
-        }
-        #modalInstructions button:hover, #gameOverModal button:hover, #upgradeShopModal button:hover {
-            background-color: #0056b3;
         }
         #testModeDiv, #audioControls {
             position: absolute;
@@ -52,15 +42,57 @@
         #audioControls {
             top: 40px;
         }
+        #upgradeShopModal {
+        display: none; /* Keep as is to initially hide the modal */
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: auto;
+        max-width: 80%; /* Adjust as necessary */
+        background-color: white; /* Or any color that fits your game's theme */
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Soft shadow for pop-up effect */
+        text-align: center; /* Ensure text is centered within the modal */
+        z-index: 1001; /* Ensure it sits above other content */
+        }
+        #upgradeShopModal h2, #upgradeShopModal p {
+            margin: 10px 0; /* Spacing between text elements */
+        }
+        #upgradeShopModal button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            margin-right: 10px; /* Space between buttons */
+            background-color: #007BFF; /* Example button color */
+            color: white; /* Text color for buttons */
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Button shadow for depth */
+            transition: all 0.2s ease; /* Smooth transition for button interaction */
+        }
+        #upgradeShopModal button:hover {
+            background-color: #0056b3; /* Darker shade on hover for interaction feedback */
+        }
     </style>
 </head>
 <body>
-    <div id="testModeDiv">
+    <!-- <div id="guiContainer" style="position: absolute; top: 0; right: 0; padding: 10px; z-index: 100;">
+        <label for="redSpeedIncrementSlider">Red Speed Increment:</label>
+        <input type="range" id="redSpeedIncrementSlider" min="1" max="10" value="5">
+        <span id="redSpeedIncrementValue">5</span>
+    </div> -->
+    <div id="testModeDiv" style="position: absolute; top: 10px; left: 10px; z-index: 1000;">
         <label>
             <input type="checkbox" id="testModeCheckbox" />
             Test Mode
         </label>
-    </div>
+       <!-- <div id="audioControls" style="position: absolute; top: 40px; left: 10px; z-index: 1000;">
+            <button id="unmuteButton">Mute Audio</button>
+        </div> 
+    </div> -->
     <audio id="bgMusic" loop autoplay>
         <source src="Limit 70.mp3" type="audio/mp3">
         Your browser does not support the audio element.
@@ -70,24 +102,34 @@
     <audio id="greenPowerUpSound" src="sound/green_beep.mp3"></audio>
     <audio id="redPowerUpSound" src="sound/red_beep.mp3"></audio>
     <audio id="purplePowerUpSound" src="sound/purple_beep.mp3"></audio>
+    <!-- Add more audio elements for other power-up colors -->
     <div id="modalInstructions">
-        <p>Collect as many circles before time runs out.</p>
+        <p>Collect as many circle before time runs out.</p>
         <p>Yellow = 3, Purple = 2, Green & Blue = 1.</p>
         <p>Purple will give you 3 extra seconds.</p>
-        <p>Blue circles temporarily make you bigger. Green ones add to your boost inventory.</p>
-        <p>Avoid Red altogether!</p>
+        <p>Blue circles temporarily make you bigger. Green ones boost you.</p>
+        <p>Avoid Red all together!</p>
         <p>Use arrow keys or WASD to move.</p>
         <button onclick="startGame()">Start Game</button>
     </div>
     <div id="gameOverModal" style="display:none;">
-        <p>Game Over</p>
-        <p>Final Score: <span id="finalScoreDisplay">0</span></p>
-        <p>High Score: <span id="highScoreDisplay">0</span></p>
+    <p>Game Over</p>
+    <!--<p>Score: <span id="currentScore">0</span></p>-->
+        <p>Score X Time Alive = Final Score: <span id="finalScoreDisplay">0</span></p>
+    <p>High Score: <span id="highScoreDisplay">0</span></p>
+    <!-- <form id="leaderboardForm" name="leaderboardForm" method="POST" data-netlify="true">
+        <input type="hidden" name="form-name" value="leaderboardForm">
+        <label for="initials">Your Initials:</label>
+        <input type="text" name="initials" id="playerInitials" maxlength="3" required>
+        <input type="hidden" name="score" id="finalScore">
+        <button type="submit">Submit Score</button>
+    </form> -->
         <div id="nftOfferContainer" style="display:none;">
-            <p>Congratulations! You're eligible for an NFT reward.</p>
-            <a href="https://highlight.xyz/mint/65da3c6c14d1e1cf26028c87" target="_blank">Claim your NFT</a>
+        <p>Congratulations! You're eligible for an NFT reward.</p>
+        <a href="https://highlight.xyz/mint/65da3c6c14d1e1cf26028c87" target="_blank">Claim your NFT</a>
         </div>
-        <button onclick="restartGame()">Restart Game</button>
+    <!-- <button id="submitScoreBtn">Submit Score</button> -->
+    <button onclick="restartGame()">Restart Game</button>
     </div>
     <div id="upgradeShopModal" style="display:none;">
         <h2>Upgrade Shop</h2>
@@ -95,44 +137,47 @@
         <button onclick="purchaseUpgrade('healthBoost')">Health Boost (+25)</button>
         <button onclick="purchaseUpgrade('speedBoost')">Speed Boost (+2)</button>
         <button onclick="purchaseUpgrade('magnet')">Magnet (+2)</button>
-        <button onclick="purchaseUpgrade('ammo')">Ammo (+6)</button>
         <button onclick="closeUpgradeShop()">Close</button>
     </div>
     <script>
-        let magnetActive = false;
-        let magnetRadius = 100;
-        let magnetStrength = 2;
-        let baseSpeed = 5;
+        let magnetActive = false; // Whether the magnet upgrade is active
+        let magnetRadius = 100; // Initial radius of the magnet effect
+        let magnetStrength = 2; // Initial strength of the magnet effect
+        let baseSpeed = 5; // Base speed of the player
         let playerPosition;
         let playerPositionHistory = [];
-        let playerSize = 20;
+        let playerSize = 20; // Default player size
         let powerUps = [];
         let powerUpSize = 15;
         let inventory = {};
+        let showInventory = false;
         let isBluePowerUpActive = false;
-        let bluePowerUpDuration = 100;
+        let bluePowerUpDuration = 100; // Adjusted duration for using multiple blue power-ups
         let bluePowerUpTimer = 0;
         let score = 0;
-        let timer;
-        let timerDuration = 1200;
+        let timer; // Timer for countdown
+        let timerDuration = 1200; // 10 seconds * 60 fps
         let isGreenPowerUpActive = false;
+        let greenPowerUpDuration = 5; // Duration in frames
         let greenPowerUpTimer = 0;
-        let velocityBoost = 5;
+        let velocityBoost = 5; // The amount by which the velocity is multiplied
+        let inventoryDiv; // Declare a variable to hold the inventory div
         let maxHealth = 100;
         let currentHealth = maxHealth;
-        let redSpeedIncrement = 5;
-        let redMaxSpeed = 5;
-        let redSpeed = 1;
+        let redSpeedIncrement = 5; // Speed increase factor for red circles
+        let redMaxSpeed = 5; // Maximum speed for red circles
+        let redSpeed = 1; // Initial speed of red circles
         let testModeActive = false;
-        let isHit = false;
-        let hitDuration = 15;
-        let hitTimer = 0;
+        let isHit = false; // Tracks whether the player was hit by a red circle
+        let hitDuration = 15; // Duration of the hit effect in frames
+        let hitTimer = 0; // Timer for the hit effect duration
         let isYellowEffectActive = false;
-        let yellowEffectDuration = 60;
+        let yellowEffectDuration = 60; // Duration in frames (e.g., 60 frames = 1 second at 60fps)
         let yellowEffectTimer = 0;
-        let globalFinalScore;
+        let globalFinalScore; // Declare this globally to hold the final score for submission
         let yellowPowerUpsCollected = 0;
-        const yellowPowerUpThreshold = 5;
+        const yellowPowerUpThreshold = 5; // Change this value to adjust the threshold
+        // Define point values for each circle color
         const pointValues = {
           yellow: 3,
           purple: 2,
@@ -140,38 +185,27 @@
           blue: 1
         };
 
-        // Projectile variables
-        let projectiles = [];
-        let ammoTotal = 12;
-        let ammoClip = 6;
-        let isReloading = false;
-        let reloadDuration = 120; // Frames to reload (2 seconds at 60fps)
-        let reloadTimer = 0;
-        let lastShotTime = 0;
-        let shootInterval = 15; // Frames between shots
-        let canShoot = true;
-
-        // Green boost variables
-        let greenBoostCount = 0;
-        const maxGreenBoost = 3;
-        let isBoosting = false;
-        let boostCooldown = 120; // Frames (2 seconds)
-        let boostTimer = 0;
-
-        // Array to hold red circles for collision
-        let redCircles = [];
-
         function startGame() {
             document.getElementById('modalInstructions').style.display = 'none';
-            loop();
+            loop(); // Restart the drawing loop if it was stopped.
         }
 
         function setup() {
             createCanvas(800, 640);
             playerPosition = createVector(width / 2, height / 2);
-            addPowerUps(5);
-            timer = timerDuration;
-            noLoop();
+            addPowerUps(5); // Initial set of power-ups
+            timer = timerDuration; // Initialize the timer
+            // Initialize GUI for Red Circle Speed Adjustment
+            //const redSpeedIncrementSlider = document.getElementById('redSpeedIncrementSlider');
+            //const redSpeedIncrementValueDisplay = document.getElementById('redSpeedIncrementValue');
+        
+            // Display the current slider value and update the game variable
+            //redSpeedIncrementSlider.oninput = function() {
+                //redSpeedIncrementValueDisplay.innerHTML = this.value;
+                //redSpeedIncrement = parseFloat(this.value);
+            //};
+            noLoop(); // Stop the drawing loop until the game starts.
+            // Setup checkbox event listener
             document.getElementById('testModeCheckbox').addEventListener('change', function() {
                 testModeActive = this.checked;
                 if (testModeActive) {
@@ -184,62 +218,80 @@
 
         function checkGameOver() {
             if (testModeActive) {
+                // If test mode is active, simply return without doing anything
                 return;
             }
             if (currentHealth <= 0 || timer <= 0) {
-                showGameOverModal();
-                noLoop();
+                showGameOverModal(score);
+                noLoop(); // Pause the game
             }
         }
         
         function showGameOverModal() {
+            // Calculate time alive in seconds, ensuring it's non-negative
             const timeAlive = Math.max(0, (timerDuration - timer) / 60);
+            
+            // Calculate final score as score times seconds alive, ensuring score is non-negative
             const finalScore = Math.max(0, score) * timeAlive;
-            console.log("Final Score:", finalScore.toFixed(2));
+            
+            console.log("Final Score:", finalScore.toFixed(2)); // Log final score to console
+            
+            // Update and retrieve high score from Local Storage
             let highScore = parseFloat(localStorage.getItem('highScore') || '0');
             if (finalScore > highScore) {
                 localStorage.setItem('highScore', finalScore.toString());
-                highScore = finalScore;
+                highScore = finalScore; // Update local highScore variable for immediate display
             }
+            
+            // Update modal content with current and high scores
             document.getElementById('highScoreDisplay').textContent = highScore.toFixed(2);
-            document.getElementById('finalScoreDisplay').textContent = finalScore.toFixed(2);
+            document.getElementById('finalScoreDisplay').textContent = finalScore.toFixed(2); // Show the final score formatted to 2 decimal places
+            
+            // Show the game over modal
             document.getElementById('gameOverModal').style.display = 'flex';
-            const nftEligibleScore = 2000;
+        
+            // Determine NFT eligibility and display offer if applicable
+            const nftEligibleScore = 2000; // Example score threshold
             if (finalScore > nftEligibleScore) {
-                document.getElementById('nftOfferContainer').style.display = 'block';
+                document.getElementById('nftOfferContainer').style.display = 'block'; // Show NFT offer
             } else {
-                document.getElementById('nftOfferContainer').style.display = 'none';
+                document.getElementById('nftOfferContainer').style.display = 'none'; // Hide NFT offer
             }
         }
 
+
+        /*function submitScoreWrapper() {
+            const initials = document.getElementById('playerInitials').value.trim(); // Trim whitespace from the initials
+            if(initials) { // Ensure initials were provided
+                submitScore(initials, globalFinalScore.toFixed(2)); // Convert globalFinalScore to a string with two decimal places
+            } else {
+                alert("Please enter your initials."); // Notify the user to enter initials
+            }
+        }*/
+        
         function restartGame() {
+            // Reset game state variables
             currentHealth = maxHealth;
             timer = timerDuration;
             score = 0;
-            powerUps = [];
-            redCircles = [];
-            addPowerUps(5);
-            playerPosition = createVector(width / 2, height / 2);
-            playerSize = 20;
-            magnetActive = false;
-            magnetRadius = 100;
+            powerUps = []; // Clear existing power-ups
+            addPowerUps(5); // Add initial power-ups
+            playerPosition = createVector(width / 2, height / 2); // Reset player position
+            playerSize = 20; //reset player size
+            magnetActive = false; // Whether the magnet upgrade is active
+            magnetRadius = 100; // Initial radius of the magnet effect
             magnetStrength = 2;
             baseSpeed = 5;
-            yellowPowerUpsCollected = 0;
-            ammoTotal = 12;
-            ammoClip = 6;
-            isReloading = false;
-            reloadTimer = 0;
-            projectiles = [];
-            greenBoostCount = 0;
-            isBoosting = false;
-            boostTimer = 0;
+            yellowPowerUpsCollected = 0; // Reset the yellow power-up counter
+            // Hide game over modal and restart the game loop
             document.getElementById('gameOverModal').style.display = 'none';
             loop();
         }
 
         function updatePlayerPositionHistory() {
-            playerPositionHistory.unshift({x: playerPosition.x, y: playerPosition.y});
+            playerPositionHistory.unshift({x: playerPosition.x, y: playerPosition.y}); // Add current position at the start
+        
+            // Keep only the last 5 positions for the trail effect
             if (playerPositionHistory.length > 5) {
                 playerPositionHistory.pop();
             }
@@ -248,40 +300,86 @@
         function draw() {
             background(0);
             handlePlayerInput();
-            updatePowerUps();
-            handleProjectiles();
-            handleReload();
-            handleBoost();
+            updatePowerUps()
+            if (isBluePowerUpActive) {
+                bluePowerUpTimer--;
+        
+                // Adjust the line's starting X position based on the player's current size
+                let lineX = playerPosition.x + playerSize / 2 + 10; // 10 pixels to the right of the player's boundary
+        
+                // Calculate the line length based on the blue power-up timer
+                let lineLength = map(bluePowerUpTimer, 0, bluePowerUpDuration, 0, 50); // Adjust the maximum line length as needed
+        
+                // Draw the white outline for the vertical line
+                stroke(255); // White color for the outline
+                strokeWeight(3); // Thickness of the outline
+                line(lineX, playerPosition.y - lineLength / 2, lineX, playerPosition.y + lineLength / 2);
+        
+                // Draw the blue line on top of the white outline
+                stroke(0, 0, 255); // Blue color for the line
+                strokeWeight(1); // Blue line thickness
+                line(lineX, playerPosition.y - lineLength / 2, lineX, playerPosition.y + lineLength / 2);
+        
+                noStroke(); // Reset drawing state for subsequent drawings
+        
+                if (bluePowerUpTimer <= 0) {
+                    isBluePowerUpActive = false;
+                    playerSize = 20; // Reset player size to normal
+                    inventory['blue'] = 0; // Optionally reset the blue power-up count
+                }
+            }
+            updatePlayerPositionHistory(); // Always update the history of player's position
+            // Check for Green Power-Up Active State and its Duration
+            if (isGreenPowerUpActive && greenPowerUpTimer > 0) {
+                greenPowerUpTimer--;
+                if (greenPowerUpTimer <= 0) {
+                    isGreenPowerUpActive = false; // Effectively stops the velocity boost
+                }
+            }
+            // Draw the gameplay area boundary if needed
+            stroke(255); // White color for visibility
+            line(0, height - 40, width, height - 40); // Draw a line to separate the gameplay area and inventory
+            noStroke();// Reset stroke for other drawings
             drawPlayer();
             drawPowerUps();
-            updateAndDisplayTimer();
-            drawHealthBar();
-            drawScoreboard();
-            displayHUD();
-            maybeAddPowerUp();
+            updateAndDisplayTimer(); // Update and display the timer
+            //if (showInventory) {
+                //drawInventory();
+            //}
+            drawHealthBar()
+            drawScoreboard(); // Call to draw the scoreboard
+            maybeAddPowerUp(); // Add more power-ups over time
+            //drawInventory(); // Always draw the inventory below the game area
+            displayInventory();
             checkGameOver();
         }
 
         function updatePowerUps() {
             powerUps.forEach(powerUp => {
                 if (!powerUp.collected) {
-                    let direction = p5.Vector.sub(playerPosition, powerUp.position);
-                    let distance = direction.mag();
+                    let direction = createVector(playerPosition.x - powerUp.position.x, playerPosition.y - powerUp.position.y);
+                    let distance = direction.mag(); // Calculate the distance to the player
+        
+                    // Normalize direction for all power-ups
                     direction.normalize();
+        
                     if (powerUp.color === 'red') {
+                        // Specific logic for red circles
                         if (isBluePowerUpActive) {
-                            direction.mult(-1);
+                            direction.mult(-1); // Repel if blue power-up is active
                         }
                         let currentRedSpeed = min(redSpeed + (score / 40) * redSpeedIncrement, redMaxSpeed);
                         direction.mult(currentRedSpeed);
-                        redCircles.push(powerUp); // Add to redCircles for collision
                     } else {
+                        // Magnet effect for non-red, but only if active
                         if (magnetActive && distance < magnetRadius) {
-                            direction.mult(magnetStrength);
+                            direction.mult(magnetStrength); // Apply magnet strength
                         } else {
-                            direction.mult(0);
+                            direction.mult(0); // No movement if magnet not active or out of range
                         }
                     }
+        
+                    // Update the power-up's position if magnet is active or if it's a red circle
                     if (magnetActive || powerUp.color === 'red') {
                         powerUp.position.add(direction);
                     }
@@ -289,99 +387,48 @@
             });
         }
 
-        function displayHUD() {
-            // Ammo HUD
-            let ammoX = playerPosition.x - 60;
-            let ammoY = playerPosition.y + 40;
-            let ammoSpacing = 30;
-            for (let i = 0; i < 6; i++) {
-                if (i < ammoClip) {
-                    fill(255, 255, 0); // Filled circle for available ammo
-                } else {
-                    noFill();
-                }
-                stroke(255);
-                ellipse(ammoX + i * ammoSpacing, ammoY, 20, 20);
-            }
 
-            // Reload Indicator near player
-            if (isReloading) {
-                push();
-                translate(playerPosition.x, playerPosition.y);
-                rotate((frameCount % 360) * PI / 180);
-                noFill();
-                stroke(0, 255, 0);
-                strokeWeight(4);
-                arc(0, -30, 30, 30, 0, map(reloadTimer, 0, reloadDuration, 0, TWO_PI));
-                pop();
-            }
 
-            // Green Boost HUD
-            let boostX = playerPosition.x - 60;
-            let boostY = playerPosition.y + 80;
-            let boostSpacing = 30;
-            for (let i = 0; i < maxGreenBoost; i++) {
-                if (i < greenBoostCount) {
-                    fill(0, 255, 0); // Filled circle for available boosts
-                } else {
-                    noFill();
-                }
-                stroke(255);
-                ellipse(boostX + i * boostSpacing, boostY, 20, 20);
+        function displayInventory() {
+            fill(255); // White color for text
+            textSize(16); // Adjust text size as needed
+            textAlign(LEFT, TOP); // Align text to the left top
+            let inventoryText = 'Inventory: ';
+            const startY = height - 35; // Start Y position for inventory text
+        
+            for (const [color, count] of Object.entries(inventory)) {
+                inventoryText += `${color.toUpperCase()}: ${count} | `;
             }
-
-            // Boost Cooldown Indicator
-            if (boostTimer > 0) {
-                fill(255, 0, 0, 150);
-                noStroke();
-                rect(playerPosition.x - 60, playerPosition.y - 40, map(boostTimer, 0, boostCooldown, 0, 100), 10);
-                fill(255);
-                textSize(12);
-                textAlign(LEFT, TOP);
-                text(`Boost Cooldown: ${(boostTimer / 60).toFixed(1)}s`, playerPosition.x - 60, playerPosition.y - 50);
-            }
-
-            // Boosting Indicator
-            if (isBoosting) {
-                fill(0, 255, 0);
-                noStroke();
-                textSize(16);
-                textAlign(LEFT, TOP);
-                text("Boosting!", playerPosition.x + 20, playerPosition.y - 40);
-            }
+            text(inventoryText, 10, startY); // Display inventory text starting from the left margin
         }
-
-        function mousePressed() {
-            if (mouseButton === LEFT && !isReloading && ammoClip > 0) {
-                shootProjectile();
-            }
-        }
-
+        
         function keyPressed() {
-            if (key === 'R' || key === 'r') {
-                if (!isReloading && ammoClip < 6 && ammoTotal > 0) {
-                    startReload();
-                }
-            }
-            if (key === ' ' ) {
-                useBoost();
-            }
+            //if (key === 'i' || key === 'I') {
+                //showInventory = !showInventory;
+            //} else if (key === '1') {
+                //usePowerUp('blue');
+            //}
         }
 
         function handlePlayerInput() {
-            let speed = baseSpeed;
-            if (isBoosting) {
+            let speed = baseSpeed; // Base speed
+            // Increase speed if green power-up is active
+            if (isGreenPowerUpActive) {
                 speed *= velocityBoost;
             }
+            // Move Up - W or Arrow Up
             if (keyIsDown(87) || keyIsDown(UP_ARROW)) {
                 playerPosition.y -= speed;
             }
+            // Move Down - S or Arrow Down
             if (keyIsDown(83) || keyIsDown(DOWN_ARROW)) {
                 playerPosition.y += speed;
             }
+            // Move Left - A or Arrow Left
             if (keyIsDown(65) || keyIsDown(LEFT_ARROW)) {
                 playerPosition.x -= speed;
             }
+            // Move Right - D or Arrow Right
             if (keyIsDown(68) || keyIsDown(RIGHT_ARROW)) {
                 playerPosition.x += speed;
             }
@@ -392,33 +439,44 @@
             if (playerPosition.x > width) playerPosition.x = 0;
         }
 
+
         function drawPlayer() {
+            // Determine player color based on yellow effect activation
             let playerColor = isYellowEffectActive ? lerpColor(color(255, 255, 0), color(255), map(yellowEffectTimer, yellowEffectDuration, 0, 0, 1)) : color(255);
+        
+            // Draw the ghosting trail if the green power-up is active
             if (isGreenPowerUpActive) {
                 for (let i = 0; i < playerPositionHistory.length; i++) {
                     let pos = playerPositionHistory[i];
-                    let alpha = map(i, 0, playerPositionHistory.length, 255, 0);
-                    fill(255, 255, 255, alpha);
-                    square(pos.x - playerSize / 2, pos.y - playerSize / 2, playerSize);
+                    let alpha = map(i, 0, playerPositionHistory.length, 255, 0); // Fade effect
+                    fill(255, 255, 255, alpha); // Use white color with alpha for ghosting trail
+                    square(pos.x - playerSize / 2, pos.y - playerSize / 2, playerSize); // Draw ghost player
                 }
             }
+            
+            // If the player is hit, show the hit effect (flashing and shaking)
             if (isHit && hitTimer > 0) {
-                flashAndShakePlayer();
+                flashAndShakePlayer(); // This function integrates the shake logic
                 hitTimer--;
                 if (hitTimer <= 0) {
-                    isHit = false;
+                    isHit = false; // Reset the hit effect
                 }
             } else {
+                // Use the calculated playerColor for the main player shape
                 fill(playerColor);
                 square(playerPosition.x - playerSize / 2, playerPosition.y - playerSize / 2, playerSize);
             }
+        
+            // Decrement yellow effect timer and deactivate if necessary
             if (isYellowEffectActive) {
                 yellowEffectTimer--;
                 if (yellowEffectTimer <= 0) {
-                    isYellowEffectActive = false;
+                    isYellowEffectActive = false; // Deactivate the effect once the timer runs out
                 }
             }
         }
+
+
 
         function drawPowerUps() {
             powerUps.forEach((powerUp, index) => {
@@ -427,12 +485,14 @@
                     ellipse(powerUp.position.x, powerUp.position.y, powerUpSize, powerUpSize);
                     if (dist(playerPosition.x, playerPosition.y, powerUp.position.x, powerUp.position.y) < playerSize / 2 + powerUpSize / 2) {
                         powerUp.collected = true;
-                        score += pointValues[powerUp.color] || 0;
+                        score += pointValues[powerUp.color] || 0; // Update score based on color, or add 0 if no value is defined
+        
                         const powerUpSound = document.getElementById(`${powerUp.color}PowerUpSound`);
                         if (powerUpSound) {
                             powerUpSound.currentTime = 0;
                             powerUpSound.play();
                         }
+        
                         switch (powerUp.color) {
                             case 'yellow':
                                 yellowPowerUpsCollected++;
@@ -463,50 +523,38 @@
                                 }
                                 break;
                             case 'green':
-                                if (greenBoostCount < maxGreenBoost) {
-                                    greenBoostCount++;
-                                }
+                                isGreenPowerUpActive = true;
+                                greenPowerUpTimer = greenPowerUpDuration;
                                 break;
                             case 'purple':
                                 timer += 180;
                                 break;
                         }
+        
                         inventory[powerUp.color] = (inventory[powerUp.color] || 0) + 1;
+        
                         if (isHit) {
                             flashAndShakePlayer();
+                        }
+        
+                        if (hitTimer > 0) {
+                            hitTimer--;
+                            if (hitTimer <= 0) {
+                                isHit = false;
+                            }
                         }
                     }
                 }
             });
-
-            // Check collision between projectiles and red circles
-            for (let i = projectiles.length - 1; i >= 0; i--) {
-                let proj = projectiles[i];
-                for (let j = redCircles.length - 1; j >= 0; j--) {
-                    let red = redCircles[j];
-                    if (!red.collected && dist(proj.position.x, proj.position.y, red.position.x, red.position.y) < proj.size / 2 + powerUpSize / 2) {
-                        // Destroy red circle
-                        red.collected = true;
-                        // Remove the red circle from powerUps and redCircles
-                        powerUps.splice(powerUps.indexOf(red), 1);
-                        redCircles.splice(j, 1);
-                        // Remove the projectile
-                        projectiles.splice(i, 1);
-                        score += pointValues['red'] || 0; // Optional: add score for destroying red
-                        break;
-                    }
-                }
-            }
         }
-
         function showUpgradeShopModal() {
             document.getElementById('upgradeShopModal').style.display = 'flex';
-            noLoop();
+            noLoop(); // Pause the game loop
         }
 
         function closeUpgradeShop() {
             document.getElementById('upgradeShopModal').style.display = 'none';
-            loop();
+            loop(); // Resume the game loop
         }
 
         function purchaseUpgrade(upgrade) {
@@ -519,42 +567,47 @@
                     baseSpeed += 2;
                     break;
                 case 'magnet':
-                    magnetActive = true;
-                    magnetRadius += 50;
-                    magnetStrength += 1;
+                    magnetActive = true; // Activate the magnet
+                    magnetRadius += 50; // Increase the pull radius for each purchase
+                    magnetStrength += 1; // Increase the pull strength for each purchase
                     break;
-                case 'ammo':
-                    if (score >= 10 && ammoTotal + 6 <= 50) { // Example cost: 10 points per ammo pack
-                        ammoTotal += 6;
-                        score -= 10;
-                    }
-                    break;
+                // Add more cases for additional upgrades
             }
             closeUpgradeShop();
-            yellowPowerUpsCollected = 0;
+            yellowPowerUpsCollected = 0; // Reset the yellow power-up counter
         }
 
         function flashAndShakePlayer() {
+            // Flashing effect
             if (hitTimer % 2 === 0) {
-                fill(255, 0, 0);
+                fill(255, 0, 0); // Flash color
             } else {
-                fill(255);
+                fill(255); // Original color
             }
+            // Shaking effect
             let shakeX = random(-5, 5);
             let shakeY = random(-5, 5);
             square(playerPosition.x - playerSize / 2 + shakeX, playerPosition.y - playerSize / 2 + shakeY, playerSize);
         }
         
         function drawHealthBar() {
-            fill(50);
-            rect(10, 10, 200, 20);
+            // Health bar background
+            fill(50); // Dark grey background for contrast
+            rect(10, 10, 200, 20); // Adjust size and position as needed
+        
+            // Health bar foreground
             let healthPercentage = currentHealth / maxHealth;
-            fill(255, 0, 0);
-            rect(10, 10, 200 * healthPercentage, 20);
-            fill(255);
+            fill(255, 0, 0); // Red foreground for health
+            rect(10, 10, 200 * healthPercentage, 20); // Width based on current health
+        
+            // Optional: Health text
+            fill(255); // White text color
             textSize(16);
-            text(`Health: ${currentHealth} / ${maxHealth}`, 220, 25);
+            text(`Health: ${currentHealth} / ${maxHealth}`, 220, 25); // Position next to the health bar
         }
+        
+        // Call drawHealthBar() within the draw() function
+        drawHealthBar();
 
         function drawScoreboard() {
             fill(255);
@@ -562,72 +615,23 @@
             textAlign(CENTER, TOP);
             text(`Score: ${score}`, width / 2, 10);
         }
-
-        function useBoost() {
-            if (greenBoostCount > 0 && !isBoosting && boostTimer <= 0) {
-                isBoosting = true;
-                boostTimer = boostCooldown;
-                greenBoostCount--;
+        
+        function drawInventory() {
+            // Assuming inventory is an object with keys as color names and values as counts
+            const inventoryDisplay = document.getElementById('inventoryDisplay');
+            let inventoryText = 'Inventory: ';
+            for (const [color, count] of Object.entries(inventory)) {
+                inventoryText += `${color.toUpperCase()}: ${count} | `;
             }
+            inventoryDisplay.innerHTML = inventoryText.slice(0, -2); // Remove the last "|"
         }
 
-        function handleBoost() {
-            if (isBoosting) {
-                isGreenPowerUpActive = true;
-                greenBoostTimer++;
-                if (greenBoostTimer > 120) { // Boost lasts for 2 seconds
-                    isBoosting = false;
-                    isGreenPowerUpActive = false;
-                    greenBoostTimer = 0;
-                    boostTimer = boostCooldown;
-                }
-            } else if (boostTimer > 0) {
-                boostTimer--;
-            }
-        }
-
-        function handleReload() {
-            if (isReloading) {
-                reloadTimer--;
-                if (reloadTimer <= 0) {
-                    let reloadAmount = min(6 - ammoClip, ammoTotal);
-                    ammoClip += reloadAmount;
-                    ammoTotal -= reloadAmount;
-                    isReloading = false;
-                }
-            }
-        }
-
-        function startReload() {
-            isReloading = true;
-            reloadTimer = reloadDuration;
-        }
-
-        function shootProjectile() {
-            let direction = p5.Vector.sub(createVector(mouseX, mouseY), playerPosition);
-            direction.normalize();
-            direction.mult(10); // Bullet speed
-            let bullet = {
-                position: playerPosition.copy(),
-                velocity: direction,
-                size: 8,
-                color: color(255, 255, 0)
-            };
-            projectiles.push(bullet);
-            ammoClip--;
-        }
-
-        function handleProjectiles() {
-            for (let i = projectiles.length - 1; i >= 0; i--) {
-                let p = projectiles[i];
-                p.position.add(p.velocity);
-                fill(p.color);
-                noStroke();
-                ellipse(p.position.x, p.position.y, p.size, p.size);
-                // Remove projectile if it goes off-screen
-                if (p.position.x < 0 || p.position.x > width || p.position.y < 0 || p.position.y > height) {
-                    projectiles.splice(i, 1);
-                }
+        function usePowerUp(color) {
+            if (color === 'blue' && inventory[color] && inventory[color] > 0) {
+                playerSize += inventory[color] * 5; // Increase size based on blue power-ups collected
+                bluePowerUpTimer = bluePowerUpDuration + (inventory[color] * 10); // Optional: Increase duration based on power-ups used
+                inventory[color] = 0; // Use up all blue power-ups
+                isBluePowerUpActive = true;
             }
         }
 
@@ -659,54 +663,50 @@
             if (timer > 0) {
                 timer--;
                 let seconds = timer / 60;
-                fill(255);
-                textSize(32);
-                textAlign(RIGHT, TOP);
-                text(`Time: ${seconds.toFixed(1)}`, width - 10, 10);
+                fill(255); // White color for text
+                textSize(32); // Size of the text
+                textAlign(RIGHT, TOP); // Align text to the right and top
+                text(`Time: ${seconds.toFixed(1)}`, width - 10, 10); // Position the text at the top right corner
             }
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('unmuteButton')?.addEventListener('click', function() {
+            document.getElementById('unmuteButton').addEventListener('click', function() {
                 const bgMusic = document.getElementById('bgMusic');
-                bgMusic.muted = !bgMusic.muted;
-                this.textContent = bgMusic.muted ? 'Unmute Audio' : 'Mute Audio';
+                bgMusic.muted = !bgMusic.muted; // Toggle the muted state
+                this.textContent = bgMusic.muted ? 'Unmute Audio' : 'Mute Audio'; // Update button text based on the muted state
             });
-            document.getElementById('submitScoreBtn')?.addEventListener('click', submitScoreWrapper);
+            // Add event listener for the submit score button
+            // Ensure the ID 'submitScoreBtn' is assigned to your Submit Score button
+            document.getElementById('submitScoreBtn').addEventListener('click', submitScoreWrapper);
         });
 
-        // Uncomment and implement if needed
-        /*
-        function submitScoreWrapper() {
-            const initials = document.getElementById('playerInitials').value.trim();
-            if(initials) {
-                submitScore(initials, globalFinalScore.toFixed(2));
-            } else {
-                alert("Please enter your initials.");
-            }
-        }
+        
 
-        function submitScore(initials, finalScore) {
+        /*function submitScore(initials, finalScore) {
             fetch('https://script.google.com/macros/s/AKfycbwYJ5duzSekbLCApNO2OB57AYe7_Ay_z1CVsvLQrkY/exec', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ initials: initials, score: finalScore })
+                body: JSON.stringify({ initials: initials, score: finalScore }) // Use finalScore variable
             })
             .then(response => response.json())
             .then(data => console.log(data))
             .catch(error => console.error('Error:', error));
         }
 
+
         function fetchLeaderboard() {
           fetch('https://script.google.com/macros/s/AKfycbwYJ5duzSekbLCApNO2OB57AYe7_Ay_z1CVsvLQrkY/exec')
           .then(response => response.json())
           .then(data => {
+            // Display the leaderboard data in your game
             console.log(data);
           });
-        }
-        */
+        }*/
+
+        
     </script>
 </body>
 </html>
