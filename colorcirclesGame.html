@@ -145,7 +145,7 @@
         let ammoTotal = 12;
         let ammoClip = 6;
         let isReloading = false;
-        let reloadDuration = 60; // Frames to reload
+        let reloadDuration = 120; // Frames to reload (2 seconds at 60fps)
         let reloadTimer = 0;
         let lastShotTime = 0;
         let shootInterval = 15; // Frames between shots
@@ -155,7 +155,7 @@
         let greenBoostCount = 0;
         const maxGreenBoost = 3;
         let isBoosting = false;
-        let boostCooldown = 120; // Frames
+        let boostCooldown = 120; // Frames (2 seconds)
         let boostTimer = 0;
 
         function startGame() {
@@ -247,7 +247,6 @@
             updatePowerUps();
             handleProjectiles();
             handleReload();
-            handleShooting();
             handleBoost();
             drawPlayer();
             drawPowerUps();
@@ -286,22 +285,70 @@
         }
 
         function displayHUD() {
-            fill(255);
-            textSize(16);
-            textAlign(LEFT, TOP);
-            let ammoText = `Ammo: ${ammoClip}/${ammoTotal}`;
-            let greenText = `Green Boosts: ${greenBoostCount}/${maxGreenBoost}`;
-            text(ammoText, 10, height - 60);
-            text(greenText, 10, height - 40);
-            if (isReloading) {
-                text("Reloading...", 10, height - 20);
+            // Ammo HUD
+            let ammoX = 10;
+            let ammoY = height - 60;
+            let ammoSpacing = 30;
+            for (let i = 0; i < 6; i++) {
+                if (i < ammoClip) {
+                    fill(255, 255, 0); // Filled circle for available ammo
+                } else {
+                    noFill();
+                }
+                stroke(255);
+                ellipse(ammoX + i * ammoSpacing, ammoY, 20, 20);
             }
+
+            // Reload Indicator
+            if (isReloading) {
+                push();
+                translate(ammoX + 3 * ammoSpacing, ammoY);
+                rotate((frameCount % 360) * PI / 180);
+                noFill();
+                stroke(0, 255, 0);
+                strokeWeight(4);
+                arc(0, 0, 30, 30, 0, map(reloadTimer, 0, reloadDuration, 0, TWO_PI));
+                pop();
+            }
+
+            // Green Boost HUD
+            let boostX = 10;
+            let boostY = height - 20;
+            let boostSpacing = 30;
+            for (let i = 0; i < maxGreenBoost; i++) {
+                if (i < greenBoostCount) {
+                    fill(0, 255, 0); // Filled circle for available boosts
+                } else {
+                    noFill();
+                }
+                stroke(255);
+                ellipse(boostX + i * boostSpacing, boostY, 20, 20);
+            }
+
+            // Boost Cooldown Indicator
+            if (boostTimer > 0) {
+                fill(255, 0, 0, 150);
+                noStroke();
+                rect(10, height - 80, map(boostTimer, 0, boostCooldown, 0, 100), 10);
+                fill(255);
+                textSize(12);
+                textAlign(LEFT, TOP);
+                text(`Boost Cooldown: ${(boostTimer / 60).toFixed(1)}s`, 10, height - 90);
+            }
+
+            // Boosting Indicator
             if (isBoosting) {
+                fill(0, 255, 0);
+                noStroke();
+                textSize(16);
+                textAlign(LEFT, TOP);
                 text("Boosting!", 150, height - 60);
             }
-            if (boostCooldown > 0 && boostTimer > 0) {
-                let cooldownTime = (boostTimer / 60).toFixed(1);
-                text(`Boost Cooldown: ${cooldownTime}s`, 150, height - 40);
+        }
+
+        function mousePressed() {
+            if (mouseButton === LEFT && !isReloading && ammoClip > 0) {
+                shootProjectile();
             }
         }
 
@@ -318,7 +365,7 @@
 
         function handlePlayerInput() {
             let speed = baseSpeed;
-            if (isGreenPowerUpActive && !isBoosting) {
+            if (isBoosting) {
                 speed *= velocityBoost;
             }
             if (keyIsDown(87) || keyIsDown(UP_ARROW)) {
@@ -518,8 +565,8 @@
             if (isReloading) {
                 reloadTimer--;
                 if (reloadTimer <= 0) {
-                    let reloadAmount = min(6, ammoTotal);
-                    ammoClip = reloadAmount;
+                    let reloadAmount = min(6 - ammoClip, ammoTotal);
+                    ammoClip += reloadAmount;
                     ammoTotal -= reloadAmount;
                     isReloading = false;
                 }
@@ -531,26 +578,18 @@
             reloadTimer = reloadDuration;
         }
 
-        function handleShooting() {
-            if (keyIsDown(32) && canShoot && !isReloading && ammoClip > 0) { // Spacebar for shooting
-                shootProjectile();
-                ammoClip--;
-                canShoot = false;
-                lastShotTime = frameCount;
-            }
-            if (!canShoot && frameCount - lastShotTime > shootInterval) {
-                canShoot = true;
-            }
-        }
-
         function shootProjectile() {
+            let direction = p5.Vector.sub(createVector(mouseX, mouseY), playerPosition);
+            direction.normalize();
+            direction.mult(10); // Bullet speed
             let bullet = {
                 position: playerPosition.copy(),
-                velocity: createVector(0, -10), // Example velocity, adjust as needed
+                velocity: direction,
                 size: 8,
                 color: color(255, 255, 0)
             };
             projectiles.push(bullet);
+            ammoClip--;
         }
 
         function handleProjectiles() {
@@ -599,6 +638,68 @@
                 textSize(32);
                 textAlign(RIGHT, TOP);
                 text(`Time: ${seconds.toFixed(1)}`, width - 10, 10);
+            }
+        }
+
+        function displayHUD() {
+            // Ammo HUD
+            let ammoX = 10;
+            let ammoY = height - 60;
+            let ammoSpacing = 30;
+            for (let i = 0; i < 6; i++) {
+                if (i < ammoClip) {
+                    fill(255, 255, 0); // Filled circle for available ammo
+                } else {
+                    noFill();
+                }
+                stroke(255);
+                ellipse(ammoX + i * ammoSpacing, ammoY, 20, 20);
+            }
+
+            // Reload Indicator
+            if (isReloading) {
+                push();
+                translate(ammoX + 3 * ammoSpacing, ammoY);
+                rotate((frameCount % 360) * PI / 180);
+                noFill();
+                stroke(0, 255, 0);
+                strokeWeight(4);
+                arc(0, 0, 30, 30, 0, map(reloadTimer, 0, reloadDuration, 0, TWO_PI));
+                pop();
+            }
+
+            // Green Boost HUD
+            let boostX = 10;
+            let boostY = height - 20;
+            let boostSpacing = 30;
+            for (let i = 0; i < maxGreenBoost; i++) {
+                if (i < greenBoostCount) {
+                    fill(0, 255, 0); // Filled circle for available boosts
+                } else {
+                    noFill();
+                }
+                stroke(255);
+                ellipse(boostX + i * boostSpacing, boostY, 20, 20);
+            }
+
+            // Boost Cooldown Indicator
+            if (boostTimer > 0) {
+                fill(255, 0, 0, 150);
+                noStroke();
+                rect(10, height - 80, map(boostTimer, 0, boostCooldown, 0, 100), 10);
+                fill(255);
+                textSize(12);
+                textAlign(LEFT, TOP);
+                text(`Boost Cooldown: ${(boostTimer / 60).toFixed(1)}s`, 10, height - 90);
+            }
+
+            // Boosting Indicator
+            if (isBoosting) {
+                fill(0, 255, 0);
+                noStroke();
+                textSize(16);
+                textAlign(LEFT, TOP);
+                text("Boosting!", 150, height - 60);
             }
         }
 
