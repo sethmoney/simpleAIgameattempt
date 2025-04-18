@@ -2,67 +2,45 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dynamic Power-Up Collection Game with Enhanced Mechanics</title>
+    <title>Dynamic Power-Up Collection Game with Meta-Progression</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>
-        body { 
-            margin: 0; 
-            padding: 0; 
-            overflow: hidden; 
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
+            background-color: #111; /* Darker background */
         }
-        #modalInstructions, #gameOverModal {
+        canvas {
+            border: 1px solid #333; /* Subtle border */
+        }
+        #modalInstructions, #gameOverModal, #permanentUpgradeShopModal, #upgradeShopModal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85); /* Slightly darker overlay */
             color: #fff;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
             text-align: center;
+            font-family: sans-serif;
+            z-index: 1000; /* Ensure modals are on top */
         }
-        #modalInstructions button, #gameOverModal button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 20px;
+        /* Initially hide modals that shouldn't be visible at start */
+        #gameOverModal, #permanentUpgradeShopModal, #upgradeShopModal {
+            display: none;
         }
-        #testModeDiv, #audioControls {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 1000;
-        }
-        #audioControls {
-            top: 40px;
-        }
-        #upgradeShopModal {
-        display: none; /* Keep as is to initially hide the modal */
-        position: fixed;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        width: auto;
-        max-width: 80%; /* Adjust as necessary */
-        background-color: white; /* Or any color that fits your game's theme */
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Soft shadow for pop-up effect */
-        text-align: center; /* Ensure text is centered within the modal */
-        z-index: 1001; /* Ensure it sits above other content */
-        }
-        #upgradeShopModal h2, #upgradeShopModal p {
-            margin: 10px 0; /* Spacing between text elements */
-        }
-        #upgradeShopModal button {
-            padding: 10px 20px;
-            font-size: 16px;
+
+        #modalInstructions button, #gameOverModal button, #permanentUpgradeShopModal button, #upgradeShopModal button {
+            padding: 12px 25px;
+            font-size: 18px;
             cursor: pointer;
             margin-top: 20px;
             margin-right: 10px; /* Space between buttons */
@@ -73,26 +51,61 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Button shadow for depth */
             transition: all 0.2s ease; /* Smooth transition for button interaction */
         }
-        #upgradeShopModal button:hover {
-            background-color: #0056b3; /* Darker shade on hover for interaction feedback */
+        #modalInstructions button:hover, #gameOverModal button:hover, #permanentUpgradeShopModal button:hover, #upgradeShopModal button:hover {
+            background-color: #0056b3; /* Darker shade on hover */
+            transform: translateY(-2px); /* Slight lift on hover */
         }
+         #permanentUpgradeShopModal button.disabled, #upgradeShopModal button.disabled {
+             background-color: #555;
+             cursor: not-allowed;
+             transform: none;
+         }
+
+        #permanentUpgradeShopModal .upgrade-item, #upgradeShopModal .upgrade-item {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+         #permanentUpgradeShopModal .upgrade-item p, #upgradeShopModal .upgrade-item p {
+             margin: 5px 0;
+         }
+
+        #testModeDiv {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1001;
+            color: white;
+            background-color: rgba(0,0,0,0.5);
+            padding: 5px;
+            border-radius: 3px;
+        }
+        /* Styles for upgrade shop items */
+        .upgrade-item {
+            margin-bottom: 15px;
+        }
+        .upgrade-item p {
+            margin: 5px 0;
+        }
+        .currency-display {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #FFD700; /* Gold color for currency */
+        }
+
     </style>
 </head>
 <body>
-    <!-- <div id="guiContainer" style="position: absolute; top: 0; right: 0; padding: 10px; z-index: 100;">
-        <label for="redSpeedIncrementSlider">Red Speed Increment:</label>
-        <input type="range" id="redSpeedIncrementSlider" min="1" max="10" value="5">
-        <span id="redSpeedIncrementValue">5</span>
-    </div> -->
-    <div id="testModeDiv" style="position: absolute; top: 10px; left: 10px; z-index: 1000;">
+    <div id="testModeDiv">
         <label>
-            <input type="checkbox" id="testModeCheckbox" />
+            <input type="checkbox" id="testModeCheckbox">
             Test Mode
         </label>
-       <!-- <div id="audioControls" style="position: absolute; top: 40px; left: 10px; z-index: 1000;">
-            <button id="unmuteButton">Mute Audio</button>
-        </div> 
-    </div> -->
+    </div>
+    <!-- Audio Elements -->
     <audio id="bgMusic" loop autoplay>
         <source src="Limit 70.mp3" type="audio/mp3">
         Your browser does not support the audio element.
@@ -102,541 +115,701 @@
     <audio id="greenPowerUpSound" src="sound/green_beep.mp3"></audio>
     <audio id="redPowerUpSound" src="sound/red_beep.mp3"></audio>
     <audio id="purplePowerUpSound" src="sound/purple_beep.mp3"></audio>
-    <!-- Add more audio elements for other power-up colors -->
+    <audio id="upgradeSound" src="sound/upgrade_sound.mp3"></audio> <!-- Add an upgrade sound -->
+    <audio id="purchaseSound" src="sound/purchase_sound.mp3"></audio> <!-- Add a purchase sound -->
+
+
+    <!-- Initial Instructions Modal -->
     <div id="modalInstructions">
-        <p>Collect as many circle before time runs out.</p>
-        <p>Yellow = 3, Purple = 2, Green & Blue = 1.</p>
-        <p>Purple will give you 3 extra seconds.</p>
-        <p>Blue circles temporarily make you bigger. Green ones boost you.</p>
-        <p>Avoid Red all together!</p>
+        <h2>Welcome!</h2>
+        <p>Collect as many circles before time runs out or health depletes.</p>
+        <p>Yellow = 3 Pts, Purple = 2 Pts, Green & Blue = 1 Pt.</p>
+        <p>Purple: +3 seconds. Blue: Temporary size increase. Green: Temporary speed boost.</p>
+        <p>Avoid Red Circles! They hurt and chase you faster over time.</p>
+        <p>Collect 5 Yellows to open the temporary Upgrade Shop.</p>
         <p>Use arrow keys or WASD to move.</p>
+        <p>Earn <strong>Gems</strong> based on your score to buy permanent upgrades after the game!</p>
         <button onclick="startGame()">Start Game</button>
     </div>
-    <div id="gameOverModal" style="display:none;">
-    <p>Game Over</p>
-    <!--<p>Score: <span id="currentScore">0</span></p>-->
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal">
+        <h2>Game Over</h2>
+        <p>Score: <span id="currentScoreDisplay">0</span></p>
+        <p>Time Alive: <span id="timeAliveDisplay">0.0</span>s</p>
         <p>Score X Time Alive = Final Score: <span id="finalScoreDisplay">0</span></p>
-    <p>High Score: <span id="highScoreDisplay">0</span></p>
-    <!-- <form id="leaderboardForm" name="leaderboardForm" method="POST" data-netlify="true">
-        <input type="hidden" name="form-name" value="leaderboardForm">
-        <label for="initials">Your Initials:</label>
-        <input type="text" name="initials" id="playerInitials" maxlength="3" required>
-        <input type="hidden" name="score" id="finalScore">
-        <button type="submit">Submit Score</button>
-    </form> -->
-        <div id="nftOfferContainer" style="display:none;">
-        <p>Congratulations! You're eligible for an NFT reward.</p>
-        <a href="https://highlight.xyz/mint/65da3c6c14d1e1cf26028c87" target="_blank">Claim your NFT</a>
+        <p>High Score: <span id="highScoreDisplay">0</span></p>
+        <p style="color: #FFD700;">Gems Earned This Round: <span id="gemsEarnedDisplay">0</span>💎</p>
+        <p style="color: #FFD700;">Total Gems: <span id="totalGemsDisplay">0</span>💎</p>
+         <div id="nftOfferContainer" style="display:none;">
+            <p>Congratulations! You're eligible for an NFT reward.</p>
+            <a href="https://highlight.xyz/mint/65da3c6c14d1e1cf26028c87" target="_blank" style="color: #1E90FF;">Claim your NFT</a>
         </div>
-    <!-- <button id="submitScoreBtn">Submit Score</button> -->
-    <button onclick="restartGame()">Restart Game</button>
+        <button onclick="openPermanentUpgradeShop()">Upgrade Shop</button>
+        <button onclick="restartGame()">Restart Game</button>
     </div>
-    <div id="upgradeShopModal" style="display:none;">
-        <h2>Upgrade Shop</h2>
-        <p>You have collected enough yellow power-ups to access the upgrade shop.</p>
-        <button onclick="purchaseUpgrade('healthBoost')">Health Boost (+25)</button>
-        <button onclick="purchaseUpgrade('speedBoost')">Speed Boost (+2)</button>
-        <button onclick="purchaseUpgrade('magnet')">Magnet (+2)</button>
+
+    <!-- Temporary Upgrade Shop Modal (In-Game) -->
+    <div id="upgradeShopModal">
+        <h2>Temporary Boosts!</h2>
+        <p>Spend Yellow Power-ups for a quick advantage!</p>
+        <p>(These boosts last for the current game only)</p>
+        <div class="upgrade-item">
+            <p><strong>Health Boost (+25 Max HP This Round)</strong></p>
+            <p>Cost: 5 Yellows</p>
+            <button onclick="purchaseTempUpgrade('healthBoost')">Purchase</button>
+        </div>
+        <div class="upgrade-item">
+            <p><strong>Speed Boost (+2 Speed This Round)</strong></p>
+            <p>Cost: 5 Yellows</p>
+            <button onclick="purchaseTempUpgrade('speedBoost')">Purchase</button>
+        </div>
+         <div class="upgrade-item">
+             <p><strong>Magnet Boost (+50 Radius, +1 Strength This Round)</strong></p>
+             <p>Cost: 5 Yellows</p>
+            <button onclick="purchaseTempUpgrade('magnet')">Purchase</button>
+         </div>
         <button onclick="closeUpgradeShop()">Close</button>
     </div>
+
+    <!-- Permanent Upgrade Shop Modal (Meta-Progression) -->
+    <div id="permanentUpgradeShopModal">
+        <h2>Permanent Upgrades</h2>
+        <p class="currency-display">Total Gems: <span id="permShopTotalGemsDisplay">0</span>💎</p>
+        <div class="upgrade-item">
+            <p><strong>Starting Health:</strong> <span id="permHealthLevelDisplay">100</span> (+10 per Level)</p>
+            <p>Cost: <span id="permHealthCostDisplay">50</span>💎</p>
+            <button id="buyPermHealthBtn" onclick="purchasePermanentUpgrade('health')">Upgrade Health</button>
+        </div>
+        <div class="upgrade-item">
+            <p><strong>Base Speed:</strong> <span id="permSpeedLevelDisplay">5</span> (+0.5 per Level)</p>
+            <p>Cost: <span id="permSpeedCostDisplay">75</span>💎</p>
+            <button id="buyPermSpeedBtn" onclick="purchasePermanentUpgrade('speed')">Upgrade Speed</button>
+        </div>
+        <div class="upgrade-item">
+            <p><strong>Starting Time:</strong> <span id="permTimeLevelDisplay">20</span>s (+2s per Level)</p>
+            <p>Cost: <span id="permTimeCostDisplay">60</span>💎</p>
+            <button id="buyPermTimeBtn" onclick="purchasePermanentUpgrade('time')">Upgrade Time</button>
+        </div>
+         <div class="upgrade-item">
+             <p><strong>Base Magnet Radius:</strong> <span id="permMagnetRadiusLevelDisplay">0</span> (+10 per Level)</p>
+             <p>Cost: <span id="permMagnetRadiusCostDisplay">100</span>💎</p>
+             <button id="buyPermMagnetRadiusBtn" onclick="purchasePermanentUpgrade('magnetRadius')">Upgrade Magnet Radius</button>
+         </div>
+          <div class="upgrade-item">
+              <p><strong>Base Magnet Strength:</strong> <span id="permMagnetStrengthLevelDisplay">0</span> (+0.2 per Level)</p>
+              <p>Cost: <span id="permMagnetStrengthCostDisplay">120</span>💎</p>
+              <button id="buyPermMagnetStrengthBtn" onclick="purchasePermanentUpgrade('magnetStrength')">Upgrade Magnet Strength</button>
+          </div>
+        <button onclick="closePermanentUpgradeShopAndRestart()">Start New Game</button>
+         <button onclick="closePermanentUpgradeShop()">Close (Back to Game Over)</button>
+    </div>
+
     <script>
-        let magnetActive = false; // Whether the magnet upgrade is active
-        let magnetRadius = 100; // Initial radius of the magnet effect
-        let magnetStrength = 2; // Initial strength of the magnet effect
-        let baseSpeed = 5; // Base speed of the player
+        // Game Constants & Configuration
+        const INITIAL_PLAYER_SIZE = 20;
+        const POWERUP_SIZE = 15;
+        const BLUE_POWERUP_DURATION = 100; // Frames
+        const GREEN_POWERUP_DURATION = 300; // Frames (5 seconds @ 60fps)
+        const GREEN_VELOCITY_BOOST_FACTOR = 1.8; // Multiplier
+        const HIT_EFFECT_DURATION = 20; // Frames
+        const YELLOW_EFFECT_DURATION = 60; // Frames
+        const YELLOW_POWERUP_THRESHOLD = 5; // For temporary shop
+        const RED_INITIAL_SPEED = 1;
+        const RED_MAX_SPEED = 7;
+        const RED_SPEED_INCREMENT_PER_SCORE = 0.01; // How much speed increases per score point
+        const NFT_THRESHOLD_SCORE = 2000;
+        const GEMS_PER_FINAL_SCORE = 0.1; // 1 Gem per 10 final score points
+
+        // Permanent Upgrade Config
+        const PERMANENT_UPGRADES_KEY = 'myGamePermanentUpgrades';
+        const PERSISTENT_CURRENCY_KEY = 'myGamePersistentCurrency';
+        const upgradeCosts = {
+            health: { base: 50, increment: 25 },
+            speed: { base: 75, increment: 35 },
+            time: { base: 60, increment: 30 },
+            magnetRadius: { base: 100, increment: 50 },
+            magnetStrength: { base: 120, increment: 60 },
+        };
+        const upgradeIncrements = {
+            health: 10,
+            speed: 0.5,
+            time: 120, // 2 seconds in frames
+            magnetRadius: 10,
+            magnetStrength: 0.2,
+        };
+         const initialBaseStats = {
+             health: 100,
+             speed: 5,
+             time: 1200, // 20 seconds * 60 fps
+             magnetRadius: 0, // Start with no base magnet
+             magnetStrength: 1, // Base strength when active
+         };
+
+
+        // Game State Variables
         let playerPosition;
         let playerPositionHistory = [];
-        let playerSize = 20; // Default player size
+        let playerSize = INITIAL_PLAYER_SIZE;
         let powerUps = [];
-        let powerUpSize = 15;
-        let inventory = {};
-        let showInventory = false;
-        let isBluePowerUpActive = false;
-        let bluePowerUpDuration = 100; // Adjusted duration for using multiple blue power-ups
-        let bluePowerUpTimer = 0;
+        let inventory = {}; // Tracks collected powerups this round
         let score = 0;
-        let timer; // Timer for countdown
-        let timerDuration = 1200; // 10 seconds * 60 fps
+        let gameTimer; // Countdown timer (in frames)
+        let maxHealth; // Calculated based on upgrades
+        let currentHealth;
+        let baseSpeed; // Calculated based on upgrades
+        let currentSpeed; // Actual speed including temporary boosts
+        let baseTimerDuration; // Calculated based on upgrades
+        let baseMagnetRadius; // Calculated based on upgrades
+        let baseMagnetStrength; // Calculated based on upgrades
+        let currentMagnetRadius; // Actual magnet radius
+        let currentMagnetStrength; // Actual magnet strength
+        let magnetActive = false; // Is magnet currently active (from temp or perm upgrade)?
+
+        // Temporary Effect Timers & States
+        let isBluePowerUpActive = false;
+        let bluePowerUpTimer = 0;
         let isGreenPowerUpActive = false;
-        let greenPowerUpDuration = 5; // Duration in frames
         let greenPowerUpTimer = 0;
-        let velocityBoost = 5; // The amount by which the velocity is multiplied
-        let inventoryDiv; // Declare a variable to hold the inventory div
-        let maxHealth = 100;
-        let currentHealth = maxHealth;
-        let redSpeedIncrement = 5; // Speed increase factor for red circles
-        let redMaxSpeed = 5; // Maximum speed for red circles
-        let redSpeed = 1; // Initial speed of red circles
-        let testModeActive = false;
-        let isHit = false; // Tracks whether the player was hit by a red circle
-        let hitDuration = 15; // Duration of the hit effect in frames
-        let hitTimer = 0; // Timer for the hit effect duration
+        let isHit = false;
+        let hitTimer = 0;
         let isYellowEffectActive = false;
-        let yellowEffectDuration = 60; // Duration in frames (e.g., 60 frames = 1 second at 60fps)
         let yellowEffectTimer = 0;
-        let globalFinalScore; // Declare this globally to hold the final score for submission
-        let yellowPowerUpsCollected = 0;
-        const yellowPowerUpThreshold = 5; // Change this value to adjust the threshold
-        // Define point values for each circle color
-        const pointValues = {
-          yellow: 3,
-          purple: 2,
-          green: 1,
-          blue: 1
+        let yellowPowerUpsCollectedThisRound = 0; // For temp shop trigger
+
+        // Meta-Progression Variables
+        let persistentCurrency = 0;
+        let permanentUpgrades = {
+            healthLevel: 0,
+            speedLevel: 0,
+            timeLevel: 0,
+            magnetRadiusLevel: 0,
+            magnetStrengthLevel: 0,
         };
 
-        function startGame() {
-            document.getElementById('modalInstructions').style.display = 'none';
-            loop(); // Restart the drawing loop if it was stopped.
+        // Other Variables
+        let testModeActive = false;
+        let globalFinalScore = 0; // Holds final score for display/NFT check
+        let timeAlive = 0; // In seconds
+
+
+        // --- SETUP & INITIALIZATION ---
+
+        function preload() {
+            // Preload sounds if necessary (good practice)
+            soundFormats('mp3', 'ogg');
+            // Example: mySound = loadSound('assets/doorbell');
         }
 
         function setup() {
-            createCanvas(800, 640);
+            createCanvas(windowWidth * 0.8, windowHeight * 0.8); // Responsive canvas
+            // Load meta-progression data
+            loadPersistentData();
+            applyPermanentUpgrades(); // Apply loaded upgrades to base stats
+
+            // Initial game setup based on potentially upgraded stats
             playerPosition = createVector(width / 2, height / 2);
-            addPowerUps(5); // Initial set of power-ups
-            timer = timerDuration; // Initialize the timer
-            // Initialize GUI for Red Circle Speed Adjustment
-            //const redSpeedIncrementSlider = document.getElementById('redSpeedIncrementSlider');
-            //const redSpeedIncrementValueDisplay = document.getElementById('redSpeedIncrementValue');
-        
-            // Display the current slider value and update the game variable
-            //redSpeedIncrementSlider.oninput = function() {
-                //redSpeedIncrementValueDisplay.innerHTML = this.value;
-                //redSpeedIncrement = parseFloat(this.value);
-            //};
-            noLoop(); // Stop the drawing loop until the game starts.
-            // Setup checkbox event listener
+            resetGameState(); // Resets variables for a new game start
+            updatePermanentShopUI(); // Ensure shop UI reflects current upgrades/currency
+
+            noLoop(); // Stop draw loop until game starts
+
+            // Event Listeners
             document.getElementById('testModeCheckbox').addEventListener('change', function() {
                 testModeActive = this.checked;
-                if (testModeActive) {
-                    console.log("Test Mode Activated");
-                } else {
-                    console.log("Test Mode Deactivated");
-                }
+                console.log("Test Mode:", testModeActive);
             });
+
+             // Ensure audio context is started by user interaction
+            userStartAudio();
+        }
+
+        function loadPersistentData() {
+            const storedCurrency = localStorage.getItem(PERSISTENT_CURRENCY_KEY);
+            persistentCurrency = storedCurrency ? parseInt(storedCurrency, 10) : 0;
+
+            const storedUpgrades = localStorage.getItem(PERMANENT_UPGRADES_KEY);
+            if (storedUpgrades) {
+                permanentUpgrades = JSON.parse(storedUpgrades);
+                 // Basic validation: Ensure all expected keys exist
+                 if (!permanentUpgrades.healthLevel) permanentUpgrades.healthLevel = 0;
+                 if (!permanentUpgrades.speedLevel) permanentUpgrades.speedLevel = 0;
+                 if (!permanentUpgrades.timeLevel) permanentUpgrades.timeLevel = 0;
+                 if (!permanentUpgrades.magnetRadiusLevel) permanentUpgrades.magnetRadiusLevel = 0;
+                 if (!permanentUpgrades.magnetStrengthLevel) permanentUpgrades.magnetStrengthLevel = 0;
+            } else {
+                // Initialize if nothing is stored
+                 permanentUpgrades = { healthLevel: 0, speedLevel: 0, timeLevel: 0, magnetRadiusLevel: 0, magnetStrengthLevel: 0 };
+            }
+             console.log("Loaded Currency:", persistentCurrency);
+             console.log("Loaded Upgrades:", permanentUpgrades);
+        }
+
+         function savePersistentData() {
+             localStorage.setItem(PERSISTENT_CURRENCY_KEY, persistentCurrency.toString());
+             localStorage.setItem(PERMANENT_UPGRADES_KEY, JSON.stringify(permanentUpgrades));
+             console.log("Saved Currency:", persistentCurrency);
+             console.log("Saved Upgrades:", permanentUpgrades);
+         }
+
+        function applyPermanentUpgrades() {
+             // Calculate base stats based on initial values and upgrade levels
+             maxHealth = initialBaseStats.health + (permanentUpgrades.healthLevel * upgradeIncrements.health);
+             baseSpeed = initialBaseStats.speed + (permanentUpgrades.speedLevel * upgradeIncrements.speed);
+             baseTimerDuration = initialBaseStats.time + (permanentUpgrades.timeLevel * upgradeIncrements.time);
+             baseMagnetRadius = initialBaseStats.magnetRadius + (permanentUpgrades.magnetRadiusLevel * upgradeIncrements.magnetRadius);
+             baseMagnetStrength = initialBaseStats.magnetStrength + (permanentUpgrades.magnetStrengthLevel * upgradeIncrements.magnetStrength);
+
+            // If base magnet radius > 0, the magnet should always be potentially active
+             magnetActive = baseMagnetRadius > 0;
+             console.log("Applied Upgrades - Max Health:", maxHealth, "Base Speed:", baseSpeed, "Timer:", baseTimerDuration / 60, "s", "Magnet Radius:", baseMagnetRadius, "Magnet Strength:", baseMagnetStrength);
+        }
+
+        function resetGameState() {
+            // Reset variables specific to a single game round
+            score = 0;
+            currentHealth = maxHealth; // Start with max health based on upgrades
+            gameTimer = baseTimerDuration; // Use upgraded timer duration
+            currentSpeed = baseSpeed; // Start with base speed
+            currentMagnetRadius = baseMagnetRadius; // Start with base magnet stats
+            currentMagnetStrength = baseMagnetStrength;
+            magnetActive = baseMagnetRadius > 0; // Ensure magnet status reflects base upgrade
+
+            powerUps = [];
+            addPowerUps(10); // Initial power-ups
+            playerPosition.set(width / 2, height / 2);
+            playerPositionHistory = [];
+            playerSize = INITIAL_PLAYER_SIZE;
+            inventory = {};
+            yellowPowerUpsCollectedThisRound = 0;
+
+            // Reset temporary effects
+            isBluePowerUpActive = false;
+            bluePowerUpTimer = 0;
+            isGreenPowerUpActive = false;
+            greenPowerUpTimer = 0;
+            isHit = false;
+            hitTimer = 0;
+            isYellowEffectActive = false;
+            yellowEffectTimer = 0;
+
+            console.log("Game state reset for new round.");
+        }
+
+
+        // --- GAME START & END ---
+
+        function startGame() {
+            document.getElementById('modalInstructions').style.display = 'none';
+            document.getElementById('gameOverModal').style.display = 'none'; // Ensure game over is hidden
+            document.getElementById('permanentUpgradeShopModal').style.display = 'none'; // Ensure perm shop is hidden
+            resetGameState(); // Make sure game starts fresh
+            applyPermanentUpgrades(); // Re-apply upgrades in case they were bought
+            loop(); // Start the p5.js draw loop
+             playBackgroundMusic();
         }
 
         function checkGameOver() {
-            if (testModeActive) {
-                // If test mode is active, simply return without doing anything
-                return;
-            }
-            if (currentHealth <= 0 || timer <= 0) {
-                showGameOverModal(score);
-                noLoop(); // Pause the game
+            if (testModeActive) return; // Skip game over logic in test mode
+
+            if (currentHealth <= 0 || gameTimer <= 0) {
+                gameOver();
             }
         }
-        
-        function showGameOverModal() {
-            // Calculate time alive in seconds, ensuring it's non-negative
-            const timeAlive = Math.max(0, (timerDuration - timer) / 60);
-            
-            // Calculate final score as score times seconds alive, ensuring score is non-negative
-            const finalScore = Math.max(0, score) * timeAlive;
-            
-            console.log("Final Score:", finalScore.toFixed(2)); // Log final score to console
-            
-            // Update and retrieve high score from Local Storage
+
+        function gameOver() {
+            noLoop(); // Pause the game
+             stopBackgroundMusic(); // Stop music
+
+            // Calculate results
+            timeAlive = Math.max(0, (baseTimerDuration - gameTimer) / 60); // Time in seconds
+            globalFinalScore = Math.max(0, score) * timeAlive;
+            let gemsEarned = Math.floor(globalFinalScore * GEMS_PER_FINAL_SCORE);
+
+            // Update persistent currency
+            persistentCurrency += gemsEarned;
+            savePersistentData(); // Save currency immediately
+
+            // Update High Score
             let highScore = parseFloat(localStorage.getItem('highScore') || '0');
-            if (finalScore > highScore) {
-                localStorage.setItem('highScore', finalScore.toString());
-                highScore = finalScore; // Update local highScore variable for immediate display
+            if (globalFinalScore > highScore) {
+                localStorage.setItem('highScore', globalFinalScore.toString());
+                highScore = globalFinalScore;
             }
-            
-            // Update modal content with current and high scores
+
+            // Update Game Over Modal display
+            document.getElementById('currentScoreDisplay').textContent = score;
+            document.getElementById('timeAliveDisplay').textContent = timeAlive.toFixed(1);
+            document.getElementById('finalScoreDisplay').textContent = globalFinalScore.toFixed(2);
             document.getElementById('highScoreDisplay').textContent = highScore.toFixed(2);
-            document.getElementById('finalScoreDisplay').textContent = finalScore.toFixed(2); // Show the final score formatted to 2 decimal places
-            
-            // Show the game over modal
+            document.getElementById('gemsEarnedDisplay').textContent = gemsEarned;
+            document.getElementById('totalGemsDisplay').textContent = persistentCurrency; // Show updated total
+
+            // NFT Offer Check
+            document.getElementById('nftOfferContainer').style.display = globalFinalScore > NFT_THRESHOLD_SCORE ? 'block' : 'none';
+
+            // Show the modal
             document.getElementById('gameOverModal').style.display = 'flex';
-        
-            // Determine NFT eligibility and display offer if applicable
-            const nftEligibleScore = 2000; // Example score threshold
-            if (finalScore > nftEligibleScore) {
-                document.getElementById('nftOfferContainer').style.display = 'block'; // Show NFT offer
-            } else {
-                document.getElementById('nftOfferContainer').style.display = 'none'; // Hide NFT offer
-            }
         }
 
-
-        /*function submitScoreWrapper() {
-            const initials = document.getElementById('playerInitials').value.trim(); // Trim whitespace from the initials
-            if(initials) { // Ensure initials were provided
-                submitScore(initials, globalFinalScore.toFixed(2)); // Convert globalFinalScore to a string with two decimal places
-            } else {
-                alert("Please enter your initials."); // Notify the user to enter initials
-            }
-        }*/
-        
         function restartGame() {
-            // Reset game state variables
-            currentHealth = maxHealth;
-            timer = timerDuration;
-            score = 0;
-            powerUps = []; // Clear existing power-ups
-            addPowerUps(5); // Add initial power-ups
-            playerPosition = createVector(width / 2, height / 2); // Reset player position
-            playerSize = 20; //reset player size
-            magnetActive = false; // Whether the magnet upgrade is active
-            magnetRadius = 100; // Initial radius of the magnet effect
-            magnetStrength = 2;
-            baseSpeed = 5;
-            yellowPowerUpsCollected = 0; // Reset the yellow power-up counter
-            // Hide game over modal and restart the game loop
             document.getElementById('gameOverModal').style.display = 'none';
-            loop();
+            document.getElementById('permanentUpgradeShopModal').style.display = 'none';
+            startGame(); // Properly restart the game logic and loop
         }
 
-        function updatePlayerPositionHistory() {
-            playerPositionHistory.unshift({x: playerPosition.x, y: playerPosition.y}); // Add current position at the start
-        
-            // Keep only the last 5 positions for the trail effect
-            if (playerPositionHistory.length > 5) {
-                playerPositionHistory.pop();
-            }
-        }
-        
+
+        // --- DRAW LOOP & UPDATES ---
+
         function draw() {
-            background(0);
+            background(0); // Black background
+
             handlePlayerInput();
-            updatePowerUps()
-            if (isBluePowerUpActive) {
-                bluePowerUpTimer--;
-        
-                // Adjust the line's starting X position based on the player's current size
-                let lineX = playerPosition.x + playerSize / 2 + 10; // 10 pixels to the right of the player's boundary
-        
-                // Calculate the line length based on the blue power-up timer
-                let lineLength = map(bluePowerUpTimer, 0, bluePowerUpDuration, 0, 50); // Adjust the maximum line length as needed
-        
-                // Draw the white outline for the vertical line
-                stroke(255); // White color for the outline
-                strokeWeight(3); // Thickness of the outline
-                line(lineX, playerPosition.y - lineLength / 2, lineX, playerPosition.y + lineLength / 2);
-        
-                // Draw the blue line on top of the white outline
-                stroke(0, 0, 255); // Blue color for the line
-                strokeWeight(1); // Blue line thickness
-                line(lineX, playerPosition.y - lineLength / 2, lineX, playerPosition.y + lineLength / 2);
-        
-                noStroke(); // Reset drawing state for subsequent drawings
-        
-                if (bluePowerUpTimer <= 0) {
-                    isBluePowerUpActive = false;
-                    playerSize = 20; // Reset player size to normal
-                    inventory['blue'] = 0; // Optionally reset the blue power-up count
-                }
-            }
-            updatePlayerPositionHistory(); // Always update the history of player's position
-            // Check for Green Power-Up Active State and its Duration
-            if (isGreenPowerUpActive && greenPowerUpTimer > 0) {
-                greenPowerUpTimer--;
-                if (greenPowerUpTimer <= 0) {
-                    isGreenPowerUpActive = false; // Effectively stops the velocity boost
-                }
-            }
-            // Draw the gameplay area boundary if needed
-            stroke(255); // White color for visibility
-            line(0, height - 40, width, height - 40); // Draw a line to separate the gameplay area and inventory
-            noStroke();// Reset stroke for other drawings
+            updatePlayer();
+            updatePowerUps();
             drawPlayer();
             drawPowerUps();
-            updateAndDisplayTimer(); // Update and display the timer
-            //if (showInventory) {
-                //drawInventory();
-            //}
-            drawHealthBar()
-            drawScoreboard(); // Call to draw the scoreboard
-            maybeAddPowerUp(); // Add more power-ups over time
-            //drawInventory(); // Always draw the inventory below the game area
-            displayInventory();
+            updateAndDisplayHUD();
+            maybeAddPowerUp();
+            checkCollisions(); // Centralize collision checking
             checkGameOver();
         }
 
-        function updatePowerUps() {
-            powerUps.forEach(powerUp => {
-                if (!powerUp.collected) {
-                    let direction = createVector(playerPosition.x - powerUp.position.x, playerPosition.y - powerUp.position.y);
-                    let distance = direction.mag(); // Calculate the distance to the player
-        
-                    // Normalize direction for all power-ups
-                    direction.normalize();
-        
-                    if (powerUp.color === 'red') {
-                        // Specific logic for red circles
-                        if (isBluePowerUpActive) {
-                            direction.mult(-1); // Repel if blue power-up is active
-                        }
-                        let currentRedSpeed = min(redSpeed + (score / 40) * redSpeedIncrement, redMaxSpeed);
-                        direction.mult(currentRedSpeed);
-                    } else {
-                        // Magnet effect for non-red, but only if active
-                        if (magnetActive && distance < magnetRadius) {
-                            direction.mult(magnetStrength); // Apply magnet strength
-                        } else {
-                            direction.mult(0); // No movement if magnet not active or out of range
-                        }
-                    }
-        
-                    // Update the power-up's position if magnet is active or if it's a red circle
-                    if (magnetActive || powerUp.color === 'red') {
-                        powerUp.position.add(direction);
-                    }
-                }
-            });
-        }
+        function updatePlayer() {
+            updatePlayerPositionHistory();
 
-
-
-        function displayInventory() {
-            fill(255); // White color for text
-            textSize(16); // Adjust text size as needed
-            textAlign(LEFT, TOP); // Align text to the left top
-            let inventoryText = 'Inventory: ';
-            const startY = height - 35; // Start Y position for inventory text
-        
-            for (const [color, count] of Object.entries(inventory)) {
-                inventoryText += `${color.toUpperCase()}: ${count} | `;
+            // Update temporary effect timers
+            if (isBluePowerUpActive) {
+                bluePowerUpTimer--;
+                if (bluePowerUpTimer <= 0) deactivateBluePowerUp();
             }
-            text(inventoryText, 10, startY); // Display inventory text starting from the left margin
-        }
-        
-        function keyPressed() {
-            //if (key === 'i' || key === 'I') {
-                //showInventory = !showInventory;
-            //} else if (key === '1') {
-                //usePowerUp('blue');
-            //}
-        }
-
-        function handlePlayerInput() {
-            let speed = baseSpeed; // Base speed
-            // Increase speed if green power-up is active
             if (isGreenPowerUpActive) {
-                speed *= velocityBoost;
+                greenPowerUpTimer--;
+                if (greenPowerUpTimer <= 0) deactivateGreenPowerUp();
             }
-            // Move Up - W or Arrow Up
-            if (keyIsDown(87) || keyIsDown(UP_ARROW)) {
-                playerPosition.y -= speed;
-            }
-            // Move Down - S or Arrow Down
-            if (keyIsDown(83) || keyIsDown(DOWN_ARROW)) {
-                playerPosition.y += speed;
-            }
-            // Move Left - A or Arrow Left
-            if (keyIsDown(65) || keyIsDown(LEFT_ARROW)) {
-                playerPosition.x -= speed;
-            }
-            // Move Right - D or Arrow Right
-            if (keyIsDown(68) || keyIsDown(RIGHT_ARROW)) {
-                playerPosition.x += speed;
-            }
-            // Wrap around screen edges
-            if (playerPosition.y < 0) playerPosition.y = height;
-            if (playerPosition.y > height) playerPosition.y = 0;
-            if (playerPosition.x < 0) playerPosition.x = width;
-            if (playerPosition.x > width) playerPosition.x = 0;
-        }
-
-
-        function drawPlayer() {
-            // Determine player color based on yellow effect activation
-            let playerColor = isYellowEffectActive ? lerpColor(color(255, 255, 0), color(255), map(yellowEffectTimer, yellowEffectDuration, 0, 0, 1)) : color(255);
-        
-            // Draw the ghosting trail if the green power-up is active
-            if (isGreenPowerUpActive) {
-                for (let i = 0; i < playerPositionHistory.length; i++) {
-                    let pos = playerPositionHistory[i];
-                    let alpha = map(i, 0, playerPositionHistory.length, 255, 0); // Fade effect
-                    fill(255, 255, 255, alpha); // Use white color with alpha for ghosting trail
-                    square(pos.x - playerSize / 2, pos.y - playerSize / 2, playerSize); // Draw ghost player
-                }
-            }
-            
-            // If the player is hit, show the hit effect (flashing and shaking)
-            if (isHit && hitTimer > 0) {
-                flashAndShakePlayer(); // This function integrates the shake logic
-                hitTimer--;
-                if (hitTimer <= 0) {
-                    isHit = false; // Reset the hit effect
-                }
-            } else {
-                // Use the calculated playerColor for the main player shape
-                fill(playerColor);
-                square(playerPosition.x - playerSize / 2, playerPosition.y - playerSize / 2, playerSize);
-            }
-        
-            // Decrement yellow effect timer and deactivate if necessary
             if (isYellowEffectActive) {
                 yellowEffectTimer--;
-                if (yellowEffectTimer <= 0) {
-                    isYellowEffectActive = false; // Deactivate the effect once the timer runs out
+                if (yellowEffectTimer <= 0) isYellowEffectActive = false;
+            }
+            if (isHit) {
+                hitTimer--;
+                if (hitTimer <= 0) isHit = false;
+            }
+
+            // Keep player within bounds (optional - wrap around is current)
+             playerPosition.x = constrain(playerPosition.x, 0, width);
+             playerPosition.y = constrain(playerPosition.y, 0, height);
+
+             // Wrap around screen edges
+             // if (playerPosition.y < 0) playerPosition.y = height;
+             // if (playerPosition.y > height) playerPosition.y = 0;
+             // if (playerPosition.x < 0) playerPosition.x = width;
+             // if (playerPosition.x > width) playerPosition.x = 0;
+        }
+
+        function updatePowerUps() {
+             // Update positions (mainly for red circles and magnet effect)
+            for (let i = powerUps.length - 1; i >= 0; i--) {
+                let pu = powerUps[i];
+                if (pu.collected) continue; // Skip collected ones
+
+                let direction = createVector(playerPosition.x - pu.position.x, playerPosition.y - pu.position.y);
+                let distance = direction.mag();
+                direction.normalize(); // Get direction only
+
+                if (pu.color === 'red') {
+                    // Red circle behavior
+                    let repelFactor = isBluePowerUpActive ? -1.5 : 1; // Repel if blue is active
+                    let currentRedSpeed = constrain(RED_INITIAL_SPEED + (score * RED_SPEED_INCREMENT_PER_SCORE), RED_INITIAL_SPEED, RED_MAX_SPEED);
+                    pu.position.add(direction.mult(currentRedSpeed * repelFactor));
+                } else if (magnetActive && distance < currentMagnetRadius && distance > 0) {
+                    // Magnet effect for non-red power-ups
+                     // Apply stronger pull closer to the player
+                     let pullStrength = map(distance, 0, currentMagnetRadius, currentMagnetStrength * 1.5, currentMagnetStrength * 0.5); // Stronger when closer
+                     pu.position.add(direction.mult(constrain(pullStrength, 0, 10))); // Add a max pull speed
                 }
+
+                 // Keep powerups within bounds slightly offset so they don't stick to edge
+                 pu.position.x = constrain(pu.position.x, POWERUP_SIZE / 2, width - POWERUP_SIZE / 2);
+                 pu.position.y = constrain(pu.position.y, POWERUP_SIZE / 2, height - POWERUP_SIZE / 2);
             }
         }
 
+        function maybeAddPowerUp() {
+            // Add power-ups more frequently as time goes on or score increases?
+            let spawnInterval = map(score, 0, 500, 60, 20, true); // Faster spawns with score, capped
+            if (frameCount % Math.floor(spawnInterval) === 0 && powerUps.filter(p => !p.collected).length < 50) { // Limit total powerups
+                addPowerUps(1);
+            }
+        }
+
+        function updateAndDisplayHUD() {
+            // Timer Display
+            let seconds = Math.max(0, gameTimer / 60);
+            fill(255);
+            textSize(24);
+            textAlign(RIGHT, TOP);
+            text(`Time: ${seconds.toFixed(1)}`, width - 10, 10);
+
+            // Score Display
+            textAlign(CENTER, TOP);
+            text(`Score: ${score}`, width / 2, 10);
+
+            // Health Bar
+            drawHealthBar();
+
+            // Inventory Display (simple version below health)
+            displayInventory();
+
+            // Decrement game timer
+            if (gameTimer > 0) {
+                gameTimer--;
+            }
+        }
+
+
+        // --- DRAWING ---
+
+        function drawPlayer() {
+             push(); // Isolate drawing state
+
+             let playerColor = color(255); // Default white
+             if (isYellowEffectActive) {
+                 playerColor = lerpColor(color(255, 255, 0, 200), color(255), map(yellowEffectTimer, 0, YELLOW_EFFECT_DURATION, 0, 1));
+             }
+
+             // Green power-up ghosting trail
+             if (isGreenPowerUpActive) {
+                 for (let i = 0; i < playerPositionHistory.length; i++) {
+                     let pos = playerPositionHistory[i];
+                     let alpha = map(i, 0, playerPositionHistory.length, 150, 0); // Fade effect
+                     fill(0, 255, 0, alpha); // Greenish trail
+                     noStroke();
+                     ellipse(pos.x, pos.y, playerSize, playerSize); // Use ellipse for smoother look
+                 }
+             }
+
+             // Hit effect (flashing/shaking)
+             if (isHit && hitTimer > 0) {
+                 let shakeX = random(-3, 3);
+                 let shakeY = random(-3, 3);
+                 translate(shakeX, shakeY);
+                 // Flash red on even frames
+                 fill(hitTimer % 4 < 2 ? color(255, 0, 0) : playerColor);
+             } else {
+                 fill(playerColor);
+             }
+
+             stroke(200); // Slight border for visibility
+             strokeWeight(1);
+             ellipse(playerPosition.x, playerPosition.y, playerSize, playerSize); // Draw player as ellipse
+
+             // Blue power-up timer indicator (optional visual)
+             if (isBluePowerUpActive) {
+                 let indicatorAngle = map(bluePowerUpTimer, 0, BLUE_POWERUP_DURATION, 0, TWO_PI);
+                 stroke(0, 0, 255, 200);
+                 strokeWeight(3);
+                 noFill();
+                 arc(playerPosition.x, playerPosition.y, playerSize + 10, playerSize + 10, -HALF_PI, -HALF_PI + indicatorAngle);
+             }
+
+             pop(); // Restore drawing state
+        }
 
 
         function drawPowerUps() {
-            powerUps.forEach((powerUp, index) => {
-                if (!powerUp.collected) {
-                    fill(powerUp.color);
-                    ellipse(powerUp.position.x, powerUp.position.y, powerUpSize, powerUpSize);
-                    if (dist(playerPosition.x, playerPosition.y, powerUp.position.x, powerUp.position.y) < playerSize / 2 + powerUpSize / 2) {
-                        powerUp.collected = true;
-                        score += pointValues[powerUp.color] || 0; // Update score based on color, or add 0 if no value is defined
-        
-                        const powerUpSound = document.getElementById(`${powerUp.color}PowerUpSound`);
-                        if (powerUpSound) {
-                            powerUpSound.currentTime = 0;
-                            powerUpSound.play();
-                        }
-        
-                        switch (powerUp.color) {
-                            case 'yellow':
-                                yellowPowerUpsCollected++;
-                                if (yellowPowerUpsCollected >= yellowPowerUpThreshold) {
-                                    showUpgradeShopModal();
-                                    yellowPowerUpsCollected = 0;
-                                }
-                                isYellowEffectActive = true;
-                                yellowEffectTimer = yellowEffectDuration;
-                                break;
-                            case 'red':
-                                currentHealth -= 5;
-                                isHit = true;
-                                hitTimer = hitDuration;
-                                if (currentHealth <= 0) {
-                                    currentHealth = 0;
-                                    console.log("Game Over!");
-                                }
-                                break;
-                            case 'blue':
-                                if ((inventory['blue'] || 0) < 15) {
-                                    playerSize += 5;
-                                    if (playerSize > 20 + 15 * 5) {
-                                        playerSize = 20 + 15 * 5;
-                                    }
-                                    bluePowerUpTimer = bluePowerUpDuration;
-                                    isBluePowerUpActive = true;
-                                }
-                                break;
-                            case 'green':
-                                isGreenPowerUpActive = true;
-                                greenPowerUpTimer = greenPowerUpDuration;
-                                break;
-                            case 'purple':
-                                timer += 180;
-                                break;
-                        }
-        
-                        inventory[powerUp.color] = (inventory[powerUp.color] || 0) + 1;
-        
-                        if (isHit) {
-                            flashAndShakePlayer();
-                        }
-        
-                        if (hitTimer > 0) {
-                            hitTimer--;
-                            if (hitTimer <= 0) {
-                                isHit = false;
-                            }
-                        }
+            powerUps.forEach(pu => {
+                if (!pu.collected) {
+                    push();
+                    translate(pu.position.x, pu.position.y);
+                     // Add subtle animation (e.g., pulsing)
+                     let pulse = sin(frameCount * 0.1 + pu.position.x) * 1.5; // Vary pulse based on position
+                    fill(getColorCode(pu.color));
+                    noStroke();
+                    ellipse(0, 0, POWERUP_SIZE + pulse, POWERUP_SIZE + pulse);
+
+                    // Maybe add a subtle outline to red ones
+                    if (pu.color === 'red') {
+                        stroke(255, 100, 100, 150);
+                        strokeWeight(1);
+                        ellipse(0, 0, POWERUP_SIZE + pulse + 2, POWERUP_SIZE + pulse + 2);
                     }
+                    pop();
                 }
             });
         }
-        function showUpgradeShopModal() {
-            document.getElementById('upgradeShopModal').style.display = 'flex';
-            noLoop(); // Pause the game loop
-        }
 
-        function closeUpgradeShop() {
-            document.getElementById('upgradeShopModal').style.display = 'none';
-            loop(); // Resume the game loop
-        }
-
-        function purchaseUpgrade(upgrade) {
-            switch (upgrade) {
-                case 'healthBoost':
-                    maxHealth += 25;
-                    currentHealth += 25;
-                    break;
-                case 'speedBoost':
-                    baseSpeed += 2;
-                    break;
-                case 'magnet':
-                    magnetActive = true; // Activate the magnet
-                    magnetRadius += 50; // Increase the pull radius for each purchase
-                    magnetStrength += 1; // Increase the pull strength for each purchase
-                    break;
-                // Add more cases for additional upgrades
-            }
-            closeUpgradeShop();
-            yellowPowerUpsCollected = 0; // Reset the yellow power-up counter
-        }
-
-        function flashAndShakePlayer() {
-            // Flashing effect
-            if (hitTimer % 2 === 0) {
-                fill(255, 0, 0); // Flash color
-            } else {
-                fill(255); // Original color
-            }
-            // Shaking effect
-            let shakeX = random(-5, 5);
-            let shakeY = random(-5, 5);
-            square(playerPosition.x - playerSize / 2 + shakeX, playerPosition.y - playerSize / 2 + shakeY, playerSize);
-        }
-        
         function drawHealthBar() {
-            // Health bar background
-            fill(50); // Dark grey background for contrast
-            rect(10, 10, 200, 20); // Adjust size and position as needed
-        
-            // Health bar foreground
-            let healthPercentage = currentHealth / maxHealth;
-            fill(255, 0, 0); // Red foreground for health
-            rect(10, 10, 200 * healthPercentage, 20); // Width based on current health
-        
-            // Optional: Health text
-            fill(255); // White text color
-            textSize(16);
-            text(`Health: ${currentHealth} / ${maxHealth}`, 220, 25); // Position next to the health bar
-        }
-        
-        // Call drawHealthBar() within the draw() function
-        drawHealthBar();
+            let barWidth = 200;
+            let barHeight = 20;
+            let x = 10;
+            let y = 10;
 
-        function drawScoreboard() {
+            // Background
+            fill(50);
+            noStroke();
+            rect(x, y, barWidth, barHeight, 5); // Rounded corners
+
+            // Foreground (Health)
+            let healthPercentage = constrain(currentHealth / maxHealth, 0, 1);
+            fill(lerpColor(color(255, 0, 0), color(0, 255, 0), healthPercentage)); // Color changes from red to green
+            rect(x, y, barWidth * healthPercentage, barHeight, 5);
+
+            // Text Label
             fill(255);
-            textSize(32);
-            textAlign(CENTER, TOP);
-            text(`Score: ${score}`, width / 2, 10);
-        }
-        
-        function drawInventory() {
-            // Assuming inventory is an object with keys as color names and values as counts
-            const inventoryDisplay = document.getElementById('inventoryDisplay');
-            let inventoryText = 'Inventory: ';
-            for (const [color, count] of Object.entries(inventory)) {
-                inventoryText += `${color.toUpperCase()}: ${count} | `;
-            }
-            inventoryDisplay.innerHTML = inventoryText.slice(0, -2); // Remove the last "|"
+            textSize(14);
+            textAlign(LEFT, TOP);
+            text(`HP: ${Math.ceil(currentHealth)} / ${maxHealth}`, x + barWidth + 10, y + 2);
         }
 
-        function usePowerUp(color) {
-            if (color === 'blue' && inventory[color] && inventory[color] > 0) {
-                playerSize += inventory[color] * 5; // Increase size based on blue power-ups collected
-                bluePowerUpTimer = bluePowerUpDuration + (inventory[color] * 10); // Optional: Increase duration based on power-ups used
-                inventory[color] = 0; // Use up all blue power-ups
-                isBluePowerUpActive = true;
+
+        function displayInventory() {
+            fill(200); // Lighter grey for inventory text
+            textSize(14);
+            textAlign(LEFT, TOP);
+            let inventoryText = 'Inv: ';
+            let items = [];
+            for (const [color, count] of Object.entries(inventory)) {
+                if (count > 0) { // Only show if count > 0
+                    items.push(`${getColorEmoji(color)}${count}`);
+                }
+            }
+            inventoryText += items.join(' | ');
+            text(inventoryText, 10, 40); // Position below health bar
+        }
+
+
+        // --- COLLISION & INTERACTION ---
+
+        function checkCollisions() {
+            for (let i = powerUps.length - 1; i >= 0; i--) {
+                let pu = powerUps[i];
+                if (!pu.collected) {
+                    let distance = dist(playerPosition.x, playerPosition.y, pu.position.x, pu.position.y);
+                    if (distance < playerSize / 2 + POWERUP_SIZE / 2) {
+                        collectPowerUp(pu, i); // Pass index to remove it efficiently
+                    }
+                }
+            }
+             // Clean up collected power-ups array periodically or after collection
+             powerUps = powerUps.filter(pu => !pu.collected);
+        }
+
+        function collectPowerUp(powerUp, index) {
+            powerUp.collected = true; // Mark as collected
+
+            // Play sound
+            const sound = document.getElementById(`${powerUp.color}PowerUpSound`);
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log("Audio play failed - user interaction likely needed first"));
+            }
+
+            // Apply effect based on color
+             const pointValues = { yellow: 3, purple: 2, green: 1, blue: 1, red: -5 }; // Red deducts score slightly? or just damages
+             score += pointValues[powerUp.color] || 0; // Add score, default 0 if color unknown
+
+            switch (powerUp.color) {
+                case 'yellow':
+                    isYellowEffectActive = true;
+                    yellowEffectTimer = YELLOW_EFFECT_DURATION;
+                    yellowPowerUpsCollectedThisRound++;
+                     if (yellowPowerUpsCollectedThisRound >= YELLOW_POWERUP_THRESHOLD) {
+                         // Check *if* we can afford any temp upgrades before opening
+                         // For simplicity now, just open it. A check would be better UX.
+                         showUpgradeShopModal();
+                         // Don't reset count until an upgrade is bought or shop closed
+                     }
+                    break;
+                case 'red':
+                    currentHealth -= 15; // Damage amount
+                    isHit = true;
+                    hitTimer = HIT_EFFECT_DURATION;
+                    // Screen shake?
+                    shakeScreen(5, 15); // Intensity, duration (frames)
+                    break;
+                case 'blue':
+                     activateBluePowerUp();
+                    break;
+                case 'green':
+                    activateGreenPowerUp();
+                    break;
+                case 'purple':
+                    gameTimer += 180; // Add 3 seconds (3 * 60 frames)
+                    break;
+            }
+
+             // Update inventory count for this round
+             inventory[powerUp.color] = (inventory[powerUp.color] || 0) + 1;
+
+             // Ensure score doesn't go below zero
+             score = Math.max(0, score);
+        }
+
+        // --- POWER-UP EFFECTS ---
+
+        function activateBluePowerUp() {
+             let currentBlueCount = inventory['blue'] || 0;
+             // Cap effect size? Example: max size increase of 50%
+             let sizeIncrease = Math.min(currentBlueCount * 2, INITIAL_PLAYER_SIZE * 0.8); // Increase size slightly per blue, cap it
+             playerSize = INITIAL_PLAYER_SIZE + sizeIncrease;
+
+             isBluePowerUpActive = true;
+             // Duration increases slightly with more blue orbs collected?
+             bluePowerUpTimer = BLUE_POWERUP_DURATION + Math.min(currentBlueCount * 5, 120); // Cap duration bonus
+             // Note: Inventory count isn't reset here, effect applies based on current count
+        }
+
+        function deactivateBluePowerUp() {
+            isBluePowerUpActive = false;
+            playerSize = INITIAL_PLAYER_SIZE; // Reset size
+            // Maybe don't reset inventory count, let it persist for next activation?
+        }
+
+        function activateGreenPowerUp() {
+            isGreenPowerUpActive = true;
+            greenPowerUpTimer = GREEN_POWERUP_DURATION;
+            currentSpeed = baseSpeed * GREEN_VELOCITY_BOOST_FACTOR; // Apply boost
+        }
+
+        function deactivateGreenPowerUp() {
+            isGreenPowerUpActive = false;
+            currentSpeed = baseSpeed; // Reset to base speed
+        }
+
+        // --- PLAYER INPUT ---
+
+        function handlePlayerInput() {
+            let moveSpeed = isGreenPowerUpActive ? currentSpeed : baseSpeed; // Use boosted speed if active
+
+            let moveX = 0;
+            let moveY = 0;
+
+            if (keyIsDown(LEFT_ARROW) || keyIsDown(65)) moveX -= 1; // A
+            if (keyIsDown(RIGHT_ARROW) || keyIsDown(68)) moveX += 1; // D
+            if (keyIsDown(UP_ARROW) || keyIsDown(87)) moveY -= 1; // W
+            if (keyIsDown(DOWN_ARROW) || keyIsDown(83)) moveY += 1; // S
+
+             // Normalize diagonal movement
+             let moveVector = createVector(moveX, moveY);
+             if (moveVector.mag() > 0) {
+                 moveVector.normalize();
+                 moveVector.mult(moveSpeed);
+                 playerPosition.add(moveVector);
+             }
+        }
+
+        function updatePlayerPositionHistory() {
+            playerPositionHistory.unshift({ x: playerPosition.x, y: playerPosition.y });
+            if (playerPositionHistory.length > 8) { // Trail length
+                playerPositionHistory.pop();
             }
         }
+
+        // --- POWER-UP SPAWNING ---
 
         function addPowerUps(count) {
-            const colors = ['blue', 'red', 'yellow', 'green', 'purple', 'purple'];
+            const colors = ['blue', 'red', 'yellow', 'green', 'purple', 'purple', 'blue', 'yellow', 'green']; // Adjust distribution
             for (let i = 0; i < count; i++) {
                 powerUps.push({
                     position: createVector(random(width), random(height)),
@@ -646,67 +819,207 @@
             }
         }
 
-        function maybeAddPowerUp() {
-            if (frameCount % 60 === 0) {
-                addPowerUps(1);
+        // --- TEMPORARY UPGRADE SHOP (IN-GAME) ---
+
+        function showUpgradeShopModal() {
+            // Check if player *can* afford anything - better UX
+            document.getElementById('upgradeShopModal').style.display = 'flex';
+            playAudio('upgradeSound'); // Play a specific sound for shop opening
+            noLoop(); // Pause game
+        }
+
+        function closeUpgradeShop() {
+            document.getElementById('upgradeShopModal').style.display = 'none';
+            // Reset yellow count ONLY if shop was closed without purchase? Or always? Decide.
+             // Let's reset it when closed.
+             yellowPowerUpsCollectedThisRound = 0;
+            loop(); // Resume game
+        }
+
+        function purchaseTempUpgrade(upgradeType) {
+             const cost = 5; // Cost in yellow power-ups
+
+             if ((inventory['yellow'] || 0) >= cost) {
+                 inventory['yellow'] -= cost; // Deduct cost
+                 playAudio('purchaseSound');
+
+                 switch (upgradeType) {
+                     case 'healthBoost':
+                         maxHealth += 25; // Increase max health for this round
+                         currentHealth += 25; // Heal by the same amount
+                         break;
+                     case 'speedBoost':
+                         baseSpeed += 2; // Increase base speed for this round
+                         // If green boost is active, update current speed too
+                         if (isGreenPowerUpActive) {
+                              currentSpeed = baseSpeed * GREEN_VELOCITY_BOOST_FACTOR;
+                         } else {
+                             currentSpeed = baseSpeed;
+                         }
+                         break;
+                     case 'magnet':
+                          currentMagnetRadius += 50;
+                          currentMagnetStrength += 1;
+                          magnetActive = true; // Ensure magnet is active
+                         break;
+                 }
+                 yellowPowerUpsCollectedThisRound = 0; // Reset count after successful purchase
+                 closeUpgradeShop(); // Close shop after purchase
+             } else {
+                 // Optional: Indicate player can't afford (e.g., shake button, play error sound)
+                 console.log("Not enough yellow power-ups!");
+             }
+        }
+
+        // --- PERMANENT UPGRADE SHOP (META) ---
+
+        function openPermanentUpgradeShop() {
+             updatePermanentShopUI(); // Refresh costs and levels before showing
+             document.getElementById('gameOverModal').style.display = 'none'; // Hide game over screen
+             document.getElementById('permanentUpgradeShopModal').style.display = 'flex';
+             playAudio('upgradeSound');
+        }
+
+        function closePermanentUpgradeShop() {
+             document.getElementById('permanentUpgradeShopModal').style.display = 'none';
+             // Re-show game over screen if just closing, not restarting
+             document.getElementById('gameOverModal').style.display = 'flex';
+        }
+         function closePermanentUpgradeShopAndRestart() {
+             document.getElementById('permanentUpgradeShopModal').style.display = 'none';
+             restartGame(); // Start a new game with potentially new upgrades
+         }
+
+
+        function updatePermanentShopUI() {
+            // Update currency display
+            document.getElementById('permShopTotalGemsDisplay').textContent = persistentCurrency;
+
+            // Update each upgrade item
+            updatePermUpgradeItem('health', 'permHealthLevelDisplay', 'permHealthCostDisplay', 'buyPermHealthBtn');
+            updatePermUpgradeItem('speed', 'permSpeedLevelDisplay', 'permSpeedCostDisplay', 'buyPermSpeedBtn');
+            updatePermUpgradeItem('time', 'permTimeLevelDisplay', 'permTimeCostDisplay', 'buyPermTimeBtn');
+            updatePermUpgradeItem('magnetRadius', 'permMagnetRadiusLevelDisplay', 'permMagnetRadiusCostDisplay', 'buyPermMagnetRadiusBtn');
+            updatePermUpgradeItem('magnetStrength', 'permMagnetStrengthLevelDisplay', 'permMagnetStrengthCostDisplay', 'buyPermMagnetStrengthBtn');
+        }
+
+        function updatePermUpgradeItem(type, levelDisplayId, costDisplayId, buttonId) {
+            const level = permanentUpgrades[type + 'Level'] || 0;
+            const baseStat = initialBaseStats[type] || (type === 'time' ? initialBaseStats[type] / 60 : 0); // Handle time conversion for display
+            const increment = upgradeIncrements[type] || 0;
+            const currentStat = baseStat + (level * increment);
+
+            let displayValue = type === 'time' ? (currentStat / 60).toFixed(1) + 's' : currentStat.toFixed(1);
+             if (type === 'health') displayValue = Math.round(currentStat); // Health as integer
+
+            document.getElementById(levelDisplayId).textContent = `${displayValue} (Lvl ${level})`;
+
+            const cost = calculateUpgradeCost(type, level);
+            document.getElementById(costDisplayId).textContent = `${cost}💎`;
+
+            // Enable/disable button based on currency
+            const button = document.getElementById(buttonId);
+            if (persistentCurrency >= cost) {
+                button.disabled = false;
+                button.classList.remove('disabled');
+            } else {
+                button.disabled = true;
+                button.classList.add('disabled');
             }
         }
 
-        function updateHighScore(finalScore) {
-            let highScore = parseFloat(localStorage.getItem('highScore') || '0');
-            if (finalScore > highScore) {
-                localStorage.setItem('highScore', finalScore.toString());
+
+        function calculateUpgradeCost(type, currentLevel) {
+            const config = upgradeCosts[type];
+            // Example cost formula: base * (1 + level * increment_factor) - adjust as needed
+             // Let's use: base + (level * increment)
+             return config.base + (currentLevel * config.increment);
+        }
+
+        function purchasePermanentUpgrade(type) {
+            const level = permanentUpgrades[type + 'Level'] || 0;
+            const cost = calculateUpgradeCost(type, level);
+
+            if (persistentCurrency >= cost) {
+                persistentCurrency -= cost;
+                permanentUpgrades[type + 'Level']++;
+                playAudio('purchaseSound');
+                savePersistentData(); // Save changes
+                applyPermanentUpgrades(); // Immediately apply the upgrade effect to base stats for next game
+                updatePermanentShopUI(); // Refresh the shop display
+                 // Optional: Play a success animation/feedback
+            } else {
+                console.log("Not enough Gems!");
+                 // Optional: Play an error sound/feedback
             }
         }
-        
-        function updateAndDisplayTimer() {
-            if (timer > 0) {
-                timer--;
-                let seconds = timer / 60;
-                fill(255); // White color for text
-                textSize(32); // Size of the text
-                textAlign(RIGHT, TOP); // Align text to the right and top
-                text(`Time: ${seconds.toFixed(1)}`, width - 10, 10); // Position the text at the top right corner
+
+
+        // --- UTILITY FUNCTIONS ---
+
+        function getColorCode(colorName) {
+            switch (colorName) {
+                case 'blue': return color(0, 150, 255);
+                case 'red': return color(255, 50, 50);
+                case 'yellow': return color(255, 220, 0);
+                case 'green': return color(50, 200, 50);
+                case 'purple': return color(150, 0, 255);
+                default: return color(255); // White as default
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('unmuteButton').addEventListener('click', function() {
-                const bgMusic = document.getElementById('bgMusic');
-                bgMusic.muted = !bgMusic.muted; // Toggle the muted state
-                this.textContent = bgMusic.muted ? 'Unmute Audio' : 'Mute Audio'; // Update button text based on the muted state
-            });
-            // Add event listener for the submit score button
-            // Ensure the ID 'submitScoreBtn' is assigned to your Submit Score button
-            document.getElementById('submitScoreBtn').addEventListener('click', submitScoreWrapper);
-        });
+         function getColorEmoji(colorName) {
+             switch (colorName) {
+                 case 'blue': return '🟦';
+                 case 'red': return '🟥';
+                 case 'yellow': return '🟨';
+                 case 'green': return '🟩';
+                 case 'purple': return '🟪';
+                 default: return '⬜';
+             }
+         }
 
-        
-
-        /*function submitScore(initials, finalScore) {
-            fetch('https://script.google.com/macros/s/AKfycbwYJ5duzSekbLCApNO2OB57AYe7_Ay_z1CVsvLQrkY/exec', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ initials: initials, score: finalScore }) // Use finalScore variable
-            })
-            .then(response => response.json())
-            .then(data => console.log(data))
-            .catch(error => console.error('Error:', error));
+        function shakeScreen(intensity, durationFrames) {
+             // Simple shake implementation - apply offset in drawPlayer or globally
+             // This requires tracking shake intensity and duration outside this function
+             // For now, just log it. A real implementation would modify canvas translation.
+             console.log(`Screen Shake: Intensity ${intensity}, Duration ${durationFrames}`);
+             // To implement: set global shake variables, then in draw():
+             // if (shakeTimer > 0) { translate(random(-shakeIntensity, shakeIntensity), random(-shakeIntensity, shakeIntensity)); shakeTimer--; }
         }
 
+        // --- AUDIO HANDLING ---
+        function playAudio(elementId) {
+             try {
+                 const sound = document.getElementById(elementId);
+                 if (sound) {
+                     sound.currentTime = 0;
+                     sound.play().catch(e => console.warn(`Audio play failed for ${elementId}:`, e));
+                 }
+             } catch (e) {
+                 console.error(`Error playing sound ${elementId}:`, e);
+             }
+         }
+         function playBackgroundMusic() {
+             const bgMusic = document.getElementById('bgMusic');
+             if (bgMusic && bgMusic.paused) {
+                 bgMusic.play().catch(e => console.warn("Background music autoplay failed:", e));
+             }
+         }
+         function stopBackgroundMusic() {
+             const bgMusic = document.getElementById('bgMusic');
+             if (bgMusic) {
+                 bgMusic.pause();
+                 bgMusic.currentTime = 0; // Reset track
+             }
+         }
 
-        function fetchLeaderboard() {
-          fetch('https://script.google.com/macros/s/AKfycbwYJ5duzSekbLCApNO2OB57AYe7_Ay_z1CVsvLQrkY/exec')
-          .then(response => response.json())
-          .then(data => {
-            // Display the leaderboard data in your game
-            console.log(data);
-          });
-        }*/
 
-        
+        // p5.js window resize handler
+        function windowResized() {
+          resizeCanvas(windowWidth * 0.8, windowHeight * 0.8);
+        }
+
     </script>
 </body>
 </html>
