@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dynamic Power-Up Collection Game with Meta-Progression v1.2</title> <!-- Version Bump -->
+    <title>Dynamic Power-Up Collection Game with Meta-Progression v1.4</title> <!-- Version Bump -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-    <!-- NOTE: p5.sound.js is NOT included as we use HTML Audio -->
     <style>
         body {
             margin: 0;
@@ -13,166 +12,72 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #111; /* Darker background */
+            background-color: #111;
         }
         canvas {
-            border: 1px solid #333; /* Subtle border */
-            display: block; /* Prevents potential small gaps */
+            border: 1px solid #333;
+            display: block;
         }
         #modalInstructions, #gameOverModal, #permanentUpgradeShopModal, #upgradeShopModal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85); /* Slightly darker overlay */
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            text-align: center;
-            font-family: sans-serif;
-            z-index: 1000; /* Ensure modals are on top */
-            box-sizing: border-box; /* Include padding in dimensions */
-            padding: 20px;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); color: #fff;
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column; text-align: center; font-family: sans-serif;
+            z-index: 1000; box-sizing: border-box; padding: 20px;
         }
-        /* Initially hide modals that shouldn't be visible at start */
-        #gameOverModal, #permanentUpgradeShopModal, #upgradeShopModal {
-            display: none;
-        }
+        #gameOverModal, #permanentUpgradeShopModal, #upgradeShopModal { display: none; }
 
         #modalInstructions button, #gameOverModal button, #permanentUpgradeShopModal button, #upgradeShopModal button {
-            padding: 12px 25px;
-            font-size: 18px;
-            cursor: pointer;
-            margin-top: 20px;
-            margin-right: 10px; /* Space between buttons */
-            background-color: #007BFF; /* Example button color */
-            color: white; /* Text color for buttons */
-            border: none;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Button shadow for depth */
-            transition: background-color 0.2s ease, transform 0.2s ease; /* Smooth transition */
+            padding: 12px 25px; font-size: 18px; cursor: pointer; margin-top: 20px; margin-right: 10px;
+            background-color: #007BFF; color: white; border: none; border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: background-color 0.2s ease, transform 0.2s ease;
         }
         #modalInstructions button:hover, #gameOverModal button:hover, #permanentUpgradeShopModal button:hover, #upgradeShopModal button:hover {
-            background-color: #0056b3; /* Darker shade on hover */
-            transform: translateY(-2px); /* Slight lift on hover */
+            background-color: #0056b3; transform: translateY(-2px);
         }
          #permanentUpgradeShopModal button.disabled, #upgradeShopModal button.disabled {
-             background-color: #555;
-             cursor: not-allowed;
-             transform: none;
-             box-shadow: none;
+             background-color: #555; cursor: not-allowed; transform: none; box-shadow: none;
          }
-         #permanentUpgradeShopModal button.disabled:hover {
-              background-color: #555; /* Prevent color change on hover when disabled */
-         }
-
+         #permanentUpgradeShopModal button.disabled:hover { background-color: #555; }
 
         #permanentUpgradeShopModal .upgrade-item, #upgradeShopModal .upgrade-item {
-            margin: 15px 0;
-            padding: 10px;
-            border: 1px solid #444;
-            border-radius: 5px;
-            background-color: rgba(255, 255, 255, 0.1);
-            width: 90%; /* Relative width */
-            max-width: 400px; /* Limit max width */
+            margin: 15px 0; padding: 10px; border: 1px solid #444; border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.1); width: 90%; max-width: 400px;
         }
-         #permanentUpgradeShopModal .upgrade-item p, #upgradeShopModal .upgrade-item p {
-             margin: 5px 0;
-         }
+         #permanentUpgradeShopModal .upgrade-item p, #upgradeShopModal .upgrade-item p { margin: 5px 0; }
 
         #testModeDiv {
-            position: absolute;
-            top: 10px;
-            right: 10px; /* Moved to top right */
-            z-index: 1001;
-            color: white;
-            background-color: rgba(0,0,0,0.5);
-            padding: 5px 10px;
-            border-radius: 3px;
-            font-family: sans-serif;
-            font-size: 14px;
+            position: absolute; top: 10px; right: 10px; z-index: 1001; color: white;
+            background-color: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 3px;
+            font-family: sans-serif; font-size: 14px;
         }
-        /* Styles for upgrade shop items */
-        .upgrade-item {
-            margin-bottom: 15px;
-        }
-        .upgrade-item p {
-            margin: 5px 0;
-        }
-        .currency-display {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #FFD700; /* Gold color for currency */
-        }
-        /* HUD Styling */
+        .upgrade-item p { margin: 5px 0; }
+        .currency-display { font-size: 20px; font-weight: bold; margin-bottom: 20px; color: #FFD700; }
         .hud-container {
-             position: absolute;
-             top: 0;
-             left: 0;
-             width: 100%;
-             padding: 10px;
-             box-sizing: border-box;
-             z-index: 500; /* Below modals but above canvas */
-             pointer-events: none; /* Prevent HUD from blocking clicks */
-             display: flex;
-             justify-content: space-between;
-             align-items: flex-start;
-             color: white;
-             font-family: sans-serif;
+             position: absolute; top: 0; left: 0; width: 100%; padding: 10px; box-sizing: border-box;
+             z-index: 500; pointer-events: none; display: flex; justify-content: space-between;
+             align-items: flex-start; color: white; font-family: sans-serif;
              text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
         }
-        .hud-left {
-             display: flex;
-             flex-direction: column;
-             align-items: flex-start;
+        .hud-left { display: flex; flex-direction: column; align-items: flex-start; }
+        .hud-center { text-align: center; font-size: 24px; font-weight: bold; }
+        .hud-right { text-align: right; font-size: 22px; }
+        #healthBarContainer { width: 200px; height: 20px; background-color: #555; border-radius: 5px; border: 1px solid #888; margin-bottom: 5px; }
+        #healthBarFill { height: 100%; background-color: #00FF00; border-radius: 5px; width: 100%; transition: width 0.2s linear, background-color 0.2s linear; }
+        #healthText { font-size: 14px; margin-bottom: 5px; }
+        #inventoryDisplay { font-size: 14px; color: #ccc; }
+        @keyframes shake {
+             0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); }
+             50% { transform: translateX(5px); } 75% { transform: translateX(-5px); }
         }
-        .hud-center {
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        .hud-right {
-            text-align: right;
-             font-size: 22px;
-        }
-        #healthBarContainer {
-             width: 200px;
-             height: 20px;
-             background-color: #555;
-             border-radius: 5px;
-             border: 1px solid #888;
-             margin-bottom: 5px; /* Space below bar */
-        }
-        #healthBarFill {
-             height: 100%;
-             background-color: #00FF00;
-             border-radius: 5px;
-             width: 100%;
-             transition: width 0.2s linear, background-color 0.2s linear;
-        }
-        #healthText {
-             font-size: 14px;
-             margin-bottom: 5px; /* Space below text */
-        }
-        #inventoryDisplay {
-            font-size: 14px;
-            color: #ccc;
-        }
-
-
     </style>
 </head>
 <body>
     <!-- HUD Elements Container -->
     <div class="hud-container">
         <div class="hud-left">
-            <div id="healthBarContainer">
-                <div id="healthBarFill"></div>
-            </div>
+            <div id="healthBarContainer"><div id="healthBarFill"></div></div>
             <div id="healthText">HP: 100 / 100</div>
             <div id="inventoryDisplay">Inv:</div>
         </div>
@@ -181,55 +86,42 @@
     </div>
 
     <!-- Test Mode Checkbox -->
-    <div id="testModeDiv">
-        <label>
-            <input type="checkbox" id="testModeCheckbox">
-            Test Mode
-        </label>
-    </div>
+    <div id="testModeDiv"><label><input type="checkbox" id="testModeCheckbox"> Test Mode</label></div>
 
     <!-- Audio Elements -->
-    <audio id="bgMusic" loop preload="auto">
-        <source src="Limit 70.mp3" type="audio/mp3">
-        Your browser does not support the audio element.
-    </audio>
+    <audio id="bgMusic" loop preload="auto"><source src="Limit 70.mp3" type="audio/mp3"></audio>
     <audio id="bluePowerUpSound" src="sound/blue_beep.mp3" preload="auto"></audio>
     <audio id="yellowPowerUpSound" src="sound/yellow_beep.mp3" preload="auto"></audio>
     <audio id="greenPowerUpSound" src="sound/green_beep.mp3" preload="auto"></audio>
     <audio id="redPowerUpSound" src="sound/red_beep.mp3" preload="auto"></audio>
     <audio id="purplePowerUpSound" src="sound/purple_beep.mp3" preload="auto"></audio>
-    <!-- Add dummy src if files don't exist to prevent 404, but sounds won't play -->
+    <!-- REMINDER: ADD THESE FILES OR REMOVE THE ELEMENTS -->
     <audio id="upgradeSound" src="sound/upgrade_sound.mp3" preload="auto"></audio>
     <audio id="purchaseSound" src="sound/purchase_sound.mp3" preload="auto"></audio>
     <audio id="hitSound" src="sound/hit_sound.mp3" preload="auto"></audio>
 
-
     <!-- Initial Instructions Modal -->
     <div id="modalInstructions">
         <h2>Welcome!</h2>
-        <p>Collect as many circles before time runs out or health depletes.</p>
-        <p>Yellow = 3 Pts, Purple = 2 Pts, Green & Blue = 1 Pt.</p>
-        <p>Purple: +3 seconds. Blue: Temporary size increase. Green: Temporary speed boost.</p>
-        <p>Avoid Red Circles! They hurt and chase you faster over time.</p>
-        <p>Collect 5 Yellows to open the temporary Upgrade Shop.</p>
-        <p>Use arrow keys or WASD to move.</p>
-        <p>Earn <strong>Gems</strong> based on your score to buy permanent upgrades after the game!</p>
+        <p>Collect circles. Avoid Red. Earn Gems. Upgrade!</p>
+         <p>Use arrow keys or WASD to move.</p>
+         <p>Click anywhere here to enable sound!</p>
         <button onclick="startGame()">Start Game</button>
     </div>
 
     <!-- Game Over Modal -->
     <div id="gameOverModal">
         <h2>Game Over</h2>
-        <p>Score: <span id="currentScoreDisplay">0</span></p>
-        <p>Time Alive: <span id="timeAliveDisplay">0.0</span>s</p>
-        <p>Score X Time Alive = Final Score: <span id="finalScoreDisplay">0</span></p>
-        <p>High Score: <span id="highScoreDisplay">0</span></p>
-        <p style="color: #FFD700;">Gems Earned This Round: <span id="gemsEarnedDisplay">0</span>💎</p>
-        <p style="color: #FFD700;">Total Gems: <span id="totalGemsDisplay">0</span>💎</p>
+         <p>Score: <span id="currentScoreDisplay">0</span></p>
+         <p>Time Alive: <span id="timeAliveDisplay">0.0</span>s</p>
+         <p>Final Score: <span id="finalScoreDisplay">0</span></p>
+         <p>High Score: <span id="highScoreDisplay">0</span></p>
+         <p style="color: #FFD700;">Gems Earned: <span id="gemsEarnedDisplay">0</span>💎</p>
+         <p style="color: #FFD700;">Total Gems: <span id="totalGemsDisplay">0</span>💎</p>
          <div id="nftOfferContainer" style="display:none;">
-            <p>Congratulations! You're eligible for an NFT reward.</p>
-            <a href="https://highlight.xyz/mint/65da3c6c14d1e1cf26028c87" target="_blank" style="color: #1E90FF;">Claim your NFT</a>
-        </div>
+             <p>Congratulations! You're eligible for an NFT reward.</p>
+             <a href="https://highlight.xyz/mint/65da3c6c14d1e1cf26028c87" target="_blank" style="color: #1E90FF;">Claim your NFT</a>
+         </div>
         <button onclick="openPermanentUpgradeShop()">Upgrade Shop</button>
         <button onclick="restartGame()">Restart Game</button>
     </div>
@@ -237,23 +129,10 @@
     <!-- Temporary Upgrade Shop Modal (In-Game) -->
     <div id="upgradeShopModal">
         <h2>Temporary Boosts!</h2>
-        <p>Spend Yellow Power-ups for a quick advantage!</p>
         <p>(These boosts last for the current game only)</p>
-        <div class="upgrade-item">
-            <p><strong>Health Boost (+25 Max HP This Round)</strong></p>
-            <p>Cost: 5 Yellows</p>
-            <button id="tempHealthBtn" onclick="purchaseTempUpgrade('healthBoost')">Purchase</button>
-        </div>
-        <div class="upgrade-item">
-            <p><strong>Speed Boost (+1.5 Speed This Round)</strong></p>
-            <p>Cost: 5 Yellows</p>
-            <button id="tempSpeedBtn" onclick="purchaseTempUpgrade('speedBoost')">Purchase</button>
-        </div>
-         <div class="upgrade-item">
-             <p><strong>Magnet Boost (+50 Radius, +0.8 Strength This Round)</strong></p>
-             <p>Cost: 5 Yellows</p>
-            <button id="tempMagnetBtn" onclick="purchaseTempUpgrade('magnet')">Purchase</button>
-         </div>
+        <div class="upgrade-item"><p>Health Boost (+25 Max HP)</p><p>Cost: 5 🟨</p><button id="tempHealthBtn" onclick="purchaseTempUpgrade('healthBoost')">Purchase</button></div>
+        <div class="upgrade-item"><p>Speed Boost (+1.5 Base Speed)</p><p>Cost: 5 🟨</p><button id="tempSpeedBtn" onclick="purchaseTempUpgrade('speedBoost')">Purchase</button></div>
+        <div class="upgrade-item"><p>Magnet Boost (+50 Radius/+0.8 Strength)</p><p>Cost: 5 🟨</p><button id="tempMagnetBtn" onclick="purchaseTempUpgrade('magnet')">Purchase</button></div>
         <button onclick="closeUpgradeShop()">Close</button>
     </div>
 
@@ -261,44 +140,24 @@
     <div id="permanentUpgradeShopModal">
         <h2>Permanent Upgrades</h2>
         <p class="currency-display">Total Gems: <span id="permShopTotalGemsDisplay">0</span>💎</p>
-        <div class="upgrade-item">
-            <p><strong>Starting Health:</strong> <span id="permHealthLevelDisplay">100</span> (+10 per Level)</p>
-            <p>Cost: <span id="permHealthCostDisplay">50</span>💎</p>
-            <button id="buyPermHealthBtn" onclick="purchasePermanentUpgrade('health')">Upgrade Health</button>
-        </div>
-        <div class="upgrade-item">
-            <p><strong>Base Speed:</strong> <span id="permSpeedLevelDisplay">5</span> (+0.5 per Level)</p>
-            <p>Cost: <span id="permSpeedCostDisplay">75</span>💎</p>
-            <button id="buyPermSpeedBtn" onclick="purchasePermanentUpgrade('speed')">Upgrade Speed</button>
-        </div>
-        <div class="upgrade-item">
-            <p><strong>Starting Time:</strong> <span id="permTimeLevelDisplay">20</span>s (+2s per Level)</p>
-            <p>Cost: <span id="permTimeCostDisplay">60</span>💎</p>
-            <button id="buyPermTimeBtn" onclick="purchasePermanentUpgrade('time')">Upgrade Time</button>
-        </div>
-         <div class="upgrade-item">
-             <p><strong>Base Magnet Radius:</strong> <span id="permMagnetRadiusLevelDisplay">0</span> (+10 per Level)</p>
-             <p>Cost: <span id="permMagnetRadiusCostDisplay">100</span>💎</p>
-             <button id="buyPermMagnetRadiusBtn" onclick="purchasePermanentUpgrade('magnetRadius')">Upgrade Magnet Radius</button>
-         </div>
-          <div class="upgrade-item">
-              <p><strong>Base Magnet Strength:</strong> <span id="permMagnetStrengthLevelDisplay">1.0</span> (+0.2 per Level)</p> <!-- Corrected display base -->
-              <p>Cost: <span id="permMagnetStrengthCostDisplay">120</span>💎</p>
-              <button id="buyPermMagnetStrengthBtn" onclick="purchasePermanentUpgrade('magnetStrength')">Upgrade Magnet Strength</button>
-          </div>
+        <div class="upgrade-item"><p>Starting Health: <span id="permHealthLevelDisplay">100</span> (+10/Lvl)</p><p>Cost: <span id="permHealthCostDisplay">50</span>💎</p><button id="buyPermHealthBtn" onclick="purchasePermanentUpgrade('health')">Upgrade</button></div>
+        <div class="upgrade-item"><p>Base Speed: <span id="permSpeedLevelDisplay">5.0</span> (+0.5/Lvl)</p><p>Cost: <span id="permSpeedCostDisplay">75</span>💎</p><button id="buyPermSpeedBtn" onclick="purchasePermanentUpgrade('speed')">Upgrade</button></div>
+        <div class="upgrade-item"><p>Starting Time: <span id="permTimeLevelDisplay">20.0</span>s (+2s/Lvl)</p><p>Cost: <span id="permTimeCostDisplay">60</span>💎</p><button id="buyPermTimeBtn" onclick="purchasePermanentUpgrade('time')">Upgrade</button></div>
+        <div class="upgrade-item"><p>Base Magnet Radius: <span id="permMagnetRadiusLevelDisplay">0</span> (+10/Lvl)</p><p>Cost: <span id="permMagnetRadiusCostDisplay">100</span>💎</p><button id="buyPermMagnetRadiusBtn" onclick="purchasePermanentUpgrade('magnetRadius')">Upgrade</button></div>
+        <div class="upgrade-item"><p>Base Magnet Strength: <span id="permMagnetStrengthLevelDisplay">1.0</span> (+0.2/Lvl)</p><p>Cost: <span id="permMagnetStrengthCostDisplay">120</span>💎</p><button id="buyPermMagnetStrengthBtn" onclick="purchasePermanentUpgrade('magnetStrength')">Upgrade</button></div>
         <button onclick="closePermanentUpgradeShopAndRestart()">Start New Game</button>
-         <button onclick="closePermanentUpgradeShop()">Close (Back to Game Over)</button>
+        <button onclick="closePermanentUpgradeShop()">Close (Back to Game Over)</button>
     </div>
 
     <script>
         // --- Constants & Config ---
         const INITIAL_PLAYER_SIZE = 20;
         const POWERUP_SIZE = 15;
-        const BLUE_POWERUP_DURATION = 120; // Frames (2s @ 60fps)
-        const GREEN_POWERUP_DURATION = 300; // Frames (5s @ 60fps)
+        const BLUE_POWERUP_DURATION = 120;
+        const GREEN_POWERUP_DURATION = 300;
         const GREEN_VELOCITY_BOOST_FACTOR = 1.8;
-        const HIT_EFFECT_DURATION = 25; // Frames
-        const YELLOW_EFFECT_DURATION = 75; // Frames (1.25s)
+        const HIT_EFFECT_DURATION = 25;
+        const YELLOW_EFFECT_DURATION = 75;
         const YELLOW_POWERUP_THRESHOLD = 5;
         const RED_INITIAL_SPEED = 1;
         const RED_MAX_SPEED = 7;
@@ -307,33 +166,15 @@
         const NFT_THRESHOLD_SCORE = 2000;
         const GEMS_PER_FINAL_SCORE = 0.1;
         const MAX_POWERUPS_ON_SCREEN = 60;
-        const POWERUP_SPAWN_RATE_INITIAL = 70; // Frames
-        const POWERUP_SPAWN_RATE_FINAL = 25; // Frames at high score
+        const POWERUP_SPAWN_RATE_INITIAL = 70;
+        const POWERUP_SPAWN_RATE_FINAL = 25;
         const POWERUP_SPAWN_SCORE_SCALE = 500;
 
         const PERMANENT_UPGRADES_KEY = 'myGamePermanentUpgrades_v1';
         const PERSISTENT_CURRENCY_KEY = 'myGamePersistentCurrency_v1';
-        const upgradeCosts = {
-            health: { base: 50, increment: 25 },
-            speed: { base: 75, increment: 35 },
-            time: { base: 60, increment: 30 },
-            magnetRadius: { base: 100, increment: 50 },
-            magnetStrength: { base: 120, increment: 60 },
-        };
-        const upgradeIncrements = {
-            health: 10,
-            speed: 0.5,
-            time: 120, // 2 seconds in frames
-            magnetRadius: 10,
-            magnetStrength: 0.2,
-        };
-         const initialBaseStats = {
-             health: 100,
-             speed: 5,
-             time: 1200, // 20 seconds * 60 fps
-             magnetRadius: 0,
-             magnetStrength: 1,
-         };
+        const upgradeCosts = { health: { base: 50, increment: 25 }, speed: { base: 75, increment: 35 }, time: { base: 60, increment: 30 }, magnetRadius: { base: 100, increment: 50 }, magnetStrength: { base: 120, increment: 60 }, };
+        const upgradeIncrements = { health: 10, speed: 0.5, time: 120, magnetRadius: 10, magnetStrength: 0.2, };
+        const initialBaseStats = { health: 100, speed: 5, time: 1200, magnetRadius: 0, magnetStrength: 1, };
         const pointValues = { yellow: 3, purple: 2, green: 1, blue: 1, red: 0 };
 
         // --- Game State Variables ---
@@ -347,106 +188,75 @@
         let maxHealth;
         let currentHealth;
         let baseSpeed;
-        let currentSpeed; // Includes temp boosts
+        let currentSpeed;
         let baseTimerDuration;
         let baseMagnetRadius;
         let baseMagnetStrength;
-        let currentMagnetRadius; // Includes temp boosts
-        let currentMagnetStrength; // Includes temp boosts
+        let currentMagnetRadius;
+        let currentMagnetStrength;
         let magnetActive = false;
-
-        // --- Effect Timers & States ---
-        let isBluePowerUpActive = false; bluePowerUpTimer = 0;
-        let isGreenPowerUpActive = false; greenPowerUpTimer = 0;
-        let isHit = false; hitTimer = 0;
-        let isYellowEffectActive = false; yellowEffectTimer = 0;
+        let isBluePowerUpActive = false, bluePowerUpTimer = 0;
+        let isGreenPowerUpActive = false, greenPowerUpTimer = 0;
+        let isHit = false, hitTimer = 0;
+        let isYellowEffectActive = false, yellowEffectTimer = 0;
         let yellowPowerUpsCollectedThisRound = 0;
-
-        // --- Meta-Progression Variables ---
         let persistentCurrency = 0;
         let permanentUpgrades = { healthLevel: 0, speedLevel: 0, timeLevel: 0, magnetRadiusLevel: 0, magnetStrengthLevel: 0 };
-
-        // --- Other Variables ---
         let testModeActive = false;
         let globalFinalScore = 0;
         let timeAlive = 0;
         let gameIsOver = false;
         let canvas;
-
-        // --- DOM Element Refs ---
         let healthBarFillEl, healthTextEl, timerDisplayEl, scoreDisplayEl, inventoryDisplayEl;
+
+        // --- Audio Context ---
+        let audioContext; // Stores the browser's AudioContext
+        let audioContextStarted = false;
 
 
         // --- SETUP & INITIALIZATION ---
 
-        // REMOVED preload() function - not needed with HTML Audio
-
         function setup() {
             console.log("Setup started...");
             canvas = createCanvas(windowWidth * 0.9, windowHeight * 0.9);
-            if (canvas) {
-                 canvas.parent(document.body); // Ensure canvas is attached to body
-                 console.log("Canvas created and parented.");
-            } else {
-                 console.error("Failed to create canvas!");
-                 return; // Stop setup if canvas fails
-            }
+            if (canvas) canvas.parent(document.body);
+            else { console.error("Failed to create canvas!"); return; }
 
-            // *** FIX: Initialize playerPosition EARLY ***
             playerPosition = createVector(width / 2, height / 2);
-             console.log("Player position initialized:", playerPosition.x, playerPosition.y);
+            console.log("Player position initialized:", playerPosition.x, playerPosition.y);
 
             frameRate(60);
 
-            // Get references to HUD DOM elements
+            // Get HUD refs
             healthBarFillEl = document.getElementById('healthBarFill');
             healthTextEl = document.getElementById('healthText');
             timerDisplayEl = document.getElementById('timerDisplay');
             scoreDisplayEl = document.getElementById('scoreDisplay');
             inventoryDisplayEl = document.getElementById('inventoryDisplay');
-             if (!healthBarFillEl || !healthTextEl || !timerDisplayEl || !scoreDisplayEl || !inventoryDisplayEl) {
-                 console.error("Failed to get one or more HUD elements!");
-                 // Decide how to handle this - maybe default HUD updates to console?
-             } else {
-                 console.log("HUD elements referenced.");
-             }
+            if (!healthBarFillEl || !healthTextEl || !timerDisplayEl || !scoreDisplayEl || !inventoryDisplayEl) console.error("Failed to get one or more HUD elements!");
+            else console.log("HUD elements referenced.");
 
-
-            // Load meta-progression data
             loadPersistentData();
-            // Apply upgrades to calculate base stats
             applyPermanentUpgrades();
-             // Set initial game state using calculated base stats
-             resetGameState(); // Now safe to call as playerPosition exists
+            resetGameState();
 
-            // UI Updates
             updatePermanentShopUI();
-            updateHUD(); // Initial HUD update
+            updateHUD();
 
-            noLoop(); // Stop draw loop until game starts explicitly
+            noLoop();
             console.log("Setup complete. Waiting for Start Game...");
 
             // Event Listeners
             const testModeCheckbox = document.getElementById('testModeCheckbox');
-            if (testModeCheckbox) {
-                testModeCheckbox.addEventListener('change', function() {
-                    testModeActive = this.checked;
-                    console.log("Test Mode:", testModeActive);
-                });
-            } else {
-                 console.warn("Test mode checkbox not found.");
-            }
+            if (testModeCheckbox) testModeCheckbox.addEventListener('change', function() { testModeActive = this.checked; console.log("Test Mode:", testModeActive); });
+            else console.warn("Test mode checkbox not found.");
 
-
-            // Attempt to unlock audio context on first interaction with the *instructions modal*
+            // Audio unlock listener ON THE MODAL ITSELF
             const instructionsModal = document.getElementById('modalInstructions');
              if (instructionsModal) {
-                 // Use capture phase to potentially catch click before button's onclick
-                 instructionsModal.addEventListener('click', userStartAudio, { once: true, capture: true });
+                 instructionsModal.addEventListener('click', userStartAudio, { once: true });
                  console.log("Audio unlock listener added to instructions modal.");
-             } else {
-                 console.warn("Instructions modal not found for audio unlock listener.");
-             }
+             } else console.warn("Instructions modal not found for audio unlock listener.");
         }
 
         function loadPersistentData() {
@@ -459,7 +269,7 @@
                  const storedUpgrades = localStorage.getItem(PERMANENT_UPGRADES_KEY);
                  if (storedUpgrades) {
                      let parsedUpgrades = JSON.parse(storedUpgrades);
-                     permanentUpgrades = { // Assign validated values or defaults
+                     permanentUpgrades = {
                          healthLevel: parseInt(parsedUpgrades.healthLevel, 10) || 0,
                          speedLevel: parseInt(parsedUpgrades.speedLevel, 10) || 0,
                          timeLevel: parseInt(parsedUpgrades.timeLevel, 10) || 0,
@@ -478,7 +288,7 @@
              }
         }
 
-         function savePersistentData() {
+        function savePersistentData() {
              try {
                  localStorage.setItem(PERSISTENT_CURRENCY_KEY, persistentCurrency.toString());
                  localStorage.setItem(PERMANENT_UPGRADES_KEY, JSON.stringify(permanentUpgrades));
@@ -487,7 +297,7 @@
              } catch (error) {
                  console.error("Error saving persistent data:", error);
              }
-         }
+        }
 
         function applyPermanentUpgrades() {
              console.log("Applying permanent upgrades...");
@@ -511,8 +321,8 @@
         function resetGameState() {
             console.log("Resetting game state for new round...");
             score = 0;
-            currentHealth = maxHealth; // Assumes maxHealth is valid from applyPermanentUpgrades
-            gameTimer = baseTimerDuration; // Assumes baseTimerDuration is valid
+            currentHealth = maxHealth;
+            gameTimer = baseTimerDuration;
             console.log(`Initial Health: ${currentHealth}/${maxHealth}, Initial Timer: ${gameTimer} frames`);
 
             currentSpeed = baseSpeed;
@@ -523,13 +333,12 @@
             powerUps = [];
             addPowerUps(10);
 
-            // *** FIX: Check playerPosition exists before calling set ***
             if (playerPosition) {
                  playerPosition.set(width / 2, height / 2);
                  console.log("Player position reset to center.");
             } else {
                  console.error("!!! Player position was undefined during resetGameState !!!");
-                 playerPosition = createVector(width/2, height/2); // Failsafe re-initialization
+                 playerPosition = createVector(width/2, height/2);
             }
 
             playerPositionHistory = [];
@@ -551,20 +360,29 @@
 
         function startGame() {
             console.log("startGame() called");
-            // Ensure audio context is ready (important for music/SFX)
-             userStartAudio();
+            // userStartAudio() is NOT called here anymore.
 
-            document.getElementById('modalInstructions').style.display = 'none';
-            document.getElementById('gameOverModal').style.display = 'none';
-            document.getElementById('permanentUpgradeShopModal').style.display = 'none';
+            const instructionsModal = document.getElementById('modalInstructions');
+            if (instructionsModal) instructionsModal.style.display = 'none';
 
-            applyPermanentUpgrades(); // Ensure latest upgrades are calculated
-            resetGameState(); // Reset variables for the new round
-            updateHUD(); // Update display with reset values
+            const gameOverModal = document.getElementById('gameOverModal');
+            if (gameOverModal) gameOverModal.style.display = 'none';
 
-            loop(); // Start the p5.js draw loop
+            const permShopModal = document.getElementById('permanentUpgradeShopModal');
+             if (permShopModal) permShopModal.style.display = 'none';
+
+
+            applyPermanentUpgrades();
+            resetGameState();
+            updateHUD();
+
+            if (!isLooping()) {
+                 loop();
+                 console.log("Game loop started.");
+            } else {
+                console.log("Game loop was already running when startGame was called.");
+            }
             playBackgroundMusic();
-            console.log("Game loop started.");
         }
 
         function checkGameOver() {
@@ -597,22 +415,33 @@
                 highScore = globalFinalScore;
             }
 
-            document.getElementById('currentScoreDisplay').textContent = score;
-            document.getElementById('timeAliveDisplay').textContent = timeAlive.toFixed(1);
-            document.getElementById('finalScoreDisplay').textContent = globalFinalScore.toFixed(2);
-            document.getElementById('highScoreDisplay').textContent = highScore.toFixed(2);
-            document.getElementById('gemsEarnedDisplay').textContent = gemsEarned;
-            document.getElementById('totalGemsDisplay').textContent = persistentCurrency;
+            const currentScoreDisp = document.getElementById('currentScoreDisplay');
+            if (currentScoreDisp) currentScoreDisp.textContent = score;
+            const timeAliveDisp = document.getElementById('timeAliveDisplay');
+            if (timeAliveDisp) timeAliveDisp.textContent = timeAlive.toFixed(1);
+             const finalScoreDisp = document.getElementById('finalScoreDisplay');
+            if(finalScoreDisp) finalScoreDisp.textContent = globalFinalScore.toFixed(2);
+             const highScoreDisp = document.getElementById('highScoreDisplay');
+            if(highScoreDisp) highScoreDisp.textContent = highScore.toFixed(2);
+             const gemsEarnedDisp = document.getElementById('gemsEarnedDisplay');
+            if(gemsEarnedDisp) gemsEarnedDisp.textContent = gemsEarned;
+             const totalGemsDisp = document.getElementById('totalGemsDisplay');
+            if(totalGemsDisp) totalGemsDisp.textContent = persistentCurrency;
 
-            document.getElementById('nftOfferContainer').style.display = globalFinalScore > NFT_THRESHOLD_SCORE ? 'block' : 'none';
-            document.getElementById('gameOverModal').style.display = 'flex';
+             const nftOffer = document.getElementById('nftOfferContainer');
+             if(nftOffer) nftOffer.style.display = globalFinalScore > NFT_THRESHOLD_SCORE ? 'block' : 'none';
+
+             const gameOverModal = document.getElementById('gameOverModal');
+             if(gameOverModal) gameOverModal.style.display = 'flex';
              console.log("Game Over Modal displayed.");
         }
 
         function restartGame() {
             console.log("Restarting game...");
-            document.getElementById('gameOverModal').style.display = 'none';
-            document.getElementById('permanentUpgradeShopModal').style.display = 'none';
+            const gameOverModal = document.getElementById('gameOverModal');
+            if (gameOverModal) gameOverModal.style.display = 'none';
+             const permShopModal = document.getElementById('permanentUpgradeShopModal');
+            if (permShopModal) permShopModal.style.display = 'none';
             startGame();
         }
 
@@ -620,23 +449,21 @@
         // --- DRAW LOOP & UPDATES ---
 
         function draw() {
-            background(20); // Use p5 background clear
-
+            background(20);
             handlePlayerInput();
             updatePlayer();
             updatePowerUps();
-
             drawPlayer();
             drawPowerUps();
-
             maybeAddPowerUp();
             checkCollisions();
-            updateHUD(); // Update HUD DOM elements each frame
+            updateHUD();
+            if (gameTimer > 0 && !gameIsOver && isLooping()) gameTimer--;
             checkGameOver();
         }
 
         function updatePlayer() {
-             if (!playerPosition) return; // Safety check
+            if (!playerPosition) return;
 
             updatePlayerPositionHistory();
 
@@ -650,11 +477,10 @@
         }
 
         function updatePowerUps() {
-            if (!playerPosition) return; // Need player position
+            if (!playerPosition) return;
 
             for (let i = powerUps.length - 1; i >= 0; i--) {
                 let pu = powerUps[i];
-                if (pu.collected) continue; // Should not happen if splicing works, but safe check
 
                 let direction = p5.Vector.sub(playerPosition, pu.position);
                 let distance = direction.mag();
@@ -675,7 +501,7 @@
         }
 
         function maybeAddPowerUp() {
-             let currentPowerUpCount = powerUps.length; // Filter removed as we splice now
+             let currentPowerUpCount = powerUps.length;
              if (currentPowerUpCount >= MAX_POWERUPS_ON_SCREEN) return;
 
              let spawnRate = map(score, 0, POWERUP_SPAWN_SCORE_SCALE, POWERUP_SPAWN_RATE_INITIAL, POWERUP_SPAWN_RATE_FINAL, true);
@@ -685,43 +511,32 @@
         }
 
         function updateHUD() {
-             // Only update if elements exist
              if (!healthBarFillEl || !healthTextEl || !timerDisplayEl || !scoreDisplayEl || !inventoryDisplayEl) return;
 
-            // Timer
             let seconds = Math.max(0, gameTimer / 60);
             timerDisplayEl.textContent = `Time: ${seconds.toFixed(1)}`;
-
-            // Score
             scoreDisplayEl.textContent = `Score: ${score}`;
 
-            // Health Bar
             let healthPercentage = constrain(currentHealth / maxHealth, 0, 1);
             healthBarFillEl.style.width = `${healthPercentage * 100}%`;
              let healthColor = lerpColor(color(255, 0, 0), color(0, 255, 0), healthPercentage);
-             healthBarFillEl.style.backgroundColor = healthColor.toString('#rrggbb'); // Use hex for CSS
+             healthBarFillEl.style.backgroundColor = healthColor.toString('#rrggbb');
 
             healthTextEl.textContent = `HP: ${Math.ceil(currentHealth)} / ${maxHealth}`;
 
-            // Inventory
             let inventoryText = 'Inv: ';
             let items = [];
             for (const [color, count] of Object.entries(inventory)) {
                 if (count > 0) items.push(`${getColorEmoji(color)}${count}`);
             }
             inventoryDisplayEl.textContent = inventoryText + items.join(' | ');
-
-            // Decrement game timer (moved from here, now done after updates)
-            if (gameTimer > 0 && !gameIsOver && isLooping()) { // Check isLooping() too
-                gameTimer--;
-            }
         }
 
 
         // --- DRAWING ---
 
         function drawPlayer() {
-            if (!playerPosition) return; // Don't draw if no position
+            if (!playerPosition) return;
 
              push();
              translate(playerPosition.x, playerPosition.y);
@@ -731,7 +546,6 @@
                  playerFillColor = lerpColor(color(255, 255, 0, 200), color(255), map(yellowEffectTimer, 0, YELLOW_EFFECT_DURATION, 0, 1));
              }
 
-             // Draw Trail FIRST
              if (isGreenPowerUpActive && playerPositionHistory.length > 0) {
                  for (let i = 0; i < playerPositionHistory.length; i++) {
                      let trailPos = createVector(playerPositionHistory[i].x - playerPosition.x, playerPositionHistory[i].y - playerPosition.y);
@@ -742,24 +556,20 @@
                  }
              }
 
-             // Apply Hit Effect Translation
              if (isHit && hitTimer > 0) {
                  let shakeX = random(-3, 3);
                  let shakeY = random(-3, 3);
-                 translate(shakeX, shakeY); // Shake applies to the player ellipse drawn next
-                 // Set fill color for hit flash
+                 translate(shakeX, shakeY);
                  fill(hitTimer % 4 < 2 ? color(255, 0, 0, 220) : playerFillColor);
              } else {
-                 fill(playerFillColor); // Normal fill color
+                 fill(playerFillColor);
              }
 
-             // Draw Player Ellipse (on top of trail, potentially shaken)
              stroke(200);
              strokeWeight(1);
              ellipse(0, 0, playerSize, playerSize);
 
 
-             // Blue power-up timer indicator (relative to potentially shaken position)
              if (isBluePowerUpActive) {
                  let indicatorAngle = map(bluePowerUpTimer, 0, BLUE_POWERUP_DURATION, 0, TWO_PI);
                  stroke(0, 100, 255, 200);
@@ -774,22 +584,19 @@
 
         function drawPowerUps() {
             powerUps.forEach(pu => {
-                // No need to check pu.collected if we splice them
                 push();
                 translate(pu.position.x, pu.position.y);
                 let pulse = sin(frameCount * 0.1 + pu.position.x * 0.1) * 1.5;
                 let baseSize = POWERUP_SIZE + pulse;
-                let clr = getColorCode(pu.color); // Get p5 color object
+                let clr = getColorCode(pu.color);
                 fill(clr);
                 noStroke();
                 ellipse(0, 0, baseSize, baseSize);
 
                 if (pu.color === 'red') {
-                     // Modify alpha for the outer ring effect
                      clr.setAlpha(60);
                      fill(clr);
                      ellipse(0, 0, baseSize + 5, baseSize + 5);
-                     // Reset alpha for the inner solid ellipse
                      clr.setAlpha(255);
                      fill(clr);
                      ellipse(0, 0, baseSize, baseSize);
@@ -805,24 +612,22 @@
 
             for (let i = powerUps.length - 1; i >= 0; i--) {
                 let pu = powerUps[i];
-                // Simple bounding box check first (cheaper)
                  if (abs(playerPosition.x - pu.position.x) > playerSize / 2 + POWERUP_SIZE / 2 ||
                      abs(playerPosition.y - pu.position.y) > playerSize / 2 + POWERUP_SIZE / 2) {
-                     continue; // Too far away, skip distance check
+                     continue;
                  }
 
-                 // Accurate distance check
                 let distance = dist(playerPosition.x, playerPosition.y, pu.position.x, pu.position.y);
                 if (distance < playerSize / 2 + POWERUP_SIZE / 2) {
-                    collectPowerUp(pu); // Pass the object itself
-                     powerUps.splice(i, 1); // Remove from array
-                     break; // Process one collision per frame max
+                    collectPowerUp(pu);
+                     powerUps.splice(i, 1);
+                     break;
                 }
             }
         }
 
 
-        function collectPowerUp(powerUp) { // No index needed now
+        function collectPowerUp(powerUp) {
             if (gameIsOver) return;
 
             playAudio(`${powerUp.color}PowerUpSound`);
@@ -851,8 +656,8 @@
 
              inventory[powerUp.color] = (inventory[powerUp.color] || 0) + 1;
              score = Math.max(0, score);
-             // HUD update is handled by the main draw loop now
         }
+
 
         // --- POWER-UP EFFECTS ---
 
@@ -880,6 +685,7 @@
             currentSpeed = baseSpeed;
         }
 
+
         // --- PLAYER INPUT ---
 
         function handlePlayerInput() {
@@ -889,13 +695,13 @@
             let moveX = 0;
             let moveY = 0;
 
-            if (keyIsDown(LEFT_ARROW) || keyIsDown(65)) moveX -= 1; // A
-            if (keyIsDown(RIGHT_ARROW) || keyIsDown(68)) moveX += 1; // D
-            if (keyIsDown(UP_ARROW) || keyIsDown(87)) moveY -= 1; // W
-            if (keyIsDown(DOWN_ARROW) || keyIsDown(83)) moveY += 1; // S
+            if (keyIsDown(LEFT_ARROW) || keyIsDown(65)) moveX -= 1;
+            if (keyIsDown(RIGHT_ARROW) || keyIsDown(68)) moveX += 1;
+            if (keyIsDown(UP_ARROW) || keyIsDown(87)) moveY -= 1;
+            if (keyIsDown(DOWN_ARROW) || keyIsDown(83)) moveY += 1;
 
              let moveVector = createVector(moveX, moveY);
-             if (moveVector.magSq() > 0) { // Use magSq for slight performance gain
+             if (moveVector.magSq() > 0) {
                  moveVector.normalize().mult(moveSpeed);
                  playerPosition.add(moveVector);
              }
@@ -909,30 +715,32 @@
             }
         }
 
+
         // --- POWER-UP SPAWNING ---
 
         function addPowerUps(count) {
-            if (!playerPosition) return; // Need player pos to check spawn distance
+            if (!playerPosition) return;
 
             const colors = ['blue', 'red', 'yellow', 'green', 'purple', 'purple', 'blue', 'yellow', 'green', 'blue', 'yellow', 'red'];
             for (let i = 0; i < count && powerUps.length < MAX_POWERUPS_ON_SCREEN; i++) {
                  let pos;
                  let attempts = 0;
                  do {
-                     pos = createVector(random(POWERUP_SIZE, width - POWERUP_SIZE), random(POWERUP_SIZE, height - POWERUP_SIZE)); // Spawn away from edge
+                     pos = createVector(random(POWERUP_SIZE, width - POWERUP_SIZE), random(POWERUP_SIZE, height - POWERUP_SIZE));
                      attempts++;
-                 } while (attempts < 10 && dist(pos.x, pos.y, playerPosition.x, playerPosition.y) < playerSize * 3); // Don't spawn too close
+                 } while (attempts < 10 && dist(pos.x, pos.y, playerPosition.x, playerPosition.y) < playerSize * 3);
 
                 powerUps.push({
                     position: pos,
                     color: random(colors),
-                    collected: false // This is technically redundant if splicing works perfectly
+                    collected: false
                 });
             }
         }
 
+
         // --- TEMPORARY UPGRADE SHOP (IN-GAME) ---
-         function updateTempShopAvailability() {
+        function updateTempShopAvailability() {
              const cost = 5;
              const currentYellow = inventory['yellow'] || 0;
              const healthBtn = document.getElementById('tempHealthBtn');
@@ -949,26 +757,27 @@
          }
 
         function showUpgradeShopModal() {
-            if (gameIsOver) return;
-            console.log("Showing temporary upgrade shop.");
-            updateTempShopAvailability();
-            document.getElementById('upgradeShopModal').style.display = 'flex';
-            playAudio('upgradeSound');
-            noLoop(); // Pause game
-        }
+             if (gameIsOver) return;
+             console.log("Showing temporary upgrade shop.");
+             updateTempShopAvailability();
+              const shopModal = document.getElementById('upgradeShopModal');
+              if(shopModal) shopModal.style.display = 'flex';
+             playAudio('upgradeSound');
+             if (isLooping()) {
+                 noLoop();
+                 console.log("Game loop paused for temp shop.");
+             }
+         }
 
         function closeUpgradeShop() {
-            document.getElementById('upgradeShopModal').style.display = 'none';
-             yellowPowerUpsCollectedThisRound = 0; // Reset count when closed
-            if (!gameIsOver && !isLooping()) { // Only resume if game wasn't over AND loop isn't running
+             const shopModal = document.getElementById('upgradeShopModal');
+             if(shopModal) shopModal.style.display = 'none';
+             yellowPowerUpsCollectedThisRound = 0;
+             if (!gameIsOver && !isLooping()) {
                  loop();
                  console.log("Resuming game loop after closing temp shop.");
-            } else if (isLooping()) {
-                 console.log("Temp shop closed, but loop was already running.");
-            } else {
-                 console.log("Temp shop closed, but game is over.");
-            }
-        }
+             }
+         }
 
         function purchaseTempUpgrade(upgradeType) {
              const cost = 5;
@@ -979,8 +788,8 @@
                  switch (upgradeType) {
                      case 'healthBoost':
                          maxHealth += 25;
-                         currentHealth += 25; // Also heal
-                         currentHealth = Math.min(currentHealth, maxHealth); // Clamp health
+                         currentHealth += 25;
+                         currentHealth = Math.min(currentHealth, maxHealth);
                          break;
                      case 'speedBoost':
                          baseSpeed += 1.5;
@@ -993,31 +802,36 @@
                          break;
                  }
                  yellowPowerUpsCollectedThisRound = 0;
-                 // updateHUD(); // HUD will update on next frame anyway
-                 closeUpgradeShop(); // Close shop after purchase
+                 closeUpgradeShop();
              } else {
                  console.log("Not enough yellow power-ups!");
+                 // Maybe add a visual shake to the button here?
              }
         }
 
-        // --- PERMANENT UPGRADE SHOP (META) ---
 
+        // --- PERMANENT UPGRADE SHOP (META) ---
         function openPermanentUpgradeShop() {
              updatePermanentShopUI();
-             document.getElementById('gameOverModal').style.display = 'none';
-             document.getElementById('permanentUpgradeShopModal').style.display = 'flex';
+              const gameOverModal = document.getElementById('gameOverModal');
+             if(gameOverModal) gameOverModal.style.display = 'none';
+              const permShopModal = document.getElementById('permanentUpgradeShopModal');
+              if(permShopModal) permShopModal.style.display = 'flex';
              playAudio('upgradeSound');
         }
 
         function closePermanentUpgradeShop() {
-             document.getElementById('permanentUpgradeShopModal').style.display = 'none';
-             document.getElementById('gameOverModal').style.display = 'flex';
+             const permShopModal = document.getElementById('permanentUpgradeShopModal');
+             if(permShopModal) permShopModal.style.display = 'none';
+              const gameOverModal = document.getElementById('gameOverModal');
+             if(gameOverModal) gameOverModal.style.display = 'flex';
         }
-         function closePermanentUpgradeShopAndRestart() {
-             document.getElementById('permanentUpgradeShopModal').style.display = 'none';
+
+        function closePermanentUpgradeShopAndRestart() {
+             const permShopModal = document.getElementById('permanentUpgradeShopModal');
+             if(permShopModal) permShopModal.style.display = 'none';
              restartGame();
          }
-
 
         function updatePermanentShopUI() {
              const currencyEl = document.getElementById('permShopTotalGemsDisplay');
@@ -1054,11 +868,9 @@
             }
         }
 
-
         function calculateUpgradeCost(type, currentLevel) {
             const config = upgradeCosts[type];
-            if (!config) return Infinity; // Should not happen
-             // Linear cost increase
+            if (!config) return Infinity;
              return config.base + (currentLevel * config.increment);
         }
 
@@ -1071,14 +883,12 @@
                 permanentUpgrades[type + 'Level']++;
                 playAudio('purchaseSound');
                 savePersistentData();
-                // applyPermanentUpgrades(); // Apply effects for the *next* game start, not immediately mid-shop
-                updatePermanentShopUI(); // Refresh shop display
+                updatePermanentShopUI();
             } else {
                 console.log("Not enough Gems!");
                  const button = document.getElementById(`buyPerm${type.charAt(0).toUpperCase() + type.slice(1)}Btn`);
                  if(button) {
                      button.style.animation = 'shake 0.5s';
-                     // Remove animation after it finishes so it can re-trigger
                      setTimeout(() => { if (button) button.style.animation = ''; }, 500);
                  }
             }
@@ -1086,9 +896,7 @@
 
 
         // --- UTILITY FUNCTIONS ---
-
         function getColorCode(colorName) {
-             // Cache colors? Minor optimization
             switch (colorName) {
                 case 'blue': return color(0, 150, 255);
                 case 'red': return color(255, 50, 50);
@@ -1110,58 +918,75 @@
              }
          }
 
+
         // --- AUDIO HANDLING ---
-         let audioContextStarted = false;
          function userStartAudio() {
-             // Only try if context exists and isn't already running
-             const audioCtx = getAudioContext();
-             if (!audioCtx || audioContextStarted || audioCtx.state === 'running') {
-                 return;
+             if (audioContextStarted) return;
+
+             if (!audioContext) {
+                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                 if (!audioContext) {
+                     console.error("Web Audio API is not supported in this browser.");
+                     return;
+                 }
              }
 
-             audioCtx.resume().then(() => {
-                 console.log("Audio Context resumed successfully by user interaction.");
+             if (audioContext.state === 'suspended') {
+                 audioContext.resume().then(() => {
+                     console.log("Audio Context resumed successfully by user interaction.");
+                     audioContextStarted = true;
+                     playBackgroundMusic();
+                 }).catch(e => console.error("Error resuming Audio Context:", e));
+             } else if (audioContext.state === 'running') {
+                 console.log("Audio Context was already running.");
                  audioContextStarted = true;
-                 playBackgroundMusic(); // Try playing music now that context is ready
-             }).catch(e => console.error("Error resuming Audio Context:", e));
+                 playBackgroundMusic();
+             } else {
+                  console.log("Audio Context state:", audioContext.state);
+                  audioContextStarted = true;
+                  playBackgroundMusic();
+             }
          }
 
         function playAudio(elementId) {
-             if (!audioContextStarted) {
-                  console.warn(`Audio context not started, cannot play ${elementId} yet.`);
-                  // Optionally trigger userStartAudio again, though it might be annoying
-                  // userStartAudio();
-                  return;
-             }
              try {
                  const sound = document.getElementById(elementId);
                  if (sound) {
-                     sound.volume = 0.8; // Example: Set volume
+                     sound.volume = 0.8;
                      sound.currentTime = 0;
-                     sound.play().catch(e => {
-                         if (e.name === 'NotAllowedError') {
-                             console.warn(`Autoplay prevented for ${elementId}. Waiting for further interaction.`);
-                         } else {
-                             console.error(`Error playing sound ${elementId}:`, e);
-                         }
-                     });
+                     const playPromise = sound.play();
+                     if (playPromise !== undefined) {
+                         playPromise.catch(error => {
+                             if (error.name === 'NotAllowedError') {
+                                 console.warn(`Playback of ${elementId} prevented until user interaction.`);
+                             } else {
+                                 console.error(`Error playing sound ${elementId}:`, error);
+                             }
+                         });
+                     }
                  } else {
-                      console.warn(`Audio element ${elementId} not found.`);
+                      // Only warn if the sound is expected (not the missing optional ones)
+                      if (!['upgradeSound', 'purchaseSound', 'hitSound'].includes(elementId) || document.getElementById(elementId)?.src) {
+                          console.warn(`Audio element ${elementId} not found or has no source.`);
+                      }
                  }
              } catch (e) {
                  console.error(`Exception playing sound ${elementId}:`, e);
              }
          }
+
          function playBackgroundMusic() {
-             if (!audioContextStarted) return;
              const bgMusic = document.getElementById('bgMusic');
              if (bgMusic && bgMusic.paused) {
-                  bgMusic.volume = 0.5; // Lower volume for BG music
-                 bgMusic.play().then(() => {
-                      console.log("Background music playing.");
-                 }).catch(e => console.warn("Background music play failed (likely needs interaction):", e));
+                  bgMusic.volume = 0.5;
+                 const playPromise = bgMusic.play();
+                 if (playPromise !== undefined) {
+                      playPromise.then(_ => console.log("Background music playing.") )
+                          .catch(e => console.warn("Background music play failed (likely needs interaction):", e));
+                 }
              }
          }
+
          function stopBackgroundMusic() {
              const bgMusic = document.getElementById('bgMusic');
              if (bgMusic) {
@@ -1175,28 +1000,8 @@
         // p5.js window resize handler
         function windowResized() {
           console.log("Window resized");
-          // Consider debouncing or throttling resize if complex calcs needed
           resizeCanvas(windowWidth * 0.9, windowHeight * 0.9);
-          // No need to reposition HUD elements with current CSS layout
         }
-
-        // Add simple CSS shake animation (ensure it's defined once)
-        (function addShakeAnimation() {
-             const styleSheet = document.styleSheets[0];
-             // Check if rule already exists
-             const existingRule = [...styleSheet.cssRules].find(rule => rule.name === 'shake');
-             if (!existingRule) {
-                 styleSheet.insertRule(`
-                     @keyframes shake {
-                         0%, 100% { transform: translateX(0); }
-                         25% { transform: translateX(-5px); }
-                         50% { transform: translateX(5px); }
-                         75% { transform: translateX(-5px); }
-                     }
-                 `, styleSheet.cssRules.length);
-                 console.log("Shake animation added.");
-             }
-         })();
 
     </script>
 </body>
