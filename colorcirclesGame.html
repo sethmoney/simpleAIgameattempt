@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dynamic Power-Up Collection Game with Meta-Progression v1.5</title> <!-- Version Bump -->
+    <title>Dynamic Power-Up Collection Game with Meta-Progression v1.6</title> <!-- Version Bump -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>
         /* General Setup */
@@ -65,12 +65,15 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             transition: background-color 0.2s ease, transform 0.2s ease;
         }
+        .modal-content-wrapper button:last-child {
+             margin-right: 0; /* Remove right margin from last button in a group */
+        }
         .modal-content-wrapper button:hover {
             background-color: #0056b3; transform: translateY(-2px);
         }
         .modal-content-wrapper button.disabled {
              background-color: #555; cursor: not-allowed; transform: none; box-shadow: none;
-        }
+         }
         .modal-content-wrapper button.disabled:hover { background-color: #555; }
 
         /* Upgrade Item Styling */
@@ -161,7 +164,7 @@
 
     <!-- Initial Instructions Modal -->
     <div id="modalInstructions" class="modal-overlay">
-        <div class="modal-content-wrapper"> {/* Inner wrapper */}
+        <div class="modal-content-wrapper"> <!-- Removed comment -->
             <h2>Welcome!</h2>
             <p>Collect circles. Avoid Red. Earn Gems. Upgrade!</p>
             <p>Yellow = 3 Pts, Purple = 2 Pts, Green & Blue = 1 Pt.</p>
@@ -176,7 +179,7 @@
 
     <!-- Game Over Modal -->
     <div id="gameOverModal" class="modal-overlay">
-        <div class="modal-content-wrapper"> {/* Inner wrapper */}
+        <div class="modal-content-wrapper"> <!-- Removed comment -->
             <h2>Game Over</h2>
              <p>Score: <span id="currentScoreDisplay">0</span></p>
              <p>Time Alive: <span id="timeAliveDisplay">0.0</span>s</p>
@@ -189,7 +192,7 @@
                  <p style="margin: 5px 0;">Congratulations! You're eligible for an NFT reward.</p>
                  <a href="https://highlight.xyz/mint/65da3c6c14d1e1cf26028c87" target="_blank" style="color: #1E90FF; text-decoration: underline;">Claim your NFT</a>
              </div>
-             <div> {/* Button container */}
+             <div> <!-- Removed comment -->
                  <button onclick="openPermanentUpgradeShop()">Upgrade Shop</button>
                  <button onclick="restartGame()">Restart Game</button>
             </div>
@@ -198,7 +201,7 @@
 
     <!-- Temporary Upgrade Shop Modal (In-Game) -->
     <div id="upgradeShopModal" class="modal-overlay">
-        <div class="modal-content-wrapper"> {/* Inner wrapper */}
+        <div class="modal-content-wrapper"> <!-- Removed comment -->
             <h2>Temporary Boosts!</h2>
             <p>(Spend 5 🟨 for a boost this round)</p>
             <div class="upgrade-item">
@@ -228,7 +231,7 @@
 
     <!-- Permanent Upgrade Shop Modal (Meta-Progression) -->
     <div id="permanentUpgradeShopModal" class="modal-overlay">
-         <div class="modal-content-wrapper"> {/* Inner wrapper */}
+         <div class="modal-content-wrapper"> <!-- Removed comment -->
             <h2>Permanent Upgrades</h2>
             <p class="currency-display">Total Gems: <span id="permShopTotalGemsDisplay">0</span>💎</p>
             <div class="upgrade-item">
@@ -251,7 +254,7 @@
                  <div><p>Base Magnet Strength</p><p><span id="permMagnetStrengthLevelDisplay">1.0</span> (+0.2/Lvl)</p></div>
                  <div><p>Cost: <span id="permMagnetStrengthCostDisplay">120</span>💎</p><button id="buyPermMagnetStrengthBtn" onclick="purchasePermanentUpgrade('magnetStrength')">Upgrade</button></div>
               </div>
-             <div style="margin-top: 25px;"> {/* Button container */}
+             <div style="margin-top: 25px;"> <!-- Removed comment -->
                 <button onclick="closePermanentUpgradeShopAndRestart()">Start New Game</button>
                  <button onclick="closePermanentUpgradeShop()">Close</button>
             </div>
@@ -263,7 +266,7 @@
         const INITIAL_PLAYER_SIZE = 20;
         const POWERUP_SIZE = 15;
         const BLUE_POWERUP_DURATION = 120;
-        const GREEN_POWERUP_DURATION = 300;
+        const GREEN_POWERUP_DURATION = 60; // *** SHORTENED DURATION (1 second) ***
         const GREEN_VELOCITY_BOOST_FACTOR = 1.8;
         const HIT_EFFECT_DURATION = 25;
         const YELLOW_EFFECT_DURATION = 75;
@@ -700,19 +703,39 @@
 
         function collectPowerUp(powerUp) {
             if (gameIsOver) return;
+
             playAudio(`${powerUp.color}PowerUpSound`);
             score += pointValues[powerUp.color] || 0;
+
+            // *** FIX: Increment inventory COUNT FIRST ***
+            inventory[powerUp.color] = (inventory[powerUp.color] || 0) + 1;
+
             switch (powerUp.color) {
                 case 'yellow':
-                    isYellowEffectActive = true; yellowEffectTimer = YELLOW_EFFECT_DURATION; yellowPowerUpsCollectedThisRound++;
-                     if (yellowPowerUpsCollectedThisRound >= YELLOW_POWERUP_THRESHOLD) { updateTempShopAvailability(); showUpgradeShopModal(); } break;
-                case 'red': currentHealth -= RED_DAMAGE; isHit = true; hitTimer = HIT_EFFECT_DURATION; playAudio('hitSound'); break;
+                    isYellowEffectActive = true;
+                    yellowEffectTimer = YELLOW_EFFECT_DURATION;
+                    yellowPowerUpsCollectedThisRound++;
+                     // Now check threshold against the already incremented inventory count
+                     if (yellowPowerUpsCollectedThisRound >= YELLOW_POWERUP_THRESHOLD) {
+                         console.log(`Yellow threshold met. Current yellow inventory: ${inventory['yellow']}`); // Debug log
+                         updateTempShopAvailability(); // Check availability based on current inventory
+                         showUpgradeShopModal();
+                         // Keep yellowPowerUpsCollectedThisRound counter high until shop is closed/purchase made
+                     }
+                    break;
+                case 'red':
+                    currentHealth -= RED_DAMAGE;
+                    isHit = true;
+                    hitTimer = HIT_EFFECT_DURATION;
+                    playAudio('hitSound');
+                    break;
                 case 'blue': activateBluePowerUp(); break;
                 case 'green': activateGreenPowerUp(); break;
                 case 'purple': gameTimer += 180; break;
             }
-             inventory[powerUp.color] = (inventory[powerUp.color] || 0) + 1;
-             score = Math.max(0, score);
+
+            // Score was already incremented
+            score = Math.max(0, score);
         }
 
 
@@ -726,8 +749,17 @@
              bluePowerUpTimer = BLUE_POWERUP_DURATION;
         }
         function deactivateBluePowerUp() { isBluePowerUpActive = false; playerSize = INITIAL_PLAYER_SIZE; }
-        function activateGreenPowerUp() { isGreenPowerUpActive = true; greenPowerUpTimer = GREEN_POWERUP_DURATION; currentSpeed = baseSpeed * GREEN_VELOCITY_BOOST_FACTOR; }
-        function deactivateGreenPowerUp() { isGreenPowerUpActive = false; currentSpeed = baseSpeed; }
+        function activateGreenPowerUp() {
+             isGreenPowerUpActive = true;
+             greenPowerUpTimer = GREEN_POWERUP_DURATION; // Use the shortened duration
+             currentSpeed = baseSpeed * GREEN_VELOCITY_BOOST_FACTOR;
+             console.log("Green Boost Activated! Duration:", GREEN_POWERUP_DURATION); // Debug log
+        }
+        function deactivateGreenPowerUp() {
+             isGreenPowerUpActive = false;
+             currentSpeed = baseSpeed;
+             console.log("Green Boost Deactivated."); // Debug log
+        }
 
 
         // --- PLAYER INPUT ---
@@ -766,32 +798,63 @@
 
         // --- TEMPORARY UPGRADE SHOP (IN-GAME) ---
         function updateTempShopAvailability() {
-             const cost = 5; const currentYellow = inventory['yellow'] || 0;
-             const healthBtn = document.getElementById('tempHealthBtn'); const speedBtn = document.getElementById('tempSpeedBtn'); const magnetBtn = document.getElementById('tempMagnetBtn');
+             const cost = 5;
+             const currentYellow = inventory['yellow'] || 0;
+             console.log(`Updating temp shop availability. Yellows in inventory: ${currentYellow}. Required: ${cost}`); // Debug log
+             const healthBtn = document.getElementById('tempHealthBtn');
+             const speedBtn = document.getElementById('tempSpeedBtn');
+             const magnetBtn = document.getElementById('tempMagnetBtn');
+
              if (healthBtn) { healthBtn.disabled = currentYellow < cost; healthBtn.classList.toggle('disabled', currentYellow < cost); }
              if (speedBtn) { speedBtn.disabled = currentYellow < cost; speedBtn.classList.toggle('disabled', currentYellow < cost); }
              if (magnetBtn) { magnetBtn.disabled = currentYellow < cost; magnetBtn.classList.toggle('disabled', currentYellow < cost); }
+             console.log(`Buttons Disabled: Health=${healthBtn?.disabled}, Speed=${speedBtn?.disabled}, Magnet=${magnetBtn?.disabled}`); // Debug log
          }
         function showUpgradeShopModal() {
-             if (gameIsOver) return; console.log("Showing temporary upgrade shop."); updateTempShopAvailability();
-              const shopModal = document.getElementById('upgradeShopModal'); if(shopModal) shopModal.style.display = 'flex';
-             playAudio('upgradeSound'); if (isLooping()) { noLoop(); console.log("Game loop paused for temp shop."); }
+             if (gameIsOver) return;
+             console.log("Showing temporary upgrade shop.");
+             updateTempShopAvailability(); // Ensure this runs right before showing
+              const shopModal = document.getElementById('upgradeShopModal');
+              if(shopModal) shopModal.style.display = 'flex';
+             playAudio('upgradeSound');
+             if (isLooping()) {
+                 noLoop();
+                 console.log("Game loop paused for temp shop.");
+             }
          }
         function closeUpgradeShop() {
-             const shopModal = document.getElementById('upgradeShopModal'); if(shopModal) shopModal.style.display = 'none';
-             yellowPowerUpsCollectedThisRound = 0; if (!gameIsOver && !isLooping()) { loop(); console.log("Resuming game loop after closing temp shop."); }
+             const shopModal = document.getElementById('upgradeShopModal');
+             if(shopModal) shopModal.style.display = 'none';
+             yellowPowerUpsCollectedThisRound = 0; // Reset the *trigger* counter when closing
+             if (!gameIsOver && !isLooping()) {
+                 loop();
+                 console.log("Resuming game loop after closing temp shop.");
+             }
          }
         function purchaseTempUpgrade(upgradeType) {
              const cost = 5;
+             console.log(`Attempting purchase: ${upgradeType}. Have ${inventory['yellow']} yellows.`); // Debug log
              if ((inventory['yellow'] || 0) >= cost) {
-                 inventory['yellow'] -= cost; playAudio('purchaseSound');
+                 inventory['yellow'] -= cost; // Deduct cost from inventory
+                 playAudio('purchaseSound');
                  switch (upgradeType) {
                      case 'healthBoost': maxHealth += 25; currentHealth += 25; currentHealth = Math.min(currentHealth, maxHealth); break;
                      case 'speedBoost': baseSpeed += 1.5; currentSpeed = isGreenPowerUpActive ? baseSpeed * GREEN_VELOCITY_BOOST_FACTOR : baseSpeed; break;
                      case 'magnet': currentMagnetRadius += 50; currentMagnetStrength += 0.8; magnetActive = true; break;
                  }
-                 yellowPowerUpsCollectedThisRound = 0; closeUpgradeShop();
-             } else { console.log("Not enough yellow power-ups!"); }
+                 yellowPowerUpsCollectedThisRound = 0; // Reset trigger counter
+                 closeUpgradeShop(); // Close shop after purchase
+                 console.log(`Purchase successful. Remaining yellows: ${inventory['yellow']}`); // Debug log
+             } else {
+                 console.log("Not enough yellow power-ups for purchase!");
+                 // Shake button?
+                 const buttonId = `temp${upgradeType.charAt(0).toUpperCase() + upgradeType.slice(1)}Btn`.replace('Boost','Btn'); // Construct button ID
+                 const button = document.getElementById(buttonId);
+                 if(button) {
+                     button.style.animation = 'shake 0.5s';
+                     setTimeout(() => { if (button) button.style.animation = ''; }, 500);
+                 }
+             }
         }
 
 
@@ -818,7 +881,7 @@
         function updatePermUpgradeItem(type, levelDisplayId, costDisplayId, buttonId) {
             const level = permanentUpgrades[type + 'Level'] || 0; const baseStat = initialBaseStats[type] || 0; const increment = upgradeIncrements[type] || 0; const currentStatValue = baseStat + (level * increment);
             let displayValue = type === 'time' ? (currentStatValue / 60).toFixed(1) + 's' : type === 'health' ? Math.round(currentStatValue) : currentStatValue.toFixed(1);
-            const levelDisplayEl = document.getElementById(levelDisplayId); if (levelDisplayEl) levelDisplayEl.textContent = `${displayValue}`; // Simplified display
+            const levelDisplayEl = document.getElementById(levelDisplayId); if (levelDisplayEl) levelDisplayEl.textContent = `${displayValue}`;
             const cost = calculateUpgradeCost(type, level); const costDisplayEl = document.getElementById(costDisplayId); if (costDisplayEl) costDisplayEl.textContent = `${cost}💎`;
             const button = document.getElementById(buttonId); if (button) { button.disabled = persistentCurrency < cost; button.classList.toggle('disabled', persistentCurrency < cost); }
         }
@@ -858,16 +921,23 @@
         function playAudio(elementId) {
              try {
                  const sound = document.getElementById(elementId);
-                 if (sound && sound.src) { // Check if src exists
+                 if (sound && sound.src && sound.src !== window.location.href) { // Check src exists and isn't just the base URL
                      sound.volume = 0.8; sound.currentTime = 0;
                      const playPromise = sound.play();
                      if (playPromise !== undefined) { playPromise.catch(error => { if (error.name === 'NotAllowedError') { console.warn(`Playback ${elementId} prevented.`); } else { console.error(`Error ${elementId}:`, error); } }); }
-                 } else if (!['upgradeSound', 'purchaseSound', 'hitSound'].includes(elementId)) { console.warn(`Audio element ${elementId} not found or no src.`); } // Only warn for core sounds if missing
+                 } else if (sound && (!sound.src || sound.src === window.location.href)) {
+                      // Don't warn if the src is intentionally empty or missing (e.g., for sounds not yet added)
+                     if (sound.hasAttribute('src') && sound.getAttribute('src') !== '') { // Only log if src attribute exists but is effectively empty/invalid
+                        console.warn(`Audio element ${elementId} has missing or invalid src: ${sound.src}`);
+                     }
+                 } else if (!sound) {
+                    console.warn(`Audio element ${elementId} not found.`); // Only warn if element truly doesn't exist
+                 }
              } catch (e) { console.error(`Exception playing ${elementId}:`, e); }
          }
          function playBackgroundMusic() {
              const bgMusic = document.getElementById('bgMusic');
-             if (bgMusic && bgMusic.paused && bgMusic.src) {
+             if (bgMusic && bgMusic.paused && bgMusic.src && bgMusic.src !== window.location.href) {
                   bgMusic.volume = 0.5;
                  const playPromise = bgMusic.play();
                  if (playPromise !== undefined) { playPromise.then(_ => console.log("BG music playing.") ).catch(e => console.warn("BG music failed:", e)); }
